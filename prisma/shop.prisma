@@ -1,0 +1,679 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../node_modules/.prisma/client/shop"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL_SHOP")
+}
+
+model backup_customersilink_28012565 {
+  id                   BigInt  @id @default(autoincrement())
+  No_                  String? @db.VarChar(255)
+  Name                 String? @db.VarChar(255)
+  Name_2               String? @db.VarChar(255)
+  Address              String? @db.VarChar(255)
+  Address_2            String? @db.VarChar(255)
+  District             String? @db.VarChar(255)
+  Amphur               String? @db.VarChar(255)
+  County               String? @db.VarChar(255)
+  Contact              String? @db.VarChar(255)
+  PhoneNo_             String? @db.VarChar(255)
+  E_Mail               String? @map("E-Mail") @db.VarChar(255)
+  VAT_Registration_No_ String? @db.VarChar(255)
+  Customer_Price_Group String? @db.VarChar(255)
+  Salesperson_Code     String? @db.VarChar(255)
+  Salesperson_Name     String? @db.VarChar(255)
+  Blocked              String? @db.VarChar(10)
+}
+
+model backup_interlinkid_invalid_customer_id_form_clearance_ {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  customer_id     String?   @db.VarChar(255)
+  username        String    @unique(map: "customers_username_unique") @db.VarChar(255)
+  password        String    @db.VarChar(255)
+  name            String?   @db.VarChar(255)
+  email           String    @unique(map: "customers_email_unique") @db.VarChar(255)
+  tel             String?   @db.VarChar(255)
+  gender          String?   @db.VarChar(255)
+  birthday        DateTime? @db.Date
+  member_status   Boolean?  @default(false)
+  created_at      DateTime? @db.Timestamp(0)
+  updated_at      DateTime? @db.Timestamp(0)
+  company         String?   @db.VarChar(255)
+  address_company String?   @db.Text
+  sale_event      String?   @db.VarChar(255)
+
+  @@map("backup_interlinkid(invalid customer_id form clearance)")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model carts {
+  id            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  id__customers BigInt    @db.UnsignedBigInt
+  product       String    @db.VarChar(255)
+  quantity      BigInt
+  uom           String?   @db.VarChar(10)
+  price         Decimal?  @db.Decimal(38, 2)
+  price_amount  Decimal?  @db.Decimal(38, 2)
+  created_at    DateTime? @db.Timestamp(0)
+  updated_at    DateTime? @db.Timestamp(0)
+  cart_status   Int?      @default(0) @db.TinyInt
+  chrg_id       String?   @db.VarChar(255)
+  check_product Boolean   @default(false)
+  reserve       Int       @default(0) @db.TinyInt
+  event_sale    String?   @db.VarChar(100)
+  customers     customers @relation(fields: [id__customers], references: [id], onUpdate: Restrict, map: "carts_id__customers_foreign")
+
+  @@index([id__customers], map: "carts_id__customers_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model carts_expo {
+  id            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  id__customers BigInt
+  product       String    @db.VarChar(255)
+  quantity      BigInt
+  uom           String?   @db.VarChar(10)
+  price         Decimal?  @db.Decimal(10, 2)
+  price_amount  Decimal?  @db.Decimal(10, 2)
+  created_at    DateTime? @db.Timestamp(0)
+  updated_at    DateTime? @db.Timestamp(0)
+  cart_status   Int?      @default(0) @db.TinyInt
+  chrg_id       String?   @db.VarChar(255)
+  check_product Boolean   @default(false)
+
+  @@index([id__customers], map: "carts_id__customers_foreign")
+}
+
+model clearance_customer_profile_entities {
+  id                 BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  id__customer       BigInt    @db.UnsignedBigInt
+  entityCompanyName  String?   @db.VarChar(255)
+  entityCustomerName String?   @db.VarChar(255)
+  entityTel          String?   @db.VarChar(255)
+  entityMail         String?   @db.VarChar(255)
+  entityContactMore  String?   @db.VarChar(255)
+  entityTaxId        String?   @db.VarChar(255)
+  entityTaxAddr      String?   @db.VarChar(255)
+  entityTaxDistric   String?   @db.VarChar(255)
+  entityTaxProvince  String?   @db.VarChar(255)
+  entityTaxCountry   String?   @db.VarChar(255)
+  entityTaxPostcode  String?   @db.VarChar(255)
+  entityShipAddr     String?   @db.VarChar(255)
+  entityShipDistric  String?   @db.VarChar(255)
+  entityShipProvince String?   @db.VarChar(255)
+  entityShipCountry  String?   @db.VarChar(255)
+  entityShipPostCode String?   @db.VarChar(255)
+  start              Boolean?  @default(false)
+  created_at         DateTime? @db.Timestamp(0)
+  updated_at         DateTime? @db.Timestamp(0)
+  entityCustomerId   String?   @db.VarChar(255)
+}
+
+model clearance_customer_profile_people {
+  id                 BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  id__customer       BigInt    @db.UnsignedBigInt
+  personCompanyName  String?   @db.VarChar(255)
+  personIdCard       String?   @db.VarChar(255)
+  personTel          String?   @db.VarChar(255)
+  personMail         String?   @db.VarChar(255)
+  personContactMore  String?   @db.VarChar(255)
+  personShipAddr     String?   @db.VarChar(255)
+  personShipDistric  String?   @db.VarChar(255)
+  personShipProvince String?   @db.VarChar(255)
+  personShipCountry  String?   @db.VarChar(255)
+  personShipPostCode String?   @db.VarChar(255)
+  start              Boolean?  @default(false)
+  created_at         DateTime? @db.Timestamp(0)
+  updated_at         DateTime? @db.Timestamp(0)
+  personTaxAddr      String?   @db.VarChar(255)
+  personTaxDistric   String?   @db.VarChar(255)
+  personTaxProvince  String?   @db.VarChar(255)
+  personTaxCountry   String?   @db.VarChar(255)
+  personTaxPostcode  String?   @db.VarChar(255)
+}
+
+model clearance_customers {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  customer_id     String?   @db.VarChar(255)
+  username        String    @unique(map: "customers_username_unique") @db.VarChar(255)
+  password        String    @db.VarChar(255)
+  name            String?   @db.VarChar(255)
+  email           String    @unique(map: "customers_email_unique") @db.VarChar(255)
+  tel             String?   @db.VarChar(255)
+  gender          String?   @db.VarChar(255)
+  birthday        DateTime? @db.Date
+  member_status   Boolean?  @default(false)
+  created_at      DateTime? @db.Timestamp(0)
+  updated_at      DateTime? @db.Timestamp(0)
+  company         String?   @db.VarChar(255)
+  address_company String?   @db.Text
+  sale_event      String    @default("clearance2021") @db.VarChar(255)
+}
+
+model clearance_customers_old {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  customer_id     String?   @db.VarChar(255)
+  username        String    @unique(map: "customers_username_unique") @db.VarChar(255)
+  password        String    @db.VarChar(255)
+  name            String?   @db.VarChar(255)
+  email           String    @unique(map: "customers_email_unique") @db.VarChar(255)
+  tel             String?   @db.VarChar(255)
+  gender          String?   @db.VarChar(255)
+  birthday        DateTime? @db.Date
+  member_status   Boolean?  @default(false)
+  created_at      DateTime? @db.Timestamp(0)
+  updated_at      DateTime? @db.Timestamp(0)
+  company         String?   @db.VarChar(255)
+  address_company String?   @db.Text
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model clearancecarts {
+  id            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  id__customers BigInt    @db.UnsignedBigInt
+  product       String    @db.VarChar(255)
+  quantity      BigInt
+  uom           String?   @db.VarChar(10)
+  price         Decimal?  @db.Decimal(10, 2)
+  price_amount  Decimal?  @db.Decimal(10, 2)
+  created_at    DateTime? @db.Timestamp(0)
+  updated_at    DateTime? @db.Timestamp(0)
+  cart_status   Int?      @default(0) @db.TinyInt
+  chrg_id       String?   @db.VarChar(255)
+  check_product Boolean   @default(false)
+
+  @@index([id__customers], map: "carts_id__customers_foreign")
+}
+
+model counts {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  section    String    @db.VarChar(100)
+  count      Int       @default(0) @db.UnsignedInt
+  note       String?   @db.LongText
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model customer_profile_entities {
+  id                 BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  id__customer       BigInt    @db.UnsignedBigInt
+  entityCompanyName  String?   @db.VarChar(255)
+  entityCustomerName String?   @db.VarChar(255)
+  entityTel          String?   @db.VarChar(255)
+  entityMail         String?   @db.VarChar(255)
+  entityContactMore  String?   @db.VarChar(255)
+  entityTaxId        String?   @db.VarChar(255)
+  entityTaxAddr      String?   @db.VarChar(255)
+  entityTaxDistric   String?   @db.VarChar(255)
+  entityTaxProvince  String?   @db.VarChar(255)
+  entityTaxCountry   String?   @db.VarChar(255)
+  entityTaxPostcode  String?   @db.VarChar(255)
+  entityShipAddr     String?   @db.VarChar(255)
+  entityShipDistric  String?   @db.VarChar(255)
+  entityShipProvince String?   @db.VarChar(255)
+  entityShipCountry  String?   @db.VarChar(255)
+  entityShipPostCode String?   @db.VarChar(255)
+  start              Boolean?  @default(false)
+  created_at         DateTime? @db.Timestamp(0)
+  updated_at         DateTime? @db.Timestamp(0)
+}
+
+model customer_profile_people {
+  id                 BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  id__customer       BigInt    @db.UnsignedBigInt
+  personCompanyName  String?   @db.VarChar(255)
+  personIdCard       String?   @db.VarChar(255)
+  personTel          String?   @db.VarChar(255)
+  personMail         String?   @db.VarChar(255)
+  personContactMore  String?   @db.VarChar(255)
+  personShipAddr     String?   @db.VarChar(255)
+  personShipDistric  String?   @db.VarChar(255)
+  personShipProvince String?   @db.VarChar(255)
+  personShipCountry  String?   @db.VarChar(255)
+  personShipPostCode String?   @db.VarChar(255)
+  start              Boolean?  @default(false)
+  created_at         DateTime? @db.Timestamp(0)
+  updated_at         DateTime? @db.Timestamp(0)
+  personTaxAddr      String?   @db.VarChar(255)
+  personTaxDistric   String?   @db.VarChar(255)
+  personTaxProvince  String?   @db.VarChar(255)
+  personTaxCountry   String?   @db.VarChar(255)
+  personTaxPostcode  String?   @db.VarChar(255)
+}
+
+model customer_shipment_addresses_old {
+  id               BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  id__customers    BigInt    @db.UnsignedBigInt
+  contact_name     String?   @db.VarChar(255)
+  contact_tel      String    @db.VarChar(255)
+  address_name     String?   @db.VarChar(255)
+  address_no       String?   @db.VarChar(255)
+  floor            String?   @db.VarChar(255)
+  village          String?   @db.VarChar(255)
+  soi              String?   @db.VarChar(255)
+  moo_no           String?   @db.VarChar(255)
+  street           String?   @db.VarChar(255)
+  district         String?   @db.VarChar(255)
+  amphur           String    @db.VarChar(255)
+  city             String    @db.VarChar(255)
+  post_code        String    @db.VarChar(255)
+  address_detail   String?   @db.VarChar(255)
+  tag_address      Int?      @default(0) @db.TinyInt
+  starting_address Boolean?  @default(false)
+  created_at       DateTime? @db.Timestamp(0)
+  updated_at       DateTime? @db.Timestamp(0)
+  customers        customers @relation(fields: [id__customers], references: [id], onUpdate: Restrict, map: "customer_shipment_addresses_id__customers_foreign")
+
+  @@index([id__customers], map: "customer_shipment_addresses_id__customers_foreign")
+}
+
+model customers {
+  id                              BigInt                            @id @default(autoincrement()) @db.UnsignedBigInt
+  customer_id                     String?                           @db.VarChar(255)
+  username                        String                            @unique(map: "customers_username_unique") @db.VarChar(255)
+  password                        String                            @db.VarChar(255)
+  name                            String?                           @db.VarChar(255)
+  email                           String                            @unique(map: "customers_email_unique") @db.VarChar(255)
+  tel                             String?                           @db.VarChar(255)
+  gender                          String?                           @db.VarChar(255)
+  birthday                        DateTime?                         @db.Date
+  member_status                   Boolean?                          @default(false)
+  created_at                      DateTime?                         @db.Timestamp(0)
+  updated_at                      DateTime?                         @db.Timestamp(0)
+  company                         String?                           @db.VarChar(255)
+  address_company                 String?                           @db.Text
+  sale_event                      String?                           @db.VarChar(255)
+  carts                           carts[]
+  customer_shipment_addresses_old customer_shipment_addresses_old[]
+  remember_card_kbanks            remember_card_kbanks[]
+}
+
+model customersilink {
+  id                   BigInt  @id @default(autoincrement())
+  No_                  String? @db.VarChar(255)
+  Name                 String? @db.VarChar(255)
+  Name_2               String? @db.VarChar(255)
+  Address              String? @db.VarChar(255)
+  Address_2            String? @db.VarChar(255)
+  District             String? @db.VarChar(255)
+  Amphur               String? @db.VarChar(255)
+  County               String? @db.VarChar(255)
+  PostCode             String? @db.VarChar(10)
+  Contact              String? @db.VarChar(255)
+  PhoneNo_             String? @db.VarChar(255)
+  E_Mail               String? @map("E-Mail") @db.VarChar(255)
+  VAT_Registration_No_ String? @db.VarChar(255)
+  Customer_Price_Group String? @db.VarChar(255)
+  Salesperson_Code     String? @db.VarChar(255)
+  Salesperson_Name     String? @db.VarChar(255)
+  Blocked              String? @db.VarChar(10)
+}
+
+model customersilink_old02022565 {
+  id                   BigInt  @id @default(autoincrement())
+  No_                  String? @db.VarChar(255)
+  Name                 String? @db.VarChar(255)
+  Name_2               String? @db.VarChar(255)
+  Address              String? @db.VarChar(255)
+  Address_2            String? @db.VarChar(255)
+  District             String? @db.VarChar(255)
+  Amphur               String? @db.VarChar(255)
+  County               String? @db.VarChar(255)
+  Contact              String? @db.VarChar(255)
+  PhoneNo_             String? @db.VarChar(255)
+  E_Mail               String? @map("E-Mail") @db.VarChar(255)
+  VAT_Registration_No_ String? @db.VarChar(255)
+  Customer_Price_Group String? @db.VarChar(255)
+  Salesperson_Code     String? @db.VarChar(255)
+  Salesperson_Name     String? @db.VarChar(255)
+  Blocked              String? @db.VarChar(10)
+}
+
+model districts {
+  id            Int             @id @default(autoincrement()) @db.UnsignedInt
+  name          String          @db.VarChar(255)
+  province_id   Int             @db.UnsignedInt
+  created_at    DateTime?       @db.Timestamp(0)
+  updated_at    DateTime?       @db.Timestamp(0)
+  provinces     provinces       @relation(fields: [province_id], references: [id], onDelete: Cascade, map: "districts_province_id_foreign")
+  postal_codes  postal_codes[]
+  sub_districts sub_districts[]
+
+  @@index([province_id], map: "districts_province_id_foreign")
+}
+
+model event_sales_old {
+  id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  event_sale   String    @db.VarChar(255)
+  event_status Boolean?  @default(false)
+  created_at   DateTime? @db.Timestamp(0)
+  updated_at   DateTime? @db.Timestamp(0)
+}
+
+model identity_verifications {
+  id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  event        String?   @db.VarChar(255)
+  company      String?   @db.VarChar(255)
+  fullname     String?   @db.VarChar(255)
+  phone_number String?   @db.VarChar(255)
+  email        String?   @db.VarChar(255)
+  created_at   DateTime? @db.Timestamp(0)
+  updated_at   DateTime? @db.Timestamp(0)
+  pattern_join String?   @db.VarChar(20)
+}
+
+model interlinkid {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  customer_id     String?   @db.VarChar(255)
+  username        String    @unique(map: "customers_username_unique") @db.VarChar(255)
+  password        String    @db.VarChar(255)
+  name            String?   @db.VarChar(255)
+  email           String    @unique(map: "customers_email_unique") @db.VarChar(255)
+  tel             String?   @db.VarChar(255)
+  gender          String?   @db.VarChar(255)
+  birthday        DateTime? @db.Date
+  member_status   Boolean?  @default(false)
+  created_at      DateTime? @db.Timestamp(0)
+  updated_at      DateTime? @db.Timestamp(0)
+  company         String?   @db.VarChar(255)
+  address_company String?   @db.Text
+  sale_event      String?   @db.VarChar(255)
+}
+
+model inv {
+  id                       BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  inv                      String?   @db.VarChar(50)
+  chrg_id                  String    @db.VarChar(255)
+  data_checkout            String    @db.Text
+  data_sales_header        String?   @db.LongText
+  data_sales_line          String?   @db.LongText
+  inv_status               Boolean?  @default(false)
+  reserve                  Boolean   @default(false)
+  created_at               DateTime? @db.Timestamp(0)
+  updated_at               DateTime? @db.Timestamp(0)
+  id__customers            BigInt    @db.UnsignedBigInt
+  event_sale               String?   @db.VarChar(100)
+  ref_inv                  String    @db.VarChar(20)
+  resp_InsertSalesHeader   String?   @db.LongText
+  resp_InsertSalesLine     String?   @db.LongText
+  resp_ReleaseSalesInvoice String?   @db.LongText
+  resp_PostSalesInvoice    String?   @db.LongText
+  complete                 Boolean   @default(false)
+  lead_time                String?   @db.VarChar(200)
+}
+
+model lead_times {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  sku        String    @db.VarChar(100)
+  uom        String?   @db.VarChar(20)
+  stock      String?   @db.VarChar(100)
+  lead_time  Int?
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model lock_orders {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  sku         String    @db.VarChar(255)
+  quantity    Int
+  uom         String?   @db.VarChar(10)
+  location    String    @db.VarChar(4)
+  status      Int       @default(1) @db.TinyInt
+  id_customer BigInt
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+  timeout     BigInt
+}
+
+model migrations {
+  id        Int    @id @default(autoincrement()) @db.UnsignedInt
+  migration String @db.VarChar(255)
+  batch     Int
+}
+
+model navisions {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  host       String    @db.VarChar(255)
+  token      String    @db.LongText
+  exp        BigInt
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model new2_customersilink {
+  id                   BigInt  @id @default(autoincrement())
+  No_                  String? @db.VarChar(255)
+  Name                 String? @db.VarChar(255)
+  Name_2               String? @db.VarChar(255)
+  Address              String? @db.VarChar(255)
+  Address_2            String? @db.VarChar(255)
+  District             String? @db.VarChar(255)
+  Amphur               String? @db.VarChar(255)
+  County               String? @db.VarChar(255)
+  PostCode             String? @db.VarChar(10)
+  Contact              String? @db.VarChar(255)
+  PhoneNo_             String? @db.VarChar(255)
+  E_Mail               String? @map("E-Mail") @db.VarChar(255)
+  VAT_Registration_No_ String? @db.VarChar(255)
+  Customer_Price_Group String? @db.VarChar(255)
+  Salesperson_Code     String? @db.VarChar(255)
+  Salesperson_Name     String? @db.VarChar(255)
+  Blocked              String? @db.VarChar(10)
+}
+
+model notify_kbanks {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  inv        String?   @db.VarChar(255)
+  checksum   String?   @db.Text
+  request    String?   @db.LongText
+  status     Boolean?  @default(false)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+  chrg       String?   @db.VarChar(255)
+}
+
+model payment_redirects {
+  id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  event_sale   String?   @db.VarChar(100)
+  url_redirect String?   @db.LongText
+  status       Int       @default(1) @db.TinyInt
+  created_at   DateTime? @db.Timestamp(0)
+  updated_at   DateTime? @db.Timestamp(0)
+}
+
+model postal_codes {
+  id              Int           @id @default(autoincrement()) @db.UnsignedInt
+  code            Int
+  sub_district_id Int           @db.UnsignedInt
+  district_id     Int           @db.UnsignedInt
+  province_id     Int           @db.UnsignedInt
+  created_at      DateTime?     @db.Timestamp(0)
+  updated_at      DateTime?     @db.Timestamp(0)
+  districts       districts     @relation(fields: [district_id], references: [id], onDelete: Cascade, map: "postal_codes_district_id_foreign")
+  provinces       provinces     @relation(fields: [province_id], references: [id], onDelete: Cascade, map: "postal_codes_province_id_foreign")
+  sub_districts   sub_districts @relation(fields: [sub_district_id], references: [id], onDelete: Cascade, map: "postal_codes_sub_district_id_foreign")
+
+  @@index([district_id], map: "postal_codes_district_id_foreign")
+  @@index([province_id], map: "postal_codes_province_id_foreign")
+  @@index([sub_district_id], map: "postal_codes_sub_district_id_foreign")
+}
+
+model product_conditions {
+  id             Int      @id @default(autoincrement())
+  pro_id         Int?
+  pro_sku        String?  @db.VarChar(50)
+  pro_brand      String?  @db.VarChar(50)
+  pro_details    String?  @db.Text
+  minimum_length String?  @db.VarChar(255)
+  sales_type     String?  @db.VarChar(50)
+  units_system   String?  @db.VarChar(50)
+  created_at     DateTime @default(now()) @db.Timestamp(0)
+  updated_at     DateTime @default(dbgenerated("'0000-00-00 00:00:00'")) @db.Timestamp(0)
+}
+
+model provinces {
+  id           Int            @id @default(autoincrement()) @db.UnsignedInt
+  name         String         @db.VarChar(255)
+  created_at   DateTime?      @db.Timestamp(0)
+  updated_at   DateTime?      @db.Timestamp(0)
+  districts    districts[]
+  postal_codes postal_codes[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model public_holidays {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  company    String?   @db.VarChar(100)
+  date       String    @db.VarChar(50)
+  note       String?   @db.VarChar(255)
+  status     Int       @default(1) @db.TinyInt
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model ref_to_invs {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  ref_inv    String    @db.VarChar(20)
+  inv        String?   @db.VarChar(20)
+  chrg_id    String    @db.LongText
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model regis {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  event           String?   @db.VarChar(255)
+  company         String?   @db.VarChar(255)
+  fullname        String?   @db.VarChar(255)
+  mobile_phone    String?   @db.VarChar(255)
+  email           String?   @db.VarChar(255)
+  metting_pattern String?   @db.VarChar(255)
+  created_at      DateTime? @db.Timestamp(0)
+  updated_at      DateTime? @db.Timestamp(0)
+}
+
+model regis_event {
+  id              BigInt    @id @default(autoincrement())
+  event           String?   @db.VarChar(255)
+  id__interlinkid BigInt
+  meeting_pattern String?   @db.VarChar(255)
+  created_at      DateTime? @db.Timestamp(0)
+  updated_at      DateTime? @db.Timestamp(0)
+}
+
+model remember_card_kbanks {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  id__customers   BigInt    @db.UnsignedBigInt
+  create_customer String?   @db.Text
+  customer        String?   @db.LongText
+  status          Boolean?  @default(false)
+  created_at      DateTime? @db.Timestamp(0)
+  updated_at      DateTime? @db.Timestamp(0)
+  customers       customers @relation(fields: [id__customers], references: [id], onUpdate: Restrict, map: "remember_card_kbanks_id__customers_foreign")
+
+  @@index([id__customers], map: "remember_card_kbanks_id__customers_foreign")
+}
+
+model report_soldouts {
+  id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  stock        String?   @db.VarChar(50)
+  data_soldout String?   @db.LongText
+  sku_err      String?   @db.LongText
+  created_at   DateTime? @db.Timestamp(0)
+  updated_at   DateTime? @db.Timestamp(0)
+}
+
+model reserves {
+  id                BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  id_customer       BigInt
+  sku               String    @db.VarChar(255)
+  price             Float     @default(0.00)
+  quantity          Int       @default(0)
+  uom               String?   @db.VarChar(255)
+  total             Float     @default(0.00)
+  data_make_reserve String    @db.LongText
+  created_at        DateTime? @db.Timestamp(0)
+  updated_at        DateTime? @db.Timestamp(0)
+}
+
+model reservitemsteppay {
+  id       BigInt  @id @default(autoincrement())
+  product  String? @db.VarChar(255)
+  quantity Int     @default(0)
+  todo     String? @db.VarChar(255)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model sales_detail_tb {
+  id            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  id__customers BigInt    @db.UnsignedBigInt
+  total_amount  Decimal?  @db.Decimal(38, 2)
+  product       String?   @db.VarChar(255)
+  quantity      BigInt?   @default(0) @db.UnsignedBigInt
+  uom           String?   @db.VarChar(50)
+  price         Decimal?  @db.Decimal(38, 2)
+  shop_date     DateTime? @db.Timestamp(0)
+  created_at    DateTime? @db.Timestamp(0)
+  created_by    String?   @db.VarChar(255)
+  updated_at    DateTime? @db.Timestamp(0)
+  updated_by    String?   @db.VarChar(255)
+  status        Int?      @default(0) @db.TinyInt
+  remark        String?   @db.VarChar(255)
+
+  @@index([id__customers], map: "sales_report_by_cust_id__customers_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model sales_report_tb {
+  id            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  id__customers BigInt    @db.UnsignedBigInt
+  total_amount  Decimal?  @db.Decimal(38, 2)
+  company_name  String?   @db.VarChar(255)
+  customer_Name String?   @db.VarChar(255)
+  telephone     String?   @db.VarChar(255)
+  email         String?   @db.VarChar(255)
+  created_at    DateTime? @db.Timestamp(0)
+  created_by    String?   @db.VarChar(255)
+  updated_at    DateTime? @db.Timestamp(0)
+  updated_by    String?   @db.VarChar(255)
+  status        Int?      @default(0) @db.TinyInt
+  remark        String?   @db.VarChar(255)
+
+  @@index([id__customers], map: "sales_report_by_cust_id__customers_foreign")
+}
+
+model spy {
+  id                   BigInt  @id @default(autoincrement())
+  No_                  String? @db.VarChar(255)
+  Name                 String? @db.VarChar(255)
+  Name_2               String? @db.VarChar(255)
+  Address              String? @db.VarChar(255)
+  Address_2            String? @db.VarChar(255)
+  District             String? @db.VarChar(255)
+  Amphur               String? @db.VarChar(255)
+  County               String? @db.VarChar(255)
+  Contact              String? @db.VarChar(255)
+  PhoneNo_             String? @db.VarChar(255)
+  E_Mail               String? @map("E-Mail") @db.VarChar(255)
+  VAT_Registration_No_ String? @db.VarChar(255)
+  Customer_Price_Group String? @db.VarChar(255)
+  Salesperson_Code     String? @db.VarChar(255)
+  Salesperson_Name     String? @db.VarChar(255)
+  Blocked              String? @db.VarChar(10)
+}
+
+model sub_districts {
+  id           Int            @id @default(autoincrement()) @db.UnsignedInt
+  name         String         @db.VarChar(255)
+  district_id  Int            @db.UnsignedInt
+  created_at   DateTime?      @db.Timestamp(0)
+  updated_at   DateTime?      @db.Timestamp(0)
+  postal_codes postal_codes[]
+  districts    districts      @relation(fields: [district_id], references: [id], onDelete: Cascade, map: "sub_districts_district_id_foreign")
+
+  @@index([district_id], map: "sub_districts_district_id_foreign")
+}
