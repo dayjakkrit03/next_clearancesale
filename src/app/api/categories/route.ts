@@ -29,7 +29,7 @@ function toUICategory(r: any) {
 }
 
 export async function GET() {
-  const rows = await prismaInterlink.category.findMany({
+  const rows = await prismaInterlink.category_clearance.findMany({
     where: { category_status: 1 },
     orderBy: { category_number: 'asc' },
     select: {

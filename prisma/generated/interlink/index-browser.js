@@ -203,6 +203,169 @@ exports.Prisma.SubScalarFieldEnum = {
   updated_at: 'updated_at'
 };
 
+exports.Prisma.Category_clearanceScalarFieldEnum = {
+  category_id: 'category_id',
+  category_name: 'category_name',
+  category_number: 'category_number',
+  category_keyword: 'category_keyword',
+  category_title: 'category_title',
+  category_description: 'category_description',
+  category_color: 'category_color',
+  category_picture: 'category_picture',
+  category_status: 'category_status',
+  users_action: 'users_action',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.Discountpercentage_clearance_tbScalarFieldEnum = {
+  dcp_id: 'dcp_id',
+  product_id: 'product_id',
+  product_discount: 'product_discount',
+  create_date: 'create_date',
+  create_name: 'create_name',
+  update_date: 'update_date',
+  update_name: 'update_name'
+};
+
+exports.Prisma.Discountpercentage_tbScalarFieldEnum = {
+  dcp_id: 'dcp_id',
+  product_id: 'product_id',
+  product_discount: 'product_discount',
+  create_date: 'create_date',
+  create_name: 'create_name',
+  update_date: 'update_date',
+  update_name: 'update_name'
+};
+
+exports.Prisma.More_pictures_clearanceScalarFieldEnum = {
+  mpc_id: 'mpc_id',
+  product_id: 'product_id',
+  product_picture: 'product_picture',
+  create_date: 'create_date',
+  create_name: 'create_name',
+  update_date: 'update_date',
+  update_name: 'update_name'
+};
+
+exports.Prisma.More_pictures_testScalarFieldEnum = {
+  mpt_id: 'mpt_id',
+  product_id: 'product_id',
+  product_picture: 'product_picture',
+  create_date: 'create_date',
+  create_name: 'create_name',
+  update_date: 'update_date',
+  update_name: 'update_name'
+};
+
+exports.Prisma.Part_clearanceScalarFieldEnum = {
+  part_id: 'part_id',
+  category_id: 'category_id',
+  sub_id: 'sub_id',
+  part_name: 'part_name',
+  part_picture: 'part_picture',
+  part_color: 'part_color',
+  part_status: 'part_status',
+  users_action: 'users_action',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.Producoptions_clearance_tbScalarFieldEnum = {
+  pot_id: 'pot_id',
+  product_id: 'product_id',
+  product_option: 'product_option',
+  create_date: 'create_date',
+  create_name: 'create_name',
+  update_date: 'update_date',
+  update_name: 'update_name'
+};
+
+exports.Prisma.Producoptions_tbScalarFieldEnum = {
+  pot_id: 'pot_id',
+  product_id: 'product_id',
+  product_option: 'product_option',
+  create_date: 'create_date',
+  create_name: 'create_name',
+  update_date: 'update_date',
+  update_name: 'update_name'
+};
+
+exports.Prisma.Product_clearanceScalarFieldEnum = {
+  product_id: 'product_id',
+  category_id: 'category_id',
+  sub_id: 'sub_id',
+  part_id: 'part_id',
+  product_name: 'product_name',
+  product_brand: 'product_brand',
+  product_description: 'product_description',
+  product_picture: 'product_picture',
+  product_sku: 'product_sku',
+  product_file: 'product_file',
+  product_filename: 'product_filename',
+  product_price: 'product_price',
+  product_new: 'product_new',
+  product_best: 'product_best',
+  product_status: 'product_status',
+  users_action: 'users_action',
+  created_at: 'created_at',
+  updated_at: 'updated_at',
+  product_uom: 'product_uom',
+  clearanceSales: 'clearanceSales',
+  clearanceQuantity: 'clearanceQuantity',
+  clearancePrice: 'clearancePrice',
+  expo_status: 'expo_status',
+  expo_price: 'expo_price',
+  cat5e: 'cat5e',
+  cat6: 'cat6',
+  tool_tester: 'tool_tester'
+};
+
+exports.Prisma.Product_test_uploadScalarFieldEnum = {
+  product_id: 'product_id',
+  category_id: 'category_id',
+  sub_id: 'sub_id',
+  part_id: 'part_id',
+  product_name: 'product_name',
+  product_brand: 'product_brand',
+  product_description: 'product_description',
+  product_picture: 'product_picture',
+  product_sku: 'product_sku',
+  product_file: 'product_file',
+  product_filename: 'product_filename',
+  product_price: 'product_price',
+  product_new: 'product_new',
+  product_best: 'product_best',
+  product_status: 'product_status',
+  users_action: 'users_action',
+  created_at: 'created_at',
+  updated_at: 'updated_at',
+  product_uom: 'product_uom',
+  clearanceSales: 'clearanceSales',
+  clearanceQuantity: 'clearanceQuantity',
+  clearancePrice: 'clearancePrice',
+  expo_status: 'expo_status',
+  expo_price: 'expo_price',
+  cat5e: 'cat5e',
+  cat6: 'cat6',
+  tool_tester: 'tool_tester'
+};
+
+exports.Prisma.Sub_clearanceScalarFieldEnum = {
+  sub_id: 'sub_id',
+  category_id: 'category_id',
+  sub_name: 'sub_name',
+  sub_keyword: 'sub_keyword',
+  sub_title: 'sub_title',
+  sub_description: 'sub_description',
+  sub_picture: 'sub_picture',
+  sub_color: 'sub_color',
+  sub_status: 'sub_status',
+  users_action: 'users_action',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -254,13 +417,106 @@ exports.Prisma.subOrderByRelevanceFieldEnum = {
   sub_color: 'sub_color'
 };
 
+exports.Prisma.category_clearanceOrderByRelevanceFieldEnum = {
+  category_name: 'category_name',
+  category_keyword: 'category_keyword',
+  category_title: 'category_title',
+  category_description: 'category_description',
+  category_color: 'category_color',
+  category_picture: 'category_picture'
+};
+
+exports.Prisma.discountpercentage_clearance_tbOrderByRelevanceFieldEnum = {
+  product_discount: 'product_discount',
+  create_name: 'create_name',
+  update_name: 'update_name'
+};
+
+exports.Prisma.discountpercentage_tbOrderByRelevanceFieldEnum = {
+  product_discount: 'product_discount',
+  create_name: 'create_name',
+  update_name: 'update_name'
+};
+
+exports.Prisma.more_pictures_clearanceOrderByRelevanceFieldEnum = {
+  product_picture: 'product_picture',
+  create_name: 'create_name',
+  update_name: 'update_name'
+};
+
+exports.Prisma.more_pictures_testOrderByRelevanceFieldEnum = {
+  product_picture: 'product_picture',
+  create_name: 'create_name',
+  update_name: 'update_name'
+};
+
+exports.Prisma.part_clearanceOrderByRelevanceFieldEnum = {
+  part_name: 'part_name',
+  part_picture: 'part_picture',
+  part_color: 'part_color'
+};
+
+exports.Prisma.producoptions_clearance_tbOrderByRelevanceFieldEnum = {
+  product_option: 'product_option',
+  create_name: 'create_name',
+  update_name: 'update_name'
+};
+
+exports.Prisma.producoptions_tbOrderByRelevanceFieldEnum = {
+  product_option: 'product_option',
+  create_name: 'create_name',
+  update_name: 'update_name'
+};
+
+exports.Prisma.product_clearanceOrderByRelevanceFieldEnum = {
+  product_name: 'product_name',
+  product_brand: 'product_brand',
+  product_description: 'product_description',
+  product_picture: 'product_picture',
+  product_sku: 'product_sku',
+  product_file: 'product_file',
+  product_filename: 'product_filename',
+  product_uom: 'product_uom'
+};
+
+exports.Prisma.product_test_uploadOrderByRelevanceFieldEnum = {
+  product_name: 'product_name',
+  product_brand: 'product_brand',
+  product_description: 'product_description',
+  product_picture: 'product_picture',
+  product_sku: 'product_sku',
+  product_file: 'product_file',
+  product_filename: 'product_filename',
+  product_uom: 'product_uom'
+};
+
+exports.Prisma.sub_clearanceOrderByRelevanceFieldEnum = {
+  sub_name: 'sub_name',
+  sub_keyword: 'sub_keyword',
+  sub_title: 'sub_title',
+  sub_description: 'sub_description',
+  sub_picture: 'sub_picture',
+  sub_color: 'sub_color'
+};
+
 
 exports.Prisma.ModelName = {
   category: 'category',
   more_pictures: 'more_pictures',
   part: 'part',
   product: 'product',
-  sub: 'sub'
+  sub: 'sub',
+  category_clearance: 'category_clearance',
+  discountpercentage_clearance_tb: 'discountpercentage_clearance_tb',
+  discountpercentage_tb: 'discountpercentage_tb',
+  more_pictures_clearance: 'more_pictures_clearance',
+  more_pictures_test: 'more_pictures_test',
+  part_clearance: 'part_clearance',
+  producoptions_clearance_tb: 'producoptions_clearance_tb',
+  producoptions_tb: 'producoptions_tb',
+  product_clearance: 'product_clearance',
+  product_test_upload: 'product_test_upload',
+  sub_clearance: 'sub_clearance'
 };
 
 /**

@@ -175,6 +175,169 @@ exports.Prisma.SubScalarFieldEnum = {
   updated_at: 'updated_at'
 };
 
+exports.Prisma.Category_clearanceScalarFieldEnum = {
+  category_id: 'category_id',
+  category_name: 'category_name',
+  category_number: 'category_number',
+  category_keyword: 'category_keyword',
+  category_title: 'category_title',
+  category_description: 'category_description',
+  category_color: 'category_color',
+  category_picture: 'category_picture',
+  category_status: 'category_status',
+  users_action: 'users_action',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.Discountpercentage_clearance_tbScalarFieldEnum = {
+  dcp_id: 'dcp_id',
+  product_id: 'product_id',
+  product_discount: 'product_discount',
+  create_date: 'create_date',
+  create_name: 'create_name',
+  update_date: 'update_date',
+  update_name: 'update_name'
+};
+
+exports.Prisma.Discountpercentage_tbScalarFieldEnum = {
+  dcp_id: 'dcp_id',
+  product_id: 'product_id',
+  product_discount: 'product_discount',
+  create_date: 'create_date',
+  create_name: 'create_name',
+  update_date: 'update_date',
+  update_name: 'update_name'
+};
+
+exports.Prisma.More_pictures_clearanceScalarFieldEnum = {
+  mpc_id: 'mpc_id',
+  product_id: 'product_id',
+  product_picture: 'product_picture',
+  create_date: 'create_date',
+  create_name: 'create_name',
+  update_date: 'update_date',
+  update_name: 'update_name'
+};
+
+exports.Prisma.More_pictures_testScalarFieldEnum = {
+  mpt_id: 'mpt_id',
+  product_id: 'product_id',
+  product_picture: 'product_picture',
+  create_date: 'create_date',
+  create_name: 'create_name',
+  update_date: 'update_date',
+  update_name: 'update_name'
+};
+
+exports.Prisma.Part_clearanceScalarFieldEnum = {
+  part_id: 'part_id',
+  category_id: 'category_id',
+  sub_id: 'sub_id',
+  part_name: 'part_name',
+  part_picture: 'part_picture',
+  part_color: 'part_color',
+  part_status: 'part_status',
+  users_action: 'users_action',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.Producoptions_clearance_tbScalarFieldEnum = {
+  pot_id: 'pot_id',
+  product_id: 'product_id',
+  product_option: 'product_option',
+  create_date: 'create_date',
+  create_name: 'create_name',
+  update_date: 'update_date',
+  update_name: 'update_name'
+};
+
+exports.Prisma.Producoptions_tbScalarFieldEnum = {
+  pot_id: 'pot_id',
+  product_id: 'product_id',
+  product_option: 'product_option',
+  create_date: 'create_date',
+  create_name: 'create_name',
+  update_date: 'update_date',
+  update_name: 'update_name'
+};
+
+exports.Prisma.Product_clearanceScalarFieldEnum = {
+  product_id: 'product_id',
+  category_id: 'category_id',
+  sub_id: 'sub_id',
+  part_id: 'part_id',
+  product_name: 'product_name',
+  product_brand: 'product_brand',
+  product_description: 'product_description',
+  product_picture: 'product_picture',
+  product_sku: 'product_sku',
+  product_file: 'product_file',
+  product_filename: 'product_filename',
+  product_price: 'product_price',
+  product_new: 'product_new',
+  product_best: 'product_best',
+  product_status: 'product_status',
+  users_action: 'users_action',
+  created_at: 'created_at',
+  updated_at: 'updated_at',
+  product_uom: 'product_uom',
+  clearanceSales: 'clearanceSales',
+  clearanceQuantity: 'clearanceQuantity',
+  clearancePrice: 'clearancePrice',
+  expo_status: 'expo_status',
+  expo_price: 'expo_price',
+  cat5e: 'cat5e',
+  cat6: 'cat6',
+  tool_tester: 'tool_tester'
+};
+
+exports.Prisma.Product_test_uploadScalarFieldEnum = {
+  product_id: 'product_id',
+  category_id: 'category_id',
+  sub_id: 'sub_id',
+  part_id: 'part_id',
+  product_name: 'product_name',
+  product_brand: 'product_brand',
+  product_description: 'product_description',
+  product_picture: 'product_picture',
+  product_sku: 'product_sku',
+  product_file: 'product_file',
+  product_filename: 'product_filename',
+  product_price: 'product_price',
+  product_new: 'product_new',
+  product_best: 'product_best',
+  product_status: 'product_status',
+  users_action: 'users_action',
+  created_at: 'created_at',
+  updated_at: 'updated_at',
+  product_uom: 'product_uom',
+  clearanceSales: 'clearanceSales',
+  clearanceQuantity: 'clearanceQuantity',
+  clearancePrice: 'clearancePrice',
+  expo_status: 'expo_status',
+  expo_price: 'expo_price',
+  cat5e: 'cat5e',
+  cat6: 'cat6',
+  tool_tester: 'tool_tester'
+};
+
+exports.Prisma.Sub_clearanceScalarFieldEnum = {
+  sub_id: 'sub_id',
+  category_id: 'category_id',
+  sub_name: 'sub_name',
+  sub_keyword: 'sub_keyword',
+  sub_title: 'sub_title',
+  sub_description: 'sub_description',
+  sub_picture: 'sub_picture',
+  sub_color: 'sub_color',
+  sub_status: 'sub_status',
+  users_action: 'users_action',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -226,13 +389,106 @@ exports.Prisma.subOrderByRelevanceFieldEnum = {
   sub_color: 'sub_color'
 };
 
+exports.Prisma.category_clearanceOrderByRelevanceFieldEnum = {
+  category_name: 'category_name',
+  category_keyword: 'category_keyword',
+  category_title: 'category_title',
+  category_description: 'category_description',
+  category_color: 'category_color',
+  category_picture: 'category_picture'
+};
+
+exports.Prisma.discountpercentage_clearance_tbOrderByRelevanceFieldEnum = {
+  product_discount: 'product_discount',
+  create_name: 'create_name',
+  update_name: 'update_name'
+};
+
+exports.Prisma.discountpercentage_tbOrderByRelevanceFieldEnum = {
+  product_discount: 'product_discount',
+  create_name: 'create_name',
+  update_name: 'update_name'
+};
+
+exports.Prisma.more_pictures_clearanceOrderByRelevanceFieldEnum = {
+  product_picture: 'product_picture',
+  create_name: 'create_name',
+  update_name: 'update_name'
+};
+
+exports.Prisma.more_pictures_testOrderByRelevanceFieldEnum = {
+  product_picture: 'product_picture',
+  create_name: 'create_name',
+  update_name: 'update_name'
+};
+
+exports.Prisma.part_clearanceOrderByRelevanceFieldEnum = {
+  part_name: 'part_name',
+  part_picture: 'part_picture',
+  part_color: 'part_color'
+};
+
+exports.Prisma.producoptions_clearance_tbOrderByRelevanceFieldEnum = {
+  product_option: 'product_option',
+  create_name: 'create_name',
+  update_name: 'update_name'
+};
+
+exports.Prisma.producoptions_tbOrderByRelevanceFieldEnum = {
+  product_option: 'product_option',
+  create_name: 'create_name',
+  update_name: 'update_name'
+};
+
+exports.Prisma.product_clearanceOrderByRelevanceFieldEnum = {
+  product_name: 'product_name',
+  product_brand: 'product_brand',
+  product_description: 'product_description',
+  product_picture: 'product_picture',
+  product_sku: 'product_sku',
+  product_file: 'product_file',
+  product_filename: 'product_filename',
+  product_uom: 'product_uom'
+};
+
+exports.Prisma.product_test_uploadOrderByRelevanceFieldEnum = {
+  product_name: 'product_name',
+  product_brand: 'product_brand',
+  product_description: 'product_description',
+  product_picture: 'product_picture',
+  product_sku: 'product_sku',
+  product_file: 'product_file',
+  product_filename: 'product_filename',
+  product_uom: 'product_uom'
+};
+
+exports.Prisma.sub_clearanceOrderByRelevanceFieldEnum = {
+  sub_name: 'sub_name',
+  sub_keyword: 'sub_keyword',
+  sub_title: 'sub_title',
+  sub_description: 'sub_description',
+  sub_picture: 'sub_picture',
+  sub_color: 'sub_color'
+};
+
 
 exports.Prisma.ModelName = {
   category: 'category',
   more_pictures: 'more_pictures',
   part: 'part',
   product: 'product',
-  sub: 'sub'
+  sub: 'sub',
+  category_clearance: 'category_clearance',
+  discountpercentage_clearance_tb: 'discountpercentage_clearance_tb',
+  discountpercentage_tb: 'discountpercentage_tb',
+  more_pictures_clearance: 'more_pictures_clearance',
+  more_pictures_test: 'more_pictures_test',
+  part_clearance: 'part_clearance',
+  producoptions_clearance_tb: 'producoptions_clearance_tb',
+  producoptions_tb: 'producoptions_tb',
+  product_clearance: 'product_clearance',
+  product_test_upload: 'product_test_upload',
+  sub_clearance: 'sub_clearance'
 };
 /**
  * Create the Client
@@ -265,7 +521,7 @@ const config = {
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": "../../../.env",
+    "rootEnvPath": null,
     "schemaEnvPath": "../../../.env"
   },
   "relativePath": "../..",
@@ -284,13 +540,13 @@ const config = {
       }
     }
   },
-  "inlineSchema": "generator client {\n  provider        = \"prisma-client-js\"\n  output          = \"../prisma/generated/interlink\"\n  previewFeatures = [\"multiSchema\"]\n}\n\ndatasource db {\n  provider = \"mysql\"\n  url      = env(\"DATABASE_URL_INTERLINK\")\n}\n\n/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments\nmodel category {\n  category_id          Int      @id @default(autoincrement())\n  category_name        String   @db.VarChar(200)\n  category_number      Int\n  category_keyword     String?  @db.Text\n  category_title       String?  @db.Text\n  category_description String?  @db.Text\n  category_color       String?  @db.VarChar(7)\n  category_picture     String?  @db.VarChar(200)\n  category_status      Int      @default(1)\n  users_action         Int\n  created_at           DateTime @default(now()) @db.Timestamp(0)\n  updated_at           DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.Timestamp(0)\n}\n\nmodel more_pictures {\n  mp_id           BigInt   @id @default(autoincrement()) @db.UnsignedBigInt\n  product_id      Int      @default(0)\n  product_picture String   @db.Text\n  create_date     DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.DateTime(0)\n  create_name     String   @default(\"\") @db.VarChar(250)\n  update_date     DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.DateTime(0)\n  update_name     String   @default(\"\") @db.VarChar(250)\n}\n\nmodel part {\n  part_id      Int      @id @default(autoincrement())\n  category_id  Int\n  sub_id       Int\n  part_name    String   @db.VarChar(200)\n  part_picture String?  @db.VarChar(200)\n  part_color   String?  @db.VarChar(7)\n  part_status  Int      @default(1)\n  users_action Int\n  created_at   DateTime @default(now()) @db.Timestamp(0)\n  updated_at   DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.Timestamp(0)\n}\n\n/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments\nmodel product {\n  product_id          Int      @id @default(autoincrement())\n  category_id         Int?     @default(0)\n  sub_id              Int?     @default(0)\n  part_id             Int?     @default(0)\n  product_name        String?  @db.VarChar(255)\n  product_brand       String?  @db.VarChar(255)\n  product_description String?  @db.Text\n  product_picture     String?  @db.Text\n  product_sku         String?  @db.VarChar(255)\n  product_file        String?  @db.Text\n  product_filename    String?  @db.VarChar(255)\n  product_price       Decimal? @db.Decimal(10, 2)\n  product_new         Int?     @default(0)\n  product_best        Int?     @default(0)\n  product_status      Int?     @default(1)\n  users_action        Int?\n  created_at          DateTime @default(now()) @db.Timestamp(0)\n  updated_at          DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.Timestamp(0)\n  product_uom         String?  @db.VarChar(10)\n  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*\n  // 09 Boolean @default(true) @map(\"09\")\n  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*\n  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*\n  clearanceSales      Boolean? @default(false)\n  clearanceQuantity   Int?     @default(0)\n  clearancePrice      Decimal? @db.Decimal(10, 2)\n  expo_status         Int?     @default(0) @db.TinyInt\n  expo_price          Decimal? @default(0.00) @db.Decimal(10, 2)\n  cat5e               Int?     @default(0) @db.TinyInt\n  cat6                Int?     @default(0) @db.TinyInt\n  tool_tester         Int?     @default(0) @db.TinyInt\n}\n\nmodel sub {\n  sub_id          Int      @id @default(autoincrement())\n  category_id     Int\n  sub_name        String   @db.VarChar(255)\n  sub_keyword     String?  @db.Text\n  sub_title       String?  @db.Text\n  sub_description String?  @db.Text\n  sub_picture     String?  @db.VarChar(200)\n  sub_color       String?  @db.VarChar(7)\n  sub_status      Int      @default(1)\n  users_action    Int\n  created_at      DateTime @default(now()) @db.Timestamp(0)\n  updated_at      DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.Timestamp(0)\n}\n",
-  "inlineSchemaHash": "21ae597e9a80bd93ae20393d6e4df95c8b073d62dfcc9a5c29fa812b65943a2d",
+  "inlineSchema": "generator client {\n  provider        = \"prisma-client-js\"\n  output          = \"../prisma/generated/interlink\"\n  previewFeatures = [\"multiSchema\"]\n}\n\ndatasource db {\n  provider = \"mysql\"\n  url      = env(\"DATABASE_URL_INTERLINK\")\n}\n\n/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments\nmodel category {\n  category_id          Int      @id @default(autoincrement())\n  category_name        String   @db.VarChar(200)\n  category_number      Int\n  category_keyword     String?  @db.Text\n  category_title       String?  @db.Text\n  category_description String?  @db.Text\n  category_color       String?  @db.VarChar(7)\n  category_picture     String?  @db.VarChar(200)\n  category_status      Int      @default(1)\n  users_action         Int\n  created_at           DateTime @default(now()) @db.Timestamp(0)\n  updated_at           DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.Timestamp(0)\n}\n\nmodel more_pictures {\n  mp_id           BigInt   @id @default(autoincrement()) @db.UnsignedBigInt\n  product_id      Int      @default(0)\n  product_picture String   @db.Text\n  create_date     DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.DateTime(0)\n  create_name     String   @default(\"\") @db.VarChar(250)\n  update_date     DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.DateTime(0)\n  update_name     String   @default(\"\") @db.VarChar(250)\n}\n\nmodel part {\n  part_id      Int      @id @default(autoincrement())\n  category_id  Int\n  sub_id       Int\n  part_name    String   @db.VarChar(200)\n  part_picture String?  @db.VarChar(200)\n  part_color   String?  @db.VarChar(7)\n  part_status  Int      @default(1)\n  users_action Int\n  created_at   DateTime @default(now()) @db.Timestamp(0)\n  updated_at   DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.Timestamp(0)\n}\n\n/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments\nmodel product {\n  product_id          Int      @id @default(autoincrement())\n  category_id         Int?     @default(0)\n  sub_id              Int?     @default(0)\n  part_id             Int?     @default(0)\n  product_name        String?  @db.VarChar(255)\n  product_brand       String?  @db.VarChar(255)\n  product_description String?  @db.Text\n  product_picture     String?  @db.Text\n  product_sku         String?  @db.VarChar(255)\n  product_file        String?  @db.Text\n  product_filename    String?  @db.VarChar(255)\n  product_price       Decimal? @db.Decimal(10, 2)\n  product_new         Int?     @default(0)\n  product_best        Int?     @default(0)\n  product_status      Int?     @default(1)\n  users_action        Int?\n  created_at          DateTime @default(now()) @db.Timestamp(0)\n  updated_at          DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.Timestamp(0)\n  product_uom         String?  @db.VarChar(10)\n  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*\n  // 09 Boolean @default(true) @map(\"09\")\n  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*\n  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*\n  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*\n  clearanceSales      Boolean? @default(false)\n  clearanceQuantity   Int?     @default(0)\n  clearancePrice      Decimal? @db.Decimal(10, 2)\n  expo_status         Int?     @default(0) @db.TinyInt\n  expo_price          Decimal? @default(0.00) @db.Decimal(10, 2)\n  cat5e               Int?     @default(0) @db.TinyInt\n  cat6                Int?     @default(0) @db.TinyInt\n  tool_tester         Int?     @default(0) @db.TinyInt\n}\n\nmodel sub {\n  sub_id          Int      @id @default(autoincrement())\n  category_id     Int\n  sub_name        String   @db.VarChar(255)\n  sub_keyword     String?  @db.Text\n  sub_title       String?  @db.Text\n  sub_description String?  @db.Text\n  sub_picture     String?  @db.VarChar(200)\n  sub_color       String?  @db.VarChar(7)\n  sub_status      Int      @default(1)\n  users_action    Int\n  created_at      DateTime @default(now()) @db.Timestamp(0)\n  updated_at      DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.Timestamp(0)\n}\n\n/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments\nmodel category_clearance {\n  category_id          Int      @id @default(autoincrement())\n  category_name        String   @db.VarChar(200)\n  category_number      Int\n  category_keyword     String?  @db.Text\n  category_title       String?  @db.Text\n  category_description String?  @db.Text\n  category_color       String?  @db.VarChar(7)\n  category_picture     String?  @db.VarChar(200)\n  category_status      Int      @default(1)\n  users_action         Int\n  created_at           DateTime @default(now()) @db.Timestamp(0)\n  updated_at           DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.Timestamp(0)\n}\n\nmodel discountpercentage_clearance_tb {\n  dcp_id           BigInt   @id @default(autoincrement()) @db.UnsignedBigInt\n  product_id       Int      @default(0)\n  product_discount String   @db.Text\n  create_date      DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.DateTime(0)\n  create_name      String   @default(\"admin\") @db.VarChar(250)\n  update_date      DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.DateTime(0)\n  update_name      String   @default(\"admin\") @db.VarChar(250)\n}\n\nmodel discountpercentage_tb {\n  dcp_id           BigInt   @id @default(autoincrement()) @db.UnsignedBigInt\n  product_id       Int      @default(0)\n  product_discount String   @db.Text\n  create_date      DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.DateTime(0)\n  create_name      String   @default(\"admin\") @db.VarChar(250)\n  update_date      DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.DateTime(0)\n  update_name      String   @default(\"admin\") @db.VarChar(250)\n}\n\nmodel more_pictures_clearance {\n  mpc_id          BigInt   @id @default(autoincrement()) @db.UnsignedBigInt\n  product_id      Int      @default(0)\n  product_picture String   @db.Text\n  create_date     DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.DateTime(0)\n  create_name     String   @default(\"\") @db.VarChar(250)\n  update_date     DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.DateTime(0)\n  update_name     String   @default(\"\") @db.VarChar(250)\n}\n\nmodel more_pictures_test {\n  mpt_id          BigInt   @id @default(autoincrement()) @db.UnsignedBigInt\n  product_id      Int      @default(0)\n  product_picture String   @db.Text\n  create_date     DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.DateTime(0)\n  create_name     String   @default(\"\") @db.VarChar(250)\n  update_date     DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.DateTime(0)\n  update_name     String   @default(\"\") @db.VarChar(250)\n}\n\nmodel part_clearance {\n  part_id      Int      @id @default(autoincrement())\n  category_id  Int\n  sub_id       Int\n  part_name    String   @db.VarChar(200)\n  part_picture String?  @db.VarChar(200)\n  part_color   String?  @db.VarChar(7)\n  part_status  Int      @default(1)\n  users_action Int\n  created_at   DateTime @default(now()) @db.Timestamp(0)\n  updated_at   DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.Timestamp(0)\n}\n\nmodel producoptions_clearance_tb {\n  pot_id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt\n  product_id     Int      @default(0)\n  product_option String   @db.Text\n  create_date    DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.DateTime(0)\n  create_name    String   @default(\"admin\") @db.VarChar(250)\n  update_date    DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.DateTime(0)\n  update_name    String   @default(\"admin\") @db.VarChar(250)\n}\n\nmodel producoptions_tb {\n  pot_id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt\n  product_id     Int      @default(0)\n  product_option String   @db.Text\n  create_date    DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.DateTime(0)\n  create_name    String   @default(\"admin\") @db.VarChar(250)\n  update_date    DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.DateTime(0)\n  update_name    String   @default(\"admin\") @db.VarChar(250)\n}\n\n/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments\nmodel product_clearance {\n  product_id          Int      @id @default(autoincrement())\n  category_id         Int?     @default(0)\n  sub_id              Int?     @default(0)\n  part_id             Int?     @default(0)\n  product_name        String?  @db.VarChar(255)\n  product_brand       String?  @db.VarChar(255)\n  product_description String?  @db.Text\n  product_picture     String?  @db.Text\n  product_sku         String?  @db.VarChar(255)\n  product_file        String?  @db.Text\n  product_filename    String?  @db.VarChar(255)\n  product_price       Decimal? @db.Decimal(10, 2)\n  product_new         Int?     @default(0)\n  product_best        Int?     @default(0)\n  product_status      Int?     @default(1)\n  users_action        Int?\n  created_at          DateTime @default(now()) @db.Timestamp(0)\n  updated_at          DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.Timestamp(0)\n  product_uom         String?  @db.VarChar(10)\n  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*\n  // 09 Boolean @default(true) @map(\"09\")\n  clearanceSales      Boolean? @default(false)\n  clearanceQuantity   Int?     @default(0)\n  clearancePrice      Decimal? @db.Decimal(10, 2)\n  expo_status         Int?     @default(0) @db.TinyInt\n  expo_price          Decimal? @default(0.00) @db.Decimal(10, 2)\n  cat5e               Int?     @default(0) @db.TinyInt\n  cat6                Int?     @default(0) @db.TinyInt\n  tool_tester         Int?     @default(0) @db.TinyInt\n  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*\n  // 13 Boolean @default(true) @map(\"13\")\n}\n\n/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments\nmodel product_test_upload {\n  product_id          Int      @id @default(autoincrement())\n  category_id         Int?     @default(0)\n  sub_id              Int?     @default(0)\n  part_id             Int?     @default(0)\n  product_name        String?  @db.VarChar(255)\n  product_brand       String?  @db.VarChar(255)\n  product_description String?  @db.Text\n  product_picture     String?  @db.Text\n  product_sku         String?  @db.VarChar(255)\n  product_file        String?  @db.Text\n  product_filename    String?  @db.VarChar(255)\n  product_price       Decimal? @db.Decimal(10, 2)\n  product_new         Int?     @default(0)\n  product_best        Int?     @default(0)\n  product_status      Int?     @default(1)\n  users_action        Int?\n  created_at          DateTime @default(now()) @db.Timestamp(0)\n  updated_at          DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.Timestamp(0)\n  product_uom         String?  @db.VarChar(10)\n  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*\n  // 09 Boolean @default(true) @map(\"09\")\n  clearanceSales      Boolean? @default(false)\n  clearanceQuantity   Int?     @default(0)\n  clearancePrice      Decimal? @db.Decimal(10, 2)\n  expo_status         Int?     @default(0) @db.TinyInt\n  expo_price          Decimal? @default(0.00) @db.Decimal(10, 2)\n  cat5e               Int?     @default(0) @db.TinyInt\n  cat6                Int?     @default(0) @db.TinyInt\n  tool_tester         Int?     @default(0) @db.TinyInt\n  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*\n  // 13 Boolean @default(true) @map(\"13\")\n}\n\nmodel sub_clearance {\n  sub_id          Int      @id @default(autoincrement())\n  category_id     Int\n  sub_name        String   @db.VarChar(255)\n  sub_keyword     String?  @db.Text\n  sub_title       String?  @db.Text\n  sub_description String?  @db.Text\n  sub_picture     String?  @db.VarChar(200)\n  sub_color       String?  @db.VarChar(7)\n  sub_status      Int      @default(1)\n  users_action    Int\n  created_at      DateTime @default(now()) @db.Timestamp(0)\n  updated_at      DateTime @default(dbgenerated(\"'0000-00-00 00:00:00'\")) @db.Timestamp(0)\n}\n",
+  "inlineSchemaHash": "39b07da44dc0c50a0acbfe2e8d51271c7763ebb6765ef59e27589c2cace72663",
   "copyEngine": true
 }
 config.dirname = '/'
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"category\":{\"fields\":[{\"name\":\"category_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"category_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category_number\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"category_keyword\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category_title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category_description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category_color\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category_picture\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category_status\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"users_action\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updated_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"more_pictures\":{\"fields\":[{\"name\":\"mp_id\",\"kind\":\"scalar\",\"type\":\"BigInt\"},{\"name\":\"product_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"product_picture\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"create_date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"create_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"update_date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"update_name\",\"kind\":\"scalar\",\"type\":\"String\"}],\"dbName\":null},\"part\":{\"fields\":[{\"name\":\"part_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"category_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"sub_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"part_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"part_picture\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"part_color\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"part_status\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"users_action\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updated_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"product\":{\"fields\":[{\"name\":\"product_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"category_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"sub_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"part_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"product_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_brand\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_picture\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_sku\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_file\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_filename\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_price\",\"kind\":\"scalar\",\"type\":\"Decimal\"},{\"name\":\"product_new\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"product_best\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"product_status\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"users_action\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updated_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"product_uom\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"clearanceSales\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"clearanceQuantity\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"clearancePrice\",\"kind\":\"scalar\",\"type\":\"Decimal\"},{\"name\":\"expo_status\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"expo_price\",\"kind\":\"scalar\",\"type\":\"Decimal\"},{\"name\":\"cat5e\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"cat6\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"tool_tester\",\"kind\":\"scalar\",\"type\":\"Int\"}],\"dbName\":null},\"sub\":{\"fields\":[{\"name\":\"sub_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"category_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"sub_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sub_keyword\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sub_title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sub_description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sub_picture\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sub_color\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sub_status\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"users_action\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updated_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"category\":{\"fields\":[{\"name\":\"category_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"category_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category_number\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"category_keyword\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category_title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category_description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category_color\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category_picture\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category_status\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"users_action\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updated_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"more_pictures\":{\"fields\":[{\"name\":\"mp_id\",\"kind\":\"scalar\",\"type\":\"BigInt\"},{\"name\":\"product_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"product_picture\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"create_date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"create_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"update_date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"update_name\",\"kind\":\"scalar\",\"type\":\"String\"}],\"dbName\":null},\"part\":{\"fields\":[{\"name\":\"part_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"category_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"sub_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"part_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"part_picture\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"part_color\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"part_status\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"users_action\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updated_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"product\":{\"fields\":[{\"name\":\"product_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"category_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"sub_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"part_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"product_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_brand\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_picture\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_sku\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_file\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_filename\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_price\",\"kind\":\"scalar\",\"type\":\"Decimal\"},{\"name\":\"product_new\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"product_best\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"product_status\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"users_action\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updated_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"product_uom\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"clearanceSales\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"clearanceQuantity\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"clearancePrice\",\"kind\":\"scalar\",\"type\":\"Decimal\"},{\"name\":\"expo_status\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"expo_price\",\"kind\":\"scalar\",\"type\":\"Decimal\"},{\"name\":\"cat5e\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"cat6\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"tool_tester\",\"kind\":\"scalar\",\"type\":\"Int\"}],\"dbName\":null},\"sub\":{\"fields\":[{\"name\":\"sub_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"category_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"sub_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sub_keyword\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sub_title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sub_description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sub_picture\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sub_color\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sub_status\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"users_action\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updated_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"category_clearance\":{\"fields\":[{\"name\":\"category_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"category_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category_number\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"category_keyword\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category_title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category_description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category_color\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category_picture\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category_status\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"users_action\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updated_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"discountpercentage_clearance_tb\":{\"fields\":[{\"name\":\"dcp_id\",\"kind\":\"scalar\",\"type\":\"BigInt\"},{\"name\":\"product_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"product_discount\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"create_date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"create_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"update_date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"update_name\",\"kind\":\"scalar\",\"type\":\"String\"}],\"dbName\":null},\"discountpercentage_tb\":{\"fields\":[{\"name\":\"dcp_id\",\"kind\":\"scalar\",\"type\":\"BigInt\"},{\"name\":\"product_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"product_discount\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"create_date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"create_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"update_date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"update_name\",\"kind\":\"scalar\",\"type\":\"String\"}],\"dbName\":null},\"more_pictures_clearance\":{\"fields\":[{\"name\":\"mpc_id\",\"kind\":\"scalar\",\"type\":\"BigInt\"},{\"name\":\"product_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"product_picture\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"create_date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"create_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"update_date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"update_name\",\"kind\":\"scalar\",\"type\":\"String\"}],\"dbName\":null},\"more_pictures_test\":{\"fields\":[{\"name\":\"mpt_id\",\"kind\":\"scalar\",\"type\":\"BigInt\"},{\"name\":\"product_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"product_picture\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"create_date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"create_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"update_date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"update_name\",\"kind\":\"scalar\",\"type\":\"String\"}],\"dbName\":null},\"part_clearance\":{\"fields\":[{\"name\":\"part_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"category_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"sub_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"part_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"part_picture\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"part_color\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"part_status\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"users_action\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updated_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"producoptions_clearance_tb\":{\"fields\":[{\"name\":\"pot_id\",\"kind\":\"scalar\",\"type\":\"BigInt\"},{\"name\":\"product_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"product_option\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"create_date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"create_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"update_date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"update_name\",\"kind\":\"scalar\",\"type\":\"String\"}],\"dbName\":null},\"producoptions_tb\":{\"fields\":[{\"name\":\"pot_id\",\"kind\":\"scalar\",\"type\":\"BigInt\"},{\"name\":\"product_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"product_option\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"create_date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"create_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"update_date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"update_name\",\"kind\":\"scalar\",\"type\":\"String\"}],\"dbName\":null},\"product_clearance\":{\"fields\":[{\"name\":\"product_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"category_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"sub_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"part_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"product_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_brand\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_picture\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_sku\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_file\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_filename\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_price\",\"kind\":\"scalar\",\"type\":\"Decimal\"},{\"name\":\"product_new\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"product_best\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"product_status\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"users_action\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updated_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"product_uom\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"clearanceSales\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"clearanceQuantity\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"clearancePrice\",\"kind\":\"scalar\",\"type\":\"Decimal\"},{\"name\":\"expo_status\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"expo_price\",\"kind\":\"scalar\",\"type\":\"Decimal\"},{\"name\":\"cat5e\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"cat6\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"tool_tester\",\"kind\":\"scalar\",\"type\":\"Int\"}],\"dbName\":null},\"product_test_upload\":{\"fields\":[{\"name\":\"product_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"category_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"sub_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"part_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"product_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_brand\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_picture\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_sku\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_file\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_filename\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"product_price\",\"kind\":\"scalar\",\"type\":\"Decimal\"},{\"name\":\"product_new\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"product_best\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"product_status\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"users_action\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updated_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"product_uom\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"clearanceSales\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"clearanceQuantity\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"clearancePrice\",\"kind\":\"scalar\",\"type\":\"Decimal\"},{\"name\":\"expo_status\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"expo_price\",\"kind\":\"scalar\",\"type\":\"Decimal\"},{\"name\":\"cat5e\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"cat6\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"tool_tester\",\"kind\":\"scalar\",\"type\":\"Int\"}],\"dbName\":null},\"sub_clearance\":{\"fields\":[{\"name\":\"sub_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"category_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"sub_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sub_keyword\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sub_title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sub_description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sub_picture\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sub_color\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sub_status\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"users_action\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updated_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.engineWasm = {
   getRuntime: async () => require('./query_engine_bg.js'),

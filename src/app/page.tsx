@@ -1,23 +1,67 @@
-// v.1.1.2 ================================================
-// src/app/page.tsx  (Server Component)
+// v.1.1.3 ================================================
+// src/app/page.tsx
 import { HeroSection } from "@/components/hero-section";
 import { CategoryGrid } from "@/components/category-grid";
 import { FlashSale } from "@/components/flash-sale";
 import { InterlinkMall } from "@/components/interlink-mall";
 import ProductGridWithCart from "@/components/product-grid.with-cart";
-// ถ้า ProductGrid ต้อง onAddToCart ให้ดูหมายเหตุด้านล่าง
+import { absoluteUrl } from "@/lib/base-url";
 
-export default function IndexPage() {
+export const revalidate = 60;
+
+type UICategory = {
+  id?: number | string;
+  name: string;
+  slug: string;
+  image_url?: string;
+  image?: string;
+};
+
+async function getCategories(): Promise<UICategory[]> {
+  const url = await absoluteUrl("/api/categories");
+  const res = await fetch(url, { next: { revalidate: 60 } });
+  if (!res.ok) return [];
+  const { items } = await res.json();
+  return items as UICategory[];
+}
+
+export default async function IndexPage() {
+  const categories = await getCategories();
+
   return (
     <>
       <HeroSection />
       <ProductGridWithCart />
-      <CategoryGrid />
+      <CategoryGrid items={categories} />
       <FlashSale />
       <InterlinkMall />
     </>
   );
 }
+
+
+// v.1.1.3 ================================================
+
+// v.1.1.2 ================================================
+// // src/app/page.tsx  (Server Component)
+// import { HeroSection } from "@/components/hero-section";
+// import { CategoryGrid } from "@/components/category-grid";
+// import { FlashSale } from "@/components/flash-sale";
+// import { InterlinkMall } from "@/components/interlink-mall";
+// import ProductGridWithCart from "@/components/product-grid.with-cart";
+// // ถ้า ProductGrid ต้อง onAddToCart ให้ดูหมายเหตุด้านล่าง
+
+// export default function IndexPage() {
+//   return (
+//     <>
+//       <HeroSection />
+//       <ProductGridWithCart />
+//       <CategoryGrid />
+//       <FlashSale />
+//       <InterlinkMall />
+//     </>
+//   );
+// }
 
 // v.1.1.2 ================================================
 
