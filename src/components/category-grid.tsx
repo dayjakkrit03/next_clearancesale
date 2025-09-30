@@ -1,3 +1,5 @@
+// src/components/category-grid.tsx
+
 "use client";
 
 import { useRouter } from "next/navigation";
