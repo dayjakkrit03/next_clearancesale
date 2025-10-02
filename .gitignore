@@ -10,6 +10,10 @@
 !.yarn/releases
 !.yarn/versions
 
+# photos and uploads
+/public/uploads/**
+!/public/uploads/.gitkeep
+
 # testing
 /coverage
 
