@@ -1,8 +1,8 @@
-// v.1.1.4 ================================================
+// v.1.1.6 ================================================
 // src/components/category-grid.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -16,85 +16,255 @@ export interface Category {
   order?: number;
 }
 
-const MOCK_CATEGORIES: Category[] = [/* ...เดิม... */];
-
 interface CategoryGridProps {
-  items?: Category[]; // ถ้ามี = ใช้เลย ไม่ต้อง fetch
+  items?: Category[];
+  title?: string;
+  subtitle?: string;
 }
 
-export const CategoryGrid = ({ items: initial }: CategoryGridProps) => {
+const DEFAULT_TITLE = "หมวดหมู่สินค้า";
+const DEFAULT_SUBTITLE = "เลือกซื้ออุปกรณ์เครือข่ายคุณภาพสูงจากหมวดหมู่ที่หลากหลาย";
+
+export const CategoryGrid = ({ items, title, subtitle }: CategoryGridProps) => {
   const router = useRouter();
 
-  // ถ้ามี initial ใช้อันนั้น, ถ้าไม่มีค่อยใช้ mock เป็นค่าเริ่ม
-  const [items, setItems] = useState<Category[]>(
-    initial && initial.length > 0 ? initial : MOCK_CATEGORIES
-  );
-
-  const shouldFetchFromClient = !initial || initial.length === 0;
-
-  useEffect(() => {
-    if (!shouldFetchFromClient) return;        // <-- กัน fetch ซ้ำ
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch("/api/mock/categories", { cache: "no-store" });
-        if (!res.ok) return;
-        const data = await res.json();
-        const next: Category[] = (data?.items ?? [])
-          .filter((c: Category) => c.visible !== false)
-          .sort((a: Category, b: Category) => (a.order ?? 0) - (b.order ?? 0));
-        if (!cancelled && next.length > 0) setItems(next);
-      } catch {}
-    })();
-    return () => { cancelled = true; };
-  }, [shouldFetchFromClient]);
+  // ✅ กรองเฉพาะที่มองเห็น + เรียงตาม order ถ้ามี
+  const data = useMemo(() => {
+    const list = Array.isArray(items) ? items : [];
+    return list
+      .filter((c) => c.visible !== false)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  }, [items]);
 
   const handleCategoryClick = (category: { slug?: string; name: string }) => {
     router.push(`/products?category=${encodeURIComponent(category.slug ?? category.name)}`);
   };
 
-  const data = useMemo(() => items ?? MOCK_CATEGORIES, [items]);
-
   return (
     <section className="py-12 bg-background">
       <div className="container mx-auto px-4">
-        
         <div className="text-center mb-10">
-           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
-             หมวดหมู่สินค้า
-           </h2>
-           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-             เลือกซื้ออุปกรณ์เครือข่ายคุณภาพสูงจากหมวดหมู่ที่หลากหลาย
-           </p>           
-         </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6">
-          {data.map((category, index) => (
-            <div
-              key={(category.id ?? category.slug) ?? index}
-              onClick={() => handleCategoryClick(category)}
-              className="flex flex-col items-center p-6 rounded-xl bg-card hover:bg-gradient-card shadow-soft hover:shadow-card-hover transition-all duration-300 cursor-pointer group opacity-0 animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <div className="mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                <Image
-                  src={category.image_url ?? category.image ?? "/placeholder.png"}
-                  alt={category.name}
-                  width={64}
-                  height={64}
-                  className="w-16 h-16 object-cover rounded-2xl shadow-soft"
-                />
-              </div>
-              <span className="text-sm font-medium text-center group-hover:text-primary transition-colors leading-tight h-10">
-                {category.name}
-              </span>
-            </div>
-          ))}
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+            {title ?? DEFAULT_TITLE}
+          </h2>
+        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            {subtitle ?? DEFAULT_SUBTITLE}
+          </p>
         </div>
+
+        {/* ถ้าไม่มีข้อมูล แสดง empty state สวย ๆ */}
+        {data.length === 0 ? (
+          <div className="rounded-xl border border-dashed p-8 text-center text-muted-foreground">
+            ไม่มีหมวดหมู่ให้แสดง
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6">
+            {data.map((category, index) => (
+              <div
+                key={(category.id ?? category.slug) ?? index}
+                onClick={() => handleCategoryClick(category)}
+                className="flex flex-col items-center p-6 rounded-xl bg-card hover:bg-gradient-card shadow-soft hover:shadow-card-hover transition-all duration-300 cursor-pointer group opacity-0 animate-fade-in"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <div className="mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                  <Image
+                    src={category.image_url ?? category.image ?? "/placeholder.png"}
+                    alt={category.name}
+                    width={64}
+                    height={64}
+                    className="w-16 h-16 object-cover rounded-2xl shadow-soft"
+                  />
+                </div>
+                <span className="text-sm font-medium text-center group-hover:text-primary transition-colors leading-tight h-10">
+                  {category.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
 };
+
+// v.1.1.6 ================================================
+
+// v.1.1.5 ================================================
+// // src/components/category-grid.tsx
+
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import { useRouter } from "next/navigation";
+// import Image from "next/image";
+
+// export interface Category {
+//   id?: number | string;
+//   name: string;
+//   slug: string;
+//   image_url?: string;
+//   image?: string;
+//   visible?: boolean;
+//   order?: number;
+// }
+
+// interface CategoryGridProps {
+//   items?: Category[];
+//   title?: string;
+//   subtitle?: string;
+// }
+
+// const DEFAULT_TITLE = "หมวดหมู่สินค้า";
+// const DEFAULT_SUBTITLE = "เลือกซื้ออุปกรณ์เครือข่ายคุณภาพสูงจากหมวดหมู่ที่หลากหลาย";
+
+// export const CategoryGrid = ({ items, title, subtitle }: CategoryGridProps) => {
+//   const router = useRouter();
+//   const data = items && items.length > 0 ? items : [];
+
+//   const handleCategoryClick = (category: { slug?: string; name: string }) => {
+//     router.push(`/products?category=${encodeURIComponent(category.slug ?? category.name)}`);
+//   };
+
+//   return (
+//     <section className="py-12 bg-background">
+//       <div className="container mx-auto px-4">
+//         <div className="text-center mb-10">
+//           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+//             {title ?? DEFAULT_TITLE}
+//           </h2>
+//           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+//             {subtitle ?? DEFAULT_SUBTITLE}
+//           </p>
+//         </div>
+
+//         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6">
+//           {data.map((category, index) => (
+//             <div
+//               key={(category.id ?? category.slug) ?? index}
+//               onClick={() => handleCategoryClick(category)}
+//               className="flex flex-col items-center p-6 rounded-xl bg-card hover:bg-gradient-card shadow-soft hover:shadow-card-hover transition-all duration-300 cursor-pointer group opacity-0 animate-fade-in"
+//               style={{ animationDelay: `${index * 0.1}s` }}
+//             >
+//               <div className="mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+//                 <Image
+//                   src={category.image_url ?? category.image ?? "/placeholder.png"}
+//                   alt={category.name}
+//                   width={64}
+//                   height={64}
+//                   className="w-16 h-16 object-cover rounded-2xl shadow-soft"
+//                 />
+//               </div>
+//               <span className="text-sm font-medium text-center group-hover:text-primary transition-colors leading-tight h-10">
+//                 {category.name}
+//               </span>
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+//     </section>
+//   );
+// };
+
+// v.1.1.5 ================================================
+
+// v.1.1.4 ================================================
+// // src/components/category-grid.tsx
+
+// "use client";
+
+// import { useEffect, useMemo, useState } from "react";
+// import { useRouter } from "next/navigation";
+// import Image from "next/image";
+
+// export interface Category {
+//   id?: number | string;
+//   name: string;
+//   slug: string;
+//   image_url?: string;
+//   image?: string;
+//   visible?: boolean;
+//   order?: number;
+// }
+
+// const MOCK_CATEGORIES: Category[] = [/* ...เดิม... */];
+
+// interface CategoryGridProps {
+//   items?: Category[]; // ถ้ามี = ใช้เลย ไม่ต้อง fetch
+// }
+
+// export const CategoryGrid = ({ items: initial }: CategoryGridProps) => {
+//   const router = useRouter();
+
+//   // ถ้ามี initial ใช้อันนั้น, ถ้าไม่มีค่อยใช้ mock เป็นค่าเริ่ม
+//   const [items, setItems] = useState<Category[]>(
+//     initial && initial.length > 0 ? initial : MOCK_CATEGORIES
+//   );
+
+//   const shouldFetchFromClient = !initial || initial.length === 0;
+
+//   useEffect(() => {
+//     if (!shouldFetchFromClient) return;        // <-- กัน fetch ซ้ำ
+//     let cancelled = false;
+//     (async () => {
+//       try {
+//         const res = await fetch("/api/mock/categories", { cache: "no-store" });
+//         if (!res.ok) return;
+//         const data = await res.json();
+//         const next: Category[] = (data?.items ?? [])
+//           .filter((c: Category) => c.visible !== false)
+//           .sort((a: Category, b: Category) => (a.order ?? 0) - (b.order ?? 0));
+//         if (!cancelled && next.length > 0) setItems(next);
+//       } catch {}
+//     })();
+//     return () => { cancelled = true; };
+//   }, [shouldFetchFromClient]);
+
+//   const handleCategoryClick = (category: { slug?: string; name: string }) => {
+//     router.push(`/products?category=${encodeURIComponent(category.slug ?? category.name)}`);
+//   };
+
+//   const data = useMemo(() => items ?? MOCK_CATEGORIES, [items]);
+
+//   return (
+//     <section className="py-12 bg-background">
+//       <div className="container mx-auto px-4">
+        
+//         <div className="text-center mb-10">
+//            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+//              หมวดหมู่สินค้า
+//            </h2>
+//            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+//              เลือกซื้ออุปกรณ์เครือข่ายคุณภาพสูงจากหมวดหมู่ที่หลากหลาย
+//            </p>           
+//          </div>
+
+//         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6">
+//           {data.map((category, index) => (
+//             <div
+//               key={(category.id ?? category.slug) ?? index}
+//               onClick={() => handleCategoryClick(category)}
+//               className="flex flex-col items-center p-6 rounded-xl bg-card hover:bg-gradient-card shadow-soft hover:shadow-card-hover transition-all duration-300 cursor-pointer group opacity-0 animate-fade-in"
+//               style={{ animationDelay: `${index * 0.1}s` }}
+//             >
+//               <div className="mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+//                 <Image
+//                   src={category.image_url ?? category.image ?? "/placeholder.png"}
+//                   alt={category.name}
+//                   width={64}
+//                   height={64}
+//                   className="w-16 h-16 object-cover rounded-2xl shadow-soft"
+//                 />
+//               </div>
+//               <span className="text-sm font-medium text-center group-hover:text-primary transition-colors leading-tight h-10">
+//                 {category.name}
+//               </span>
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+//     </section>
+//   );
+// };
 
 // v.1.1.4 ================================================
 

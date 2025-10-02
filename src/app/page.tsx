@@ -1,6 +1,5 @@
-// v.1.1.5 ================================================
+// v.1.1.6 ================================================
 // src/app/page.tsx
-
 import { HeroSection } from "@/components/hero-section";
 import { CategoryGrid } from "@/components/category-grid";
 import { FlashSale } from "@/components/flash-sale";
@@ -8,7 +7,7 @@ import { InterlinkMall } from "@/components/interlink-mall";
 import ProductGridWithCart from "@/components/product-grid.with-cart";
 import { absoluteUrl } from "@/lib/base-url";
 
-export const revalidate = 0; // ไม่ cache หน้า Home ขณะพัฒนา
+export const revalidate = 0; // ไม่ cache ขณะพัฒนา
 
 type UICategory = {
   id?: number | string;
@@ -19,29 +18,89 @@ type UICategory = {
   order?: number;
 };
 
-async function getCategories(): Promise<UICategory[]> {
+type UIMeta = {
+  title?: string;
+  subtitle?: string;
+};
+
+async function getCategoriesAndMeta(): Promise<{ items: UICategory[]; meta: UIMeta }> {
   const url = await absoluteUrl("/api/mock/categories");
   const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) return [];
-  const { items } = await res.json();
-  return (items as UICategory[])
-    .filter(c => c.visible !== false)
+  if (!res.ok) return { items: [], meta: {} };
+
+  const { items = [], meta = {} } = await res.json();
+
+  const normalized = (items as UICategory[])
+    .filter((c) => c.visible !== false)
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+  return { items: normalized, meta };
 }
 
 export default async function IndexPage() {
-  const categories = await getCategories();
+  const { items, meta } = await getCategoriesAndMeta();
 
   return (
     <>
       <HeroSection />
       <ProductGridWithCart />
-      <CategoryGrid items={categories} /> {/* <-- ส่งข้อมูลจริงลงไป */}
+      <CategoryGrid
+        items={items}
+        title={meta.title}         // ✅ ส่งหัวข้อจาก mock
+        subtitle={meta.subtitle}   // ✅ ส่งคำอธิบายจาก mock
+      />
       <FlashSale />
       <InterlinkMall />
     </>
   );
 }
+
+// v.1.1.6 ================================================
+
+// v.1.1.5 ================================================
+// // src/app/page.tsx
+
+// import { HeroSection } from "@/components/hero-section";
+// import { CategoryGrid } from "@/components/category-grid";
+// import { FlashSale } from "@/components/flash-sale";
+// import { InterlinkMall } from "@/components/interlink-mall";
+// import ProductGridWithCart from "@/components/product-grid.with-cart";
+// import { absoluteUrl } from "@/lib/base-url";
+
+// export const revalidate = 0; // ไม่ cache หน้า Home ขณะพัฒนา
+
+// type UICategory = {
+//   id?: number | string;
+//   name: string;
+//   slug: string;
+//   image_url?: string;
+//   visible?: boolean;
+//   order?: number;
+// };
+
+// async function getCategories(): Promise<UICategory[]> {
+//   const url = await absoluteUrl("/api/mock/categories");
+//   const res = await fetch(url, { cache: "no-store" });
+//   if (!res.ok) return [];
+//   const { items } = await res.json();
+//   return (items as UICategory[])
+//     .filter(c => c.visible !== false)
+//     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+// }
+
+// export default async function IndexPage() {
+//   const categories = await getCategories();
+
+//   return (
+//     <>
+//       <HeroSection />
+//       <ProductGridWithCart />
+//       <CategoryGrid items={categories} /> {/* <-- ส่งข้อมูลจริงลงไป */}
+//       <FlashSale />
+//       <InterlinkMall />
+//     </>
+//   );
+// }
 
 // v.1.1.5 ================================================
 
