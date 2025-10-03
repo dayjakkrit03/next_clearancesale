@@ -1,4 +1,4 @@
-// v.1.1.3 ================================================
+// v.1.1.5 ===============================================
 // src/app/admin/components/AdminCategoryEditDialog.tsx
 "use client";
 
@@ -15,7 +15,7 @@ export default function AdminCategoryEditDialog({
   initial,
   onClose,
   onSave,
-  mode = "edit", // 👈 เพิ่มโหมด
+  mode = "edit",
 }: {
   open: boolean;
   initial: EditValues;
@@ -96,6 +96,7 @@ export default function AdminCategoryEditDialog({
       await onSave({ name: name.trim(), slug: slug.trim(), image_url: imageUrl });
       onClose();
     } catch (e: any) {
+      // รองรับทั้ง error message ธรรมดา และสตริง JSON ที่ฝั่ง API ส่งมา
       setError(e?.message ?? "Save failed");
     } finally {
       setSaving(false);
@@ -107,14 +108,50 @@ export default function AdminCategoryEditDialog({
   const title = mode === "create" ? "เพิ่มหมวดหมู่" : "แก้ไขหมวดหมู่";
   const submitLabel = saving ? "Saving…" : mode === "create" ? "เพิ่ม" : "บันทึก";
 
+  // ---- Helper: แปลง error ให้สวยอ่านง่าย ----
+  let errorTitle: string | null = null;
+  let errorList: string[] | null = null;
+  if (error) {
+    // ถ้า error เป็น JSON ที่มีฟิลด์ errors[]
+    try {
+      const obj = JSON.parse(error);
+      if (obj && typeof obj === "object") {
+        if (Array.isArray(obj.errors) && obj.errors.length) {
+          errorTitle = typeof obj.error === "string" ? obj.error : "Validation failed";
+          errorList = obj.errors.map((x: any) => String(x));
+        } else if (typeof obj.error === "string") {
+          errorTitle = obj.error;
+        }
+      }
+    } catch {
+      // ไม่ใช่ JSON -> แสดงเป็นข้อความเดียว
+      errorTitle = error;
+    }
+    if (!errorTitle && !errorList) {
+      // กรณี parse แล้วไม่ได้อะไร ให้ตกลงมาเป็นข้อความเดิม
+      errorTitle = error;
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
       <div className="w-full max-w-lg rounded-xl bg-white p-4 shadow-lg">
         <div className="mb-3 text-lg font-semibold">{title}</div>
 
-        {error && (
-          <div className="mb-3 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            {error}
+        {(errorTitle || errorList) && (
+          <div
+            className="mb-3 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+            role="alert"
+            aria-live="assertive"
+          >
+            {errorTitle && <div className="font-medium">{errorTitle}</div>}
+            {errorList && (
+              <ul className="mt-1 list-disc pl-5 space-y-1">
+                {errorList.map((msg, i) => (
+                  <li key={i}>{msg}</li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
 
@@ -186,6 +223,434 @@ export default function AdminCategoryEditDialog({
     </div>
   );
 }
+
+// v.1.1.5 ===============================================
+
+// v.1.1.4 ================================================
+// // src/app/admin/components/AdminCategoryEditDialog.tsx
+// "use client";
+
+// import { useEffect, useRef, useState } from "react";
+
+// export type EditValues = {
+//   name: string;
+//   slug: string;
+//   image_url?: string;
+// };
+
+// export default function AdminCategoryEditDialog({
+//   open,
+//   initial,
+//   onClose,
+//   onSave,
+//   mode = "edit",
+// }: {
+//   open: boolean;
+//   initial: EditValues;
+//   onClose: () => void;
+//   onSave: (values: EditValues) => Promise<void> | void;
+//   mode?: "create" | "edit";
+// }) {
+//   const [name, setName] = useState(initial.name ?? "");
+//   const [slug, setSlug] = useState(initial.slug ?? "");
+//   const [imageUrl, setImageUrl] = useState<string | undefined>(initial.image_url);
+//   const [uploading, setUploading] = useState(false);
+//   const [saving, setSaving] = useState(false);
+//   const [error, setError] = useState<string | null>(null);
+
+//   // inline field errors
+//   const [nameErr, setNameErr] = useState<string | null>(null);
+//   const [slugErr, setSlugErr] = useState<string | null>(null);
+//   const [imgErr, setImgErr] = useState<string | null>(null);
+
+//   const fileRef = useRef<HTMLInputElement | null>(null);
+
+//   useEffect(() => {
+//     if (open) {
+//       setName(initial.name ?? "");
+//       setSlug(initial.slug ?? "");
+//       setImageUrl(initial.image_url);
+//       setError(null);
+//       setUploading(false);
+//       setSaving(false);
+//       setNameErr(null);
+//       setSlugErr(null);
+//       setImgErr(null);
+//     }
+//   }, [open, initial]);
+
+//   const slugify = (s: string) =>
+//     s
+//       .toLowerCase()
+//       .trim()
+//       .replace(/[\s_]+/g, "-")
+//       .replace(/[^a-z0-9-]/g, "")
+//       .replace(/-+/g, "-")
+//       .replace(/^-|-$/g, "");
+
+//   const handleNameChange = (v: string) => {
+//     const currentAuto = slugify(name);
+//     const isUntouched = slug.length === 0 || slug === currentAuto;
+//     setName(v);
+//     if (isUntouched) setSlug(slugify(v));
+//     setNameErr(v.trim() ? null : "กรุณากรอกชื่อ");
+//   };
+
+//   const handleSlugChange = (v: string) => {
+//     const s = slugify(v);
+//     setSlug(s);
+//     setSlugErr(s ? null : "กรุณากรอก slug");
+//   };
+
+//   const validateAll = () => {
+//     const nOk = name.trim().length > 0;
+//     const sOk = slug.trim().length > 0;
+//     const iOk = !!imageUrl && imageUrl.trim().length > 0;
+
+//     setNameErr(nOk ? null : "กรุณากรอกชื่อ");
+//     setSlugErr(sOk ? null : "กรุณากรอก slug");
+//     setImgErr(iOk ? null : "กรุณาอัปโหลดรูปภาพ");
+
+//     return nOk && sOk && iOk;
+//   };
+
+//   // อัปโหลดไฟล์
+//   const uploadFile = async (file: File) => {
+//     const form = new FormData();
+//     form.append("file", file);
+//     setUploading(true);
+//     setError(null);
+//     try {
+//       const res = await fetch("/api/uploads/categories", { method: "POST", body: form });
+//       if (!res.ok) throw new Error((await res.text().catch(() => "")) || "Upload failed");
+//       const data = await res.json();
+//       if (!data?.url) throw new Error("No URL returned");
+//       setImageUrl(data.url as string);
+//       setImgErr(null);
+//     } catch (e: any) {
+//       setError(e?.message ?? "Upload failed");
+//     } finally {
+//       setUploading(false);
+//       if (fileRef.current) fileRef.current.value = "";
+//     }
+//   };
+
+//   const onPickFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     const f = e.target.files?.[0];
+//     if (!f) return;
+//     if (!/^image\/(png|jpe?g|webp)$/i.test(f.type)) {
+//       setError("รองรับเฉพาะ PNG/JPG/WEBP");
+//       return;
+//     }
+//     if (f.size > 2 * 1024 * 1024) {
+//       setError("ไฟล์ต้องไม่เกิน 2MB");
+//       return;
+//     }
+//     uploadFile(f);
+//   };
+
+//   const submit = async () => {
+//     if (!validateAll()) return;
+//     setSaving(true);
+//     setError(null);
+//     try {
+//       await onSave({ name: name.trim(), slug: slug.trim(), image_url: imageUrl });
+//       onClose();
+//     } catch (e: any) {
+//       // รองรับ error จาก server (เช่น validation failed)
+//       const msg =
+//         e?.message ||
+//         (Array.isArray(e?.errors) ? e.errors.join(", ") : "") ||
+//         "Save failed";
+//       setError(msg);
+//     } finally {
+//       setSaving(false);
+//     }
+//   };
+
+//   if (!open) return null;
+
+//   const title = mode === "create" ? "เพิ่มหมวดหมู่" : "แก้ไขหมวดหมู่";
+//   const submitLabel = saving ? "Saving…" : mode === "create" ? "เพิ่ม" : "บันทึก";
+//   const submitDisabled = saving || uploading || !!nameErr || !!slugErr || !!imgErr;
+
+//   return (
+//     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+//       <div className="w-full max-w-lg rounded-xl bg-white p-4 shadow-lg">
+//         <div className="mb-3 text-lg font-semibold">{title}</div>
+
+//         {error && (
+//           <div className="mb-3 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+//             {error}
+//           </div>
+//         )}
+
+//         <div className="space-y-4">
+//           <div>
+//             <label className="mb-1 block text-sm font-medium">ชื่อ (name)</label>
+//             <input
+//               className="w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
+//               value={name}
+//               onChange={(e) => handleNameChange(e.target.value)}
+//               onBlur={() => setNameErr(name.trim() ? null : "กรุณากรอกชื่อ")}
+//               aria-invalid={!!nameErr}
+//               placeholder="เช่น LAN (UTP) System"
+//             />
+//             {nameErr && <p className="mt-1 text-xs text-destructive">{nameErr}</p>}
+//           </div>
+
+//           <div>
+//             <label className="mb-1 block text-sm font-medium">Slug</label>
+//             <input
+//               className="w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
+//               value={slug}
+//               onChange={(e) => handleSlugChange(e.target.value)}
+//               onBlur={() => setSlugErr(slug.trim() ? null : "กรุณากรอก slug")}
+//               aria-invalid={!!slugErr}
+//               placeholder="เช่น lan-utp"
+//             />
+//             <p className="mt-1 text-xs text-muted-foreground">
+//               ใช้เป็นส่วนของ URL: <code>/products?category={slug}</code>
+//             </p>
+//             {slugErr && <p className="mt-1 text-xs text-destructive">{slugErr}</p>}
+//           </div>
+
+//           <div>
+//             <label className="mb-1 block text-sm font-medium">รูปภาพ</label>
+//             <div className="flex items-center gap-3">
+//               <div className="h-16 w-16 overflow-hidden rounded-lg border bg-muted">
+//                 {imageUrl ? (
+//                   // eslint-disable-next-line @next/next/no-img-element
+//                   <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+//                 ) : (
+//                   <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+//                     ไม่มีรูป
+//                   </div>
+//                 )}
+//               </div>
+//               <div>
+//                 <input ref={fileRef} type="file" accept="image/*" onChange={onPickFile} />
+//                 <p className="mt-1 text-xs text-muted-foreground">
+//                   รองรับ PNG/JPG/WEBP ขนาดไม่เกิน 2MB (จะแปลงเป็น WEBP อัตโนมัติ)
+//                 </p>
+//               </div>
+//             </div>
+//             {imgErr && <p className="mt-1 text-xs text-destructive">{imgErr}</p>}
+//             {uploading && <div className="mt-2 text-xs text-muted-foreground">Uploading…</div>}
+//           </div>
+//         </div>
+
+//         <div className="mt-6 flex justify-end gap-2">
+//           <button
+//             onClick={onClose}
+//             className="rounded-md border px-3 py-2 text-sm hover:bg-muted"
+//             disabled={saving || uploading}
+//           >
+//             ยกเลิก
+//           </button>
+//           <button
+//             onClick={submit}
+//             className="rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground hover:opacity-90 disabled:opacity-50"
+//             disabled={submitDisabled}
+//           >
+//             {submitLabel}
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+// v.1.1.4 ================================================
+
+// v.1.1.3 ================================================
+// // src/app/admin/components/AdminCategoryEditDialog.tsx
+// "use client";
+
+// import { useEffect, useRef, useState } from "react";
+
+// export type EditValues = {
+//   name: string;
+//   slug: string;
+//   image_url?: string;
+// };
+
+// export default function AdminCategoryEditDialog({
+//   open,
+//   initial,
+//   onClose,
+//   onSave,
+//   mode = "edit", // 👈 เพิ่มโหมด
+// }: {
+//   open: boolean;
+//   initial: EditValues;
+//   onClose: () => void;
+//   onSave: (values: EditValues) => Promise<void> | void;
+//   mode?: "create" | "edit";
+// }) {
+//   const [name, setName] = useState(initial.name ?? "");
+//   const [slug, setSlug] = useState(initial.slug ?? "");
+//   const [imageUrl, setImageUrl] = useState<string | undefined>(initial.image_url);
+//   const [uploading, setUploading] = useState(false);
+//   const [saving, setSaving] = useState(false);
+//   const [error, setError] = useState<string | null>(null);
+//   const fileRef = useRef<HTMLInputElement | null>(null);
+
+//   useEffect(() => {
+//     if (open) {
+//       setName(initial.name ?? "");
+//       setSlug(initial.slug ?? "");
+//       setImageUrl(initial.image_url);
+//       setError(null);
+//       setUploading(false);
+//       setSaving(false);
+//     }
+//   }, [open, initial]);
+
+//   const slugify = (s: string) =>
+//     s.toLowerCase().trim()
+//       .replace(/[\s_]+/g, "-")
+//       .replace(/[^a-z0-9-]/g, "")
+//       .replace(/-+/g, "-")
+//       .replace(/^-|-$/g, "");
+
+//   const handleNameChange = (v: string) => {
+//     const currentAuto = slugify(name);
+//     const isUntouched = slug.length === 0 || slug === currentAuto;
+//     setName(v);
+//     if (isUntouched) setSlug(slugify(v));
+//   };
+
+//   const uploadFile = async (file: File) => {
+//     const form = new FormData();
+//     form.append("file", file);
+//     setUploading(true);
+//     setError(null);
+//     try {
+//       const res = await fetch("/api/uploads/categories", { method: "POST", body: form });
+//       if (!res.ok) throw new Error((await res.text().catch(() => "")) || "Upload failed");
+//       const data = await res.json();
+//       if (!data?.url) throw new Error("No URL returned");
+//       setImageUrl(data.url as string);
+//     } catch (e: any) {
+//       setError(e?.message ?? "Upload failed");
+//     } finally {
+//       setUploading(false);
+//       if (fileRef.current) fileRef.current.value = "";
+//     }
+//   };
+
+//   const onPickFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     const f = e.target.files?.[0];
+//     if (!f) return;
+//     if (!/^image\/(png|jpe?g|webp)$/i.test(f.type)) {
+//       setError("รองรับเฉพาะ PNG/JPG/WEBP");
+//       return;
+//     }
+//     if (f.size > 2 * 1024 * 1024) {
+//       setError("ไฟล์ต้องไม่เกิน 2MB");
+//       return;
+//     }
+//     uploadFile(f);
+//   };
+
+//   const submit = async () => {
+//     setSaving(true);
+//     setError(null);
+//     try {
+//       await onSave({ name: name.trim(), slug: slug.trim(), image_url: imageUrl });
+//       onClose();
+//     } catch (e: any) {
+//       setError(e?.message ?? "Save failed");
+//     } finally {
+//       setSaving(false);
+//     }
+//   };
+
+//   if (!open) return null;
+
+//   const title = mode === "create" ? "เพิ่มหมวดหมู่" : "แก้ไขหมวดหมู่";
+//   const submitLabel = saving ? "Saving…" : mode === "create" ? "เพิ่ม" : "บันทึก";
+
+//   return (
+//     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+//       <div className="w-full max-w-lg rounded-xl bg-white p-4 shadow-lg">
+//         <div className="mb-3 text-lg font-semibold">{title}</div>
+
+//         {error && (
+//           <div className="mb-3 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+//             {error}
+//           </div>
+//         )}
+
+//         <div className="space-y-4">
+//           <div>
+//             <label className="mb-1 block text-sm font-medium">ชื่อ (name)</label>
+//             <input
+//               className="w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
+//               value={name}
+//               onChange={(e) => handleNameChange(e.target.value)}
+//               placeholder="เช่น LAN (UTP) System"
+//             />
+//           </div>
+
+//           <div>
+//             <label className="mb-1 block text-sm font-medium">Slug</label>
+//             <input
+//               className="w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
+//               value={slug}
+//               onChange={(e) => setSlug(slugify(e.target.value))}
+//               placeholder="เช่น lan-utp"
+//             />
+//             <p className="mt-1 text-xs text-muted-foreground">
+//               ใช้เป็นส่วนของ URL: <code>/products?category={slug}</code>
+//             </p>
+//           </div>
+
+//           <div>
+//             <label className="mb-1 block text-sm font-medium">รูปภาพ</label>
+//             <div className="flex items-center gap-3">
+//               <div className="h-16 w-16 overflow-hidden rounded-lg border bg-muted">
+//                 {imageUrl ? (
+//                   // eslint-disable-next-line @next/next/no-img-element
+//                   <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+//                 ) : (
+//                   <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+//                     ไม่มีรูป
+//                   </div>
+//                 )}
+//               </div>
+//               <div>
+//                 <input ref={fileRef} type="file" accept="image/*" onChange={onPickFile} />
+//                 <p className="mt-1 text-xs text-muted-foreground">
+//                   รองรับ PNG/JPG/WEBP ขนาดไม่เกิน 2MB (จะแปลงเป็น WEBP อัตโนมัติ)
+//                 </p>
+//               </div>
+//             </div>
+//             {uploading && <div className="mt-2 text-xs text-muted-foreground">Uploading…</div>}
+//           </div>
+//         </div>
+
+//         <div className="mt-6 flex justify-end gap-2">
+//           <button
+//             onClick={onClose}
+//             className="rounded-md border px-3 py-2 text-sm hover:bg-muted"
+//             disabled={saving || uploading}
+//           >
+//             ยกเลิก
+//           </button>
+//           <button
+//             onClick={submit}
+//             className="rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground hover:opacity-90 disabled:opacity-50"
+//             disabled={saving || uploading}
+//           >
+//             {submitLabel}
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 
 // v.1.1.3 ================================================
 

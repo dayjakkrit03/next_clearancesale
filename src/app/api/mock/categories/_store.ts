@@ -118,7 +118,7 @@ export function upsert(cat: Partial<UICategory>): UICategory {
       name: cat.name ?? "New Category",
       slug: cat.slug ?? String(nextId),
       image_url: cat.image_url ?? "/placeholder.png",
-      visible: cat.visible ?? true,
+      visible: cat.visible ?? false,
       order: state.length, // ต่อท้าย
     };
     state = [...state, newItem].sort(sortByOrder);

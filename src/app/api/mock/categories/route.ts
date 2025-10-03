@@ -1,70 +1,116 @@
-// v.1.1.4 ================================================
+// v.1.1.5 ================================================
 // src/app/api/mock/categories/route.ts
 
 import { NextResponse } from "next/server";
 import { getAll, getMeta, upsert } from "./_store";
+import { validateCategoryCreate } from "@/lib/validation/category";
+import { fa } from "zod/v4/locales";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET() {
-  // ส่งรายการทั้งหมด (รวมที่ซ่อน) + meta
   return NextResponse.json(
     { items: getAll({ includeHidden: true }), meta: getMeta() },
     { headers: { "Cache-Control": "no-store" } }
   );
 }
 
-function slugify(input: string) {
-  return (input ?? "")
-    .toLowerCase()
-    .trim()
-    .replace(/[\s_]+/g, "-")
-    .replace(/[^a-z0-9-]/g, "")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => null);
-    if (!body || (typeof body.name !== "string" && typeof body.slug !== "string")) {
+    if (!body || typeof body !== "object") {
       return NextResponse.json({ error: "Bad payload" }, { status: 400 });
     }
 
-    const name = typeof body.name === "string" ? body.name.trim() : "";
-    // ถ้าไม่ได้ส่ง slug ให้สร้างจาก name, ถ้าส่งมาก็ normalize ให้ถูกฟอร์แมต
-    const slug =
-      typeof body.slug === "string" && body.slug.trim().length > 0
-        ? slugify(body.slug)
-        : slugify(name);
+    // ✅ validate: name/slug/image_url ต้องไม่ว่าง
+    const result = validateCategoryCreate(body);
+    if (!result.ok) {
+      return NextResponse.json({ error: "Validation failed", errors: result.errors }, { status: 400 });
+    }
 
     const payload = {
       ...body,
-      name,
-      slug,
-      // เผื่อไม่ได้ส่ง visible มา ให้ default เป็น true
-      visible: typeof body.visible === "boolean" ? body.visible : true,
+      ...result.data,
+      visible: typeof body.visible === "boolean" ? body.visible : false, // default เป็น false
     };
 
-    // upsert ควร return item; ถ้าโค้ดใน _store ยังไม่ return ให้ fallback หาใน state
-    const maybeItem = upsert(payload) as any;
-    const item =
-      maybeItem ??
-      getAll({ includeHidden: true }).find(
-        (c) => c.id === payload.id || c.slug === payload.slug
-      );
-
-    if (!item) {
-      // ไม่ควรเกิด ถ้า upsert ทำงานถูกต้อง
-      return NextResponse.json({ error: "Save failed" }, { status: 500 });
-    }
-
+    const item = upsert(payload);
     return NextResponse.json({ item }, { status: 201 });
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
   }
 }
+
+// v.1.1.5 ================================================
+
+// v.1.1.4 ================================================
+// // src/app/api/mock/categories/route.ts
+
+// import { NextResponse } from "next/server";
+// import { getAll, getMeta, upsert } from "./_store";
+
+// export const dynamic = "force-dynamic";
+// export const revalidate = 0;
+
+// export async function GET() {
+//   // ส่งรายการทั้งหมด (รวมที่ซ่อน) + meta
+//   return NextResponse.json(
+//     { items: getAll({ includeHidden: true }), meta: getMeta() },
+//     { headers: { "Cache-Control": "no-store" } }
+//   );
+// }
+
+// function slugify(input: string) {
+//   return (input ?? "")
+//     .toLowerCase()
+//     .trim()
+//     .replace(/[\s_]+/g, "-")
+//     .replace(/[^a-z0-9-]/g, "")
+//     .replace(/-+/g, "-")
+//     .replace(/^-|-$/g, "");
+// }
+
+// export async function POST(req: Request) {
+//   try {
+//     const body = await req.json().catch(() => null);
+//     if (!body || (typeof body.name !== "string" && typeof body.slug !== "string")) {
+//       return NextResponse.json({ error: "Bad payload" }, { status: 400 });
+//     }
+
+//     const name = typeof body.name === "string" ? body.name.trim() : "";
+//     // ถ้าไม่ได้ส่ง slug ให้สร้างจาก name, ถ้าส่งมาก็ normalize ให้ถูกฟอร์แมต
+//     const slug =
+//       typeof body.slug === "string" && body.slug.trim().length > 0
+//         ? slugify(body.slug)
+//         : slugify(name);
+
+//     const payload = {
+//       ...body,
+//       name,
+//       slug,
+//       // เผื่อไม่ได้ส่ง visible มา ให้ default เป็น true
+//       visible: typeof body.visible === "boolean" ? body.visible : true,
+//     };
+
+//     // upsert ควร return item; ถ้าโค้ดใน _store ยังไม่ return ให้ fallback หาใน state
+//     const maybeItem = upsert(payload) as any;
+//     const item =
+//       maybeItem ??
+//       getAll({ includeHidden: true }).find(
+//         (c) => c.id === payload.id || c.slug === payload.slug
+//       );
+
+//     if (!item) {
+//       // ไม่ควรเกิด ถ้า upsert ทำงานถูกต้อง
+//       return NextResponse.json({ error: "Save failed" }, { status: 500 });
+//     }
+
+//     return NextResponse.json({ item }, { status: 201 });
+//   } catch (e) {
+//     return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
+//   }
+// }
 
 
 // v.1.1.4 ================================================
