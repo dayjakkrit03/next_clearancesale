@@ -1,3 +1,5 @@
+// src/components/product-grid.tsx
+
 import { ProductCard } from "./product-card";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";

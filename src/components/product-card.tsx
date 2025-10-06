@@ -1,3 +1,4 @@
+// File: src/components/product-card.tsx
 "use client";
 
 import { useState } from "react";
