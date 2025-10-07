@@ -11,8 +11,8 @@ type Item = { label: string; href: string };
 const items: Item[] = [
   { label: "Dashboard", href: "/admin" },
   { label: "Categories Management", href: "/admin/categories" },
-  // ⬇️ เพิ่มเมนูใหม่
   { label: "Product Management", href: "/admin/products" },
+  { label: "Discount Rules", href: "/admin/discount-rules" },
 ];
 
 export default function AdminSidebar() {
