@@ -12,6 +12,11 @@ import AdminProductEditDialog, { ProductEditValues } from "./AdminProductEditDia
 
 import ProductCardAdmin from "./products/ProductCardAdmin";
 import ProductRowAdmin from "./products/ProductRowAdmin";
+import Toolbar from "./products/Toolbar";
+import BulkActionsBar from "./products/BulkActionsBar";
+import Pagination from "./products/Pagination";
+import HeaderBar from "./products/HeaderBar";
+
 
 import type {
   UIProduct,
@@ -448,207 +453,73 @@ export default function AdminProductGrid({
       )}
 
       {/* Header + Add */}
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <div className="flex-1">
-          <div className="text-2xl font-semibold mb-2">
-            <input
-              className="w-full bg-transparent outline-none focus:ring-0 border-b border-transparent focus:border-primary/30 transition px-1"
-              value={meta.title}
-              onChange={(e) => patchMeta({ title: e.target.value })}
-              aria-label="Title"
-            />
-          </div>
-          <input
-            className="w-full text-muted-foreground bg-transparent outline-none focus:ring-0 border-b border-transparent focus:border-primary/20 transition px-1"
-            value={meta.subtitle}
-            onChange={(e) => patchMeta({ subtitle: e.target.value })}
-            aria-label="Subtitle"
-          />
-        </div>
+      <HeaderBar
+        title={meta.title}
+        subtitle={meta.subtitle}
+        onTitleChange={(v) => patchMeta({ title: v })}
+        onSubtitleChange={(v) => patchMeta({ subtitle: v })}
 
-        <div className="flex items-center gap-2">
-          {/* view switch */}
-          <div className="inline-flex rounded-md border overflow-hidden">
-            <button
-              className={`px-3 py-2 text-sm ${viewMode === "grid" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
-              onClick={() => setViewMode("grid")}
-              title="มุมมองกริด"
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </button>
-            <button
-              className={`px-3 py-2 text-sm ${viewMode === "list" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
-              onClick={() => setViewMode("list")}
-              title="มุมมองรายการ"
-            >
-              <ListIcon className="h-4 w-4" />
-            </button>
-          </div>
+        viewMode={viewMode}
+        onViewModeChange={(m) => setViewMode(m)}
 
-          <button
-            type="button"
-            className={`rounded-md border px-3 py-2 text-sm ${quickEdit ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
-            onClick={() => setQuickEdit((v) => !v)}
-          >
-            {quickEdit ? "ปิด Quick edit" : "Quick edit"}
-          </button>
-          <button
-            type="button"
-            className={`rounded-md border px-3 py-2 text-sm ${selectMode ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
-            onClick={() => setSelectMode((v) => !v)}
-          >
-            {selectMode ? "ปิดโหมดเลือก" : "เลือกหลายรายการ"}
-          </button>
-          <button
-            type="button"
-            className="shrink-0 rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground hover:opacity-90"
-            onClick={() => setCreating(true)}
-          >
-            + เพิ่มสินค้า
-          </button>
-        </div>
-      </div>
+        quickEdit={quickEdit}
+        onToggleQuickEdit={() => setQuickEdit((x) => !x)}
+
+        selectMode={selectMode}
+        onToggleSelectMode={() => setSelectMode((x) => !x)}
+
+        onCreate={() => setCreating(true)}
+      />
+
 
       {/* Toolbar: ค้นหา / หมวด / แสดง / เรียง */}
-      <div className="mb-3 grid grid-cols-1 md:grid-cols-4 gap-3">
-        <input
-          value={q}
-          onChange={(e) => {
-            setQ(e.target.value);
-            setPage(1);
-          }}
-          placeholder="ค้นหาชื่อ/แบรนด์/SKU…"
-          className="rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
-        />
-
-        <select
-          value={String(categoryId ?? "")}
-          onChange={(e) => {
-            const v = e.target.value;
-            const n = Number(v);
-            setCategoryId(v === "" ? undefined : (Number.isFinite(n) && String(n) === v ? n : v));
-            setPage(1);
-          }}
-          className="rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
-        >
-          <option value="">ทุกหมวดหมู่</option>
-          {categoryOptions.map((c) => (
-            <option key={String(c.id)} value={String(c.id)}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={includeHidden}
-          onChange={(e) => {
-            setIncludeHidden(e.target.value as "all" | "visibleOnly");
-            setPage(1);
-          }}
-          className="rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
-        >
-          <option value="all">แสดงทั้งหมด</option>
-          <option value="visibleOnly">เฉพาะที่แสดงอยู่</option>
-        </select>
-
-        <select
-          value={`${sort}:${order}`}
-          onChange={(e) => {
-            const [s, o] = e.target.value.split(":") as [typeof sort, typeof order];
-            setSort(s);
-            setOrder(o);
-            setPage(1);
-          }}
-          className="rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
-        >
-          <option value="order:asc">เรียงตามลำดับ</option>
-          <option value="price:asc">ราคาต่ำ → สูง</option>
-          <option value="price:desc">ราคาสูง → ต่ำ</option>
-          <option value="name:asc">ชื่อ A → Z</option>
-          <option value="name:desc">ชื่อ Z → A</option>
-        </select>
-      </div>
+      <Toolbar
+        q={q}
+        onQChange={setQ}
+        categoryOptions={categoryOptions}
+        categoryId={categoryId}
+        onCategoryChange={setCategoryId}
+        includeHidden={includeHidden}
+        onIncludeHiddenChange={setIncludeHidden}
+        sort={sort}
+        order={order}
+        onSortOrderChange={(s, o) => { setSort(s); setOrder(o); }}
+        onResetPage={() => setPage(1)}
+      />
 
       {/* Bulk actions bar */}
       {selectMode && (
-        <div className="mb-4 flex flex-col gap-3 rounded-md border px-3 py-2 bg-muted/50">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-sm">
-              <button className="rounded-md border px-2 py-1 hover:bg-white" onClick={selectAllThisPage}>
-                เลือกทั้งหมดในหน้านี้
-              </button>
-              <button className="rounded-md border px-2 py-1 hover:bg-white" onClick={clearSelection}>
-                ล้างการเลือก
-              </button>
-              <span className="text-muted-foreground">เลือกแล้ว: {selectedCount}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                className="rounded-md border px-3 py-1.5 text-sm hover:bg-white"
-                onClick={() => bulkPatchVisible(false)}
-                disabled={!selectedCount}
-              >
-                ซ่อน (Bulk)
-              </button>
-              <button
-                className="rounded-md border px-3 py-1.5 text-sm hover:bg-white"
-                onClick={() => bulkPatchVisible(true)}
-                disabled={!selectedCount}
-              >
-                แสดง (Bulk)
-              </button>
-              <button
-                className="rounded-md border border-destructive/50 text-destructive px-3 py-1.5 text-sm hover:bg-white"
-                onClick={async () => {
-                  if (!selectedCount) return;
-                  if (!confirm(`ยืนยันลบ ${selectedCount} รายการ?`)) return;
-                  setSaving(true);
-                  setError(null);
-                  try {
-                    const ids = Array.from(selected);
-                    setItems((prev) => prev.filter((x) => !ids.includes(x.id)));
-                    await Promise.allSettled(ids.map((id) => fetch(`${API_BASE}/${id}`, { method: "DELETE" })));
-                    await fetchList();
-                    clearSelection();
-                  } catch (e: any) {
-                    setError(e?.message ?? "Bulk delete failed");
-                  } finally {
-                    setSaving(false);
-                  }
-                }}
-                disabled={!selectedCount}
-              >
-                ลบ (Bulk)
-              </button>
-            </div>
-          </div>
-
-          {/* Bulk move category */}
-          <div className="flex flex-wrap items-center gap-2">
-            <label className="text-sm text-muted-foreground">ย้ายหมวดหมู่:</label>
-            <select
-              className="rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30 min-w-[220px]"
-              value={bulkCat}
-              onChange={(e) => setBulkCat(e.target.value)}
-            >
-              <option value="">— เลือกหมวดปลายทาง —</option>
-              {categoryOptions.map((c) => (
-                <option key={String(c.id)} value={String(c.id)}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            <button
-              className="rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground hover:opacity-90 disabled:opacity-50"
-              onClick={bulkChangeCategory}
-              disabled={!selectedCount || !bulkCat}
-              title={!bulkCat ? "กรุณาเลือกหมวดปลายทาง" : ""}
-            >
-              ย้ายหมวด (Bulk)
-            </button>
-          </div>
-        </div>
+        <BulkActionsBar
+          selectedCount={selectedCount}
+          onSelectAllThisPage={selectAllThisPage}
+          onClearSelection={clearSelection}
+          onBulkHide={() => bulkPatchVisible(false)}
+          onBulkShow={() => bulkPatchVisible(true)}
+          onBulkDelete={async () => {
+            if (!selectedCount) return;
+            if (!confirm(`ยืนยันลบ ${selectedCount} รายการ?`)) return;
+            setSaving(true);
+            setError(null);
+            try {
+              const ids = Array.from(selected);
+              setItems((prev) => prev.filter((x) => !ids.includes(x.id)));
+              await Promise.allSettled(ids.map((id) => fetch(`${API_BASE}/${id}`, { method: "DELETE" })));
+              await fetchList();
+              clearSelection();
+            } catch (e: any) {
+              setError(e?.message ?? "Bulk delete failed");
+            } finally {
+              setSaving(false);
+            }
+          }}
+          categoryOptions={categoryOptions}
+          bulkCat={bulkCat}
+          onBulkCatChange={setBulkCat}
+          onBulkMove={bulkChangeCategory}
+          disabledMove={!selectedCount || !bulkCat}
+        />
       )}
+
 
       {/* List / Grid */}
       <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -702,41 +573,16 @@ export default function AdminProductGrid({
       </DndContext>
 
       {/* Footer: จำนวน/หน้า + เปลี่ยน page/pageSize */}
-      <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm">
-        <div className="text-muted-foreground">
-          แสดง {items.length.toLocaleString("th-TH")} รายการ • ทั้งหมด {total.toLocaleString("th-TH")} รายการ • หน้า {page}/{Math.max(1, Math.ceil((total || 0) / pageSize))}
-        </div>
-        <div className="flex items-center gap-2">
-          <select
-            className="rounded-md border px-2 py-1"
-            value={pageSize}
-            onChange={(e) => {
-              setPageSize(Number(e.target.value) || 24);
-              setPage(1);
-            }}
-          >
-            {[12, 24, 36, 48].map((n) => (
-              <option key={n} value={n}>
-                {n}/หน้า
-              </option>
-            ))}
-          </select>
-          <button
-            className="rounded-md border px-2 py-1 disabled:opacity-50"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={!canPrev}
-          >
-            ← ก่อนหน้า
-          </button>
-          <button
-            className="rounded-md border px-2 py-1 disabled:opacity-50"
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={!canNext}
-          >
-            ถัดไป →
-          </button>
-        </div>
-      </div>
+      <Pagination
+        itemsInPage={items.length}
+        total={total}
+        page={page}
+        totalPages={Math.max(1, Math.ceil((total || 0) / pageSize))}
+        pageSize={pageSize}
+        onPageSizeChange={(n) => { setPageSize(n); setPage(1); }}
+        onPrev={() => setPage((p) => Math.max(1, p - 1))}
+        onNext={() => setPage((p) => Math.min(Math.max(1, Math.ceil((total || 0) / pageSize)), p + 1))}
+      />
 
       {/* Create */}
       <AdminProductEditDialog
