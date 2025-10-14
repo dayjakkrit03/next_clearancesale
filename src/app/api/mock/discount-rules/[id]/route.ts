@@ -1,4 +1,4 @@
-// v.1.1.2 =======================================================
+// v.1.1.3 =======================================================
 // src/app/api/mock/discount-rules/[id]/route.ts
 
 import { NextResponse } from "next/server";
@@ -6,15 +6,19 @@ import { store, sanitizePatch } from "../_store";
 
 export const dynamic = "force-dynamic";
 
+// ช่วยให้ไม่เตือนเรื่อง params ต้อง await ก่อน
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  ctx: { params: Promise<{ id: string }> } // เปลี่ยนเป็น Promise
 ) {
-  const id = params.id;
-  const idx = store.items.findIndex((x) => String(x.id) === String(id));
-  if (idx === -1) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const { id } = await ctx.params;        // <-- await ก่อนใช้งาน
 
-  const body = await req.json().catch(() => ({}));
+  const idx = store.items.findIndex((x) => String(x.id) === String(id));
+  if (idx === -1) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const body = await req.json().catch(() => ({} as any));
 
   // shorthand toggle
   if (body?.toggleEnabled) {
@@ -28,16 +32,64 @@ export async function PATCH(
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: { id: string } }
+  ctx: { params: Promise<{ id: string }> } // เปลี่ยนเป็น Promise
 ) {
-  const id = params.id;
+  const { id } = await ctx.params;        // <-- await ก่อนใช้งาน
+
   const idx = store.items.findIndex((x) => String(x.id) === String(id));
-  if (idx === -1) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (idx === -1) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   const [removed] = store.items.splice(idx, 1);
   // re-number order
   store.items = store.items.map((x, i) => ({ ...x, order: i }));
+
   return NextResponse.json({ ok: true, removedId: removed.id });
 }
+
+// v.1.1.3 =======================================================
+
+// v.1.1.2 =======================================================
+// // src/app/api/mock/discount-rules/[id]/route.ts
+
+// import { NextResponse } from "next/server";
+// import { store, sanitizePatch } from "../_store";
+
+// export const dynamic = "force-dynamic";
+
+// export async function PATCH(
+//   req: Request,
+//   { params }: { params: { id: string } }
+// ) {
+//   const id = params.id;
+//   const idx = store.items.findIndex((x) => String(x.id) === String(id));
+//   if (idx === -1) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+//   const body = await req.json().catch(() => ({}));
+
+//   // shorthand toggle
+//   if (body?.toggleEnabled) {
+//     store.items[idx].enabled = !store.items[idx].enabled;
+//   } else {
+//     Object.assign(store.items[idx], sanitizePatch(body));
+//   }
+
+//   return NextResponse.json({ item: store.items[idx] });
+// }
+
+// export async function DELETE(
+//   _req: Request,
+//   { params }: { params: { id: string } }
+// ) {
+//   const id = params.id;
+//   const idx = store.items.findIndex((x) => String(x.id) === String(id));
+//   if (idx === -1) return NextResponse.json({ error: "Not found" }, { status: 404 });
+//   const [removed] = store.items.splice(idx, 1);
+//   // re-number order
+//   store.items = store.items.map((x, i) => ({ ...x, order: i }));
+//   return NextResponse.json({ ok: true, removedId: removed.id });
+// }
 
 // v.1.1.2 =======================================================
 
