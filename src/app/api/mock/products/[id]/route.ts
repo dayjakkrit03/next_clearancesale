@@ -1,9 +1,7 @@
-// v.1.1.3 ====================================================
+// v.1.1.4 ====================================================
 // src/app/api/mock/products/[id]/route.ts
 import { NextResponse } from "next/server";
-import { setVisible, toggleVisible, remove, upsert } from "../_store";
-// ❗ ไม่ใช้ validateProductInput สำหรับ partial update เพื่อรองรับ bulk move
-// import { validateProductInput } from "@/lib/validation/product";
+import { setVisible, toggleVisible, remove, upsert, getById } from "../_store";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -12,7 +10,7 @@ function parseId(param: string) {
   return isNaN(Number(param)) ? param : Number(param);
 }
 
-// helper: แปลง string ตัวเลข → number ถ้าเป็นตัวเลขล้วน
+// แปลง string ตัวเลข → number ถ้าเป็นตัวเลขล้วน
 function toNumberIfNumeric(v: any) {
   if (v === "" || v == null) return undefined;
   const n = Number(v);
@@ -22,6 +20,18 @@ function clamp(num: number, lo: number, hi: number) {
   return Math.min(hi, Math.max(lo, num));
 }
 
+/** GET /api/mock/products/[id] : อ่านรายละเอียดชิ้นเดียว */
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id: rawId } = await params;
+  const id = parseId(rawId);
+  const item = getById(id);
+  if (!item) {
+    return NextResponse.json({ message: "Product not found" }, { status: 404 });
+  }
+  return NextResponse.json(item, { status: 200 });
+}
+
+/** PATCH /api/mock/products/[id] : อัปเดตแบบบางฟิลด์ (partial) */
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id: rawId } = await params;
   const id = parseId(rawId);
@@ -39,8 +49,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ ok: true });
   }
 
-  // ✅ อนุญาต PARTIAL UPDATE (เช่น category_id อย่างเดียว)
-  // เก็บเฉพาะคีย์ที่อนุญาต และ normalize ตัวเลข
+  // ✅ อนุญาต PARTIAL UPDATE
   const allowedKeys = new Set([
     "name",
     "brand",
@@ -75,9 +84,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       v = Math.max(0, Math.floor(v));
     }
     if (k === "category_id") {
-      // รับได้ทั้ง string/number — ถ้าเป็นตัวเลขล้วน แปลงเป็น number ให้
-      const maybeNum = toNumberIfNumeric(v);
-      v = maybeNum;
+      // รับทั้ง string/number — ถ้าเป็นตัวเลขล้วน แปลงเป็น number ให้
+      v = toNumberIfNumeric(v);
     }
 
     patch[k] = v;
@@ -93,12 +101,117 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   return NextResponse.json({ ok: true });
 }
 
+/** DELETE /api/mock/products/[id] : ลบ */
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id: rawId } = await params;
   const id = parseId(rawId);
   remove(id);
   return NextResponse.json({ ok: true });
 }
+
+// v.1.1.4 ====================================================
+
+// v.1.1.3 ====================================================
+// // src/app/api/mock/products/[id]/route.ts
+// import { NextResponse } from "next/server";
+// import { setVisible, toggleVisible, remove, upsert } from "../_store";
+// // ❗ ไม่ใช้ validateProductInput สำหรับ partial update เพื่อรองรับ bulk move
+// // import { validateProductInput } from "@/lib/validation/product";
+
+// export const dynamic = "force-dynamic";
+// export const revalidate = 0;
+
+// function parseId(param: string) {
+//   return isNaN(Number(param)) ? param : Number(param);
+// }
+
+// // helper: แปลง string ตัวเลข → number ถ้าเป็นตัวเลขล้วน
+// function toNumberIfNumeric(v: any) {
+//   if (v === "" || v == null) return undefined;
+//   const n = Number(v);
+//   return Number.isFinite(n) ? n : v;
+// }
+// function clamp(num: number, lo: number, hi: number) {
+//   return Math.min(hi, Math.max(lo, num));
+// }
+
+// export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+//   const { id: rawId } = await params;
+//   const id = parseId(rawId);
+
+//   const body = await req.json().catch(() => null);
+//   if (!body) return NextResponse.json({ error: "Bad payload" }, { status: 400 });
+
+//   // toggle/visible: เดิม
+//   if (typeof body.visible === "boolean") {
+//     setVisible(id, body.visible);
+//     return NextResponse.json({ ok: true });
+//   }
+//   if (body.toggleVisible === true) {
+//     toggleVisible(id);
+//     return NextResponse.json({ ok: true });
+//   }
+
+//   // ✅ อนุญาต PARTIAL UPDATE (เช่น category_id อย่างเดียว)
+//   // เก็บเฉพาะคีย์ที่อนุญาต และ normalize ตัวเลข
+//   const allowedKeys = new Set([
+//     "name",
+//     "brand",
+//     "sku",
+//     "price",
+//     "discountPercent",
+//     "image_url",
+//     "category_id",
+//     "uom",
+//     "rating",
+//     "reviews",
+//     "visible",
+//   ]);
+
+//   const patch: Record<string, any> = {};
+//   for (const k of Object.keys(body || {})) {
+//     if (!allowedKeys.has(k)) continue;
+//     let v = body[k];
+
+//     if (k === "price" || k === "discountPercent" || k === "rating" || k === "reviews") {
+//       const n = Number(v);
+//       if (Number.isFinite(n)) v = n;
+//     }
+
+//     if (k === "discountPercent" && typeof v === "number") {
+//       v = clamp(Math.round(v), 0, 100);
+//     }
+//     if (k === "rating" && typeof v === "number") {
+//       v = clamp(Number(v.toFixed(1)), 0, 5);
+//     }
+//     if (k === "reviews" && typeof v === "number") {
+//       v = Math.max(0, Math.floor(v));
+//     }
+//     if (k === "category_id") {
+//       // รับได้ทั้ง string/number — ถ้าเป็นตัวเลขล้วน แปลงเป็น number ให้
+//       const maybeNum = toNumberIfNumeric(v);
+//       v = maybeNum;
+//     }
+
+//     patch[k] = v;
+//   }
+
+//   if (Object.keys(patch).length === 0) {
+//     return NextResponse.json({ error: "No updatable fields" }, { status: 400 });
+//   }
+
+//   // ใช้ upsert รวมค่า (store จะ merge ให้)
+//   upsert({ id, ...patch });
+
+//   return NextResponse.json({ ok: true });
+// }
+
+// export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+//   const { id: rawId } = await params;
+//   const id = parseId(rawId);
+//   remove(id);
+//   return NextResponse.json({ ok: true });
+// }
 
 // v.1.1.3 ====================================================
 
