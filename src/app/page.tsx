@@ -1,17 +1,143 @@
-// v.1.1.7 ================================================
+// v.1.1.9 ================================================
 // src/app/page.tsx
+import { HeroSection } from "@/components/hero-section";
+import { CategoryGrid } from "@/components/category-grid";
+// import { FlashSale } from "@/components/flash-sale";
+// import { InterlinkMall } from "@/components/interlink-mall";
 import { ProductGridServer } from "@/components/product-grid.server";
+import { absoluteUrl } from "@/lib/base-url";
+
+export const revalidate = 0; // ไม่ cache ขณะพัฒนา
+
+type UICategory = {
+  id?: number | string;
+  name: string;
+  slug: string;
+  image_url?: string;
+  visible?: boolean;
+  order?: number;
+};
+
+type UIMeta = {
+  title?: string;
+  subtitle?: string;
+};
+
+async function getCategoriesAndMeta(): Promise<{ items: UICategory[]; meta: UIMeta }> {
+  const url = await absoluteUrl("/api/mock/categories");
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) return { items: [], meta: {} };
+
+  const { items = [], meta = {} } = await res.json();
+
+  const normalized = (items as UICategory[])
+    .filter((c) => c.visible !== false)
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+  return { items: normalized, meta };
+}
 
 export default async function IndexPage() {
+  const { items, meta } = await getCategoriesAndMeta();
+
   return (
     <>
-      {/* ... */}
-      <ProductGridServer listKey="home_weekly" limit={4} />
-      <ProductGridServer listKey="home_cable" limit={4} />
-      {/* ... */}
+      <HeroSection />
+
+      {/* ใช้ค่า title/subtitle/limit จาก featured list: home_weekly */}
+      <ProductGridServer listKey="home_weekly" />
+
+      <CategoryGrid
+        items={items}
+        title={meta.title}
+        subtitle={meta.subtitle}
+      />
+
+      {/* อีกบล็อกจาก featured list: home_cable (จะดึง title/subtitle/limit จากลิสต์เอง) */}
+      <ProductGridServer listKey="home_cable" />
+
+      {/* <FlashSale /> */}
+      {/* <InterlinkMall /> */}
     </>
   );
 }
+
+// v.1.1.9 ================================================
+
+// v.1.1.8 ================================================
+// // src/app/page.tsx
+// import { HeroSection } from "@/components/hero-section";
+// import { CategoryGrid } from "@/components/category-grid";
+// import { FlashSale } from "@/components/flash-sale";
+// import { InterlinkMall } from "@/components/interlink-mall";
+// // import ProductGridWithCart from "@/components/product-grid.with-cart";
+// import { ProductGridServer } from "@/components/product-grid.server";
+// import { absoluteUrl } from "@/lib/base-url";
+
+// export const revalidate = 0; // ไม่ cache ขณะพัฒนา
+
+// type UICategory = {
+//   id?: number | string;
+//   name: string;
+//   slug: string;
+//   image_url?: string;
+//   visible?: boolean;
+//   order?: number;
+// };
+
+// type UIMeta = {
+//   title?: string;
+//   subtitle?: string;
+// };
+
+// async function getCategoriesAndMeta(): Promise<{ items: UICategory[]; meta: UIMeta }> {
+//   const url = await absoluteUrl("/api/mock/categories");
+//   const res = await fetch(url, { cache: "no-store" });
+//   if (!res.ok) return { items: [], meta: {} };
+
+//   const { items = [], meta = {} } = await res.json();
+
+//   const normalized = (items as UICategory[])
+//     .filter((c) => c.visible !== false)
+//     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+//   return { items: normalized, meta };
+// }
+
+// export default async function IndexPage() {
+//   const { items, meta } = await getCategoriesAndMeta();
+
+//   return (
+//     <>
+//       <HeroSection />
+//       <ProductGridServer listKey="home_weekly" />
+//       <CategoryGrid
+//         items={items}
+//         title={meta.title}         // ✅ ส่งหัวข้อจาก mock
+//         subtitle={meta.subtitle}   // ✅ ส่งคำอธิบายจาก mock
+//       />
+//       <FlashSale />
+//       <InterlinkMall />
+//     </>
+//   );
+// }
+
+// v.1.1.8 ================================================
+
+// v.1.1.7 ================================================
+// // src/app/page.tsx
+// import { ProductGridServer } from "@/components/product-grid.server";
+
+// export default async function IndexPage() {
+//   return (
+//     <>
+//       {/* ... */}
+//       <ProductGridServer listKey="home_weekly" limit={24} />
+//       <ProductGridServer listKey="home_cable" limit={24} />
+//       {/* ... */}
+//     </>
+//   );
+// }
 
 // v.1.1.7 ================================================
 

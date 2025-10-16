@@ -1,4 +1,5 @@
-// v.1.1.9 =============================================
+
+// v.1.1.10 =============================================
 // src/app/api/mock/products/_store.ts
 
 /** ===== Types ===== */
@@ -184,7 +185,6 @@ export function getById(id: UIProduct["id"]): UIProduct | undefined {
 /** อ่านสินค้าหลาย id และคงลำดับตามที่ส่งมา */
 export function getManyByIds(ids: Array<UIProduct["id"]>): UIProduct[] {
   if (!Array.isArray(ids) || ids.length === 0) return [];
-  // แปลง id ให้เป็นชนิดเดียวกับที่เก็บไว้ก่อน (number ถ้าเป็นตัวเลข)
   const norm = ids.map((v) => coerceId(v));
   const map = new Map(state.map((p) => [p.id, p]));
   return norm
@@ -302,6 +302,30 @@ export function upsert(p: Partial<UIProduct>): UIProduct {
   }
 }
 
+/** (NEW) helper สำหรับจัดหมวดสินค้าแบบเดี่ยว/หลายรายการ */
+export function setCategory(
+  id: UIProduct["id"],
+  category_id?: UIProduct["category_id"]
+) {
+  // ใช้ upsert เพื่อคงลำดับ/ฟิลด์อื่น ๆ
+  upsert({ id, category_id });
+}
+
+export function bulkSetCategory(
+  ops: Array<{ id: UIProduct["id"]; category_id?: UIProduct["category_id"] }>
+): { updated: number; results: Array<{ id: UIProduct["id"]; ok: boolean; reason?: string }> } {
+  const results: Array<{ id: UIProduct["id"]; ok: boolean; reason?: string }> = [];
+  for (const { id, category_id } of ops ?? []) {
+    try {
+      upsert({ id, category_id });
+      results.push({ id, ok: true });
+    } catch (e: any) {
+      results.push({ id, ok: false, reason: e?.message ?? "update_failed" });
+    }
+  }
+  return { updated: results.filter((r) => r.ok).length, results };
+}
+
 export function reset() {
   state = seedRows.map((r, i) => ({
     id: r.id,
@@ -324,6 +348,335 @@ export function reset() {
     updatedAt: new Date().toISOString(),
   };
 }
+
+// v.1.1.10 =============================================
+
+// v.1.1.9 =============================================
+// // src/app/api/mock/products/_store.ts
+
+// /** ===== Types ===== */
+// export type UIProduct = {
+//   id: number | string;
+//   name: string;
+//   brand?: string;
+//   sku?: string;
+//   price: number;
+//   discountPercent?: number; // 0..100
+//   image_url?: string;
+//   visible?: boolean;
+//   order: number;
+
+//   rating?: number;   // 0..5
+//   reviews?: number;  // จำนวนรีวิว
+
+//   category_id?: number | string;
+//   uom?: string;      // <<< หน่วยสินค้า เช่น "ST.", "EA.", "PC."
+// };
+
+// /** ===== (NEW) Card parts visibility (ฝั่ง API เก็บค่าเดียวกับแอดมิน) ===== */
+// export type CardPartsVisibility = {
+//   image: boolean;
+//   discountBadge: boolean;
+//   brandLogo: boolean;
+//   frame: boolean;
+
+//   brandName: boolean;
+//   sku: boolean;
+//   name: boolean;
+//   ratingReview: boolean;
+//   category: boolean;
+//   price: boolean;
+//   originalPrice: boolean;
+//   uom: boolean;
+// };
+
+// export const defaultCardPartsVisibility: CardPartsVisibility = {
+//   image: true,
+//   discountBadge: true,
+//   brandLogo: true,
+//   frame: true,
+
+//   brandName: true,
+//   sku: true,
+//   name: true,
+//   ratingReview: true,
+//   category: true,
+//   price: true,
+//   originalPrice: true,
+//   uom: true,
+// };
+
+// export type ProductsMeta = {
+//   title: string;
+//   subtitle: string;
+//   updatedAt?: string;
+//   /** (NEW) การตั้งค่าการแสดงผลการ์ด */
+//   cardParts: CardPartsVisibility;
+// };
+
+// /** ===== (NEW) Query types for admin listing ===== */
+// export type ProductQuery = {
+//   q?: string;
+//   category_id?: number | string;
+//   visible?: boolean;
+//   sort?:
+//     | "order"
+//     | "newest"
+//     | "price_asc"
+//     | "price_desc"
+//     | "discount_desc"
+//     | "rating_desc";
+//   page?: number;     // 1-based
+//   pageSize?: number; // e.g. 24/48/96
+// };
+
+// /** ===== Seed from legacy-like sample ===== */
+// const seedRows = [
+//   { id: 1, name: "Fiber Optic Cable Single Mode 305m", brand: "COMMSCOPE", price: 2160, image: "/assets/fiber-optic-cable.jpg", sku: "AM-2120-02XG", discount: "60%", rating: 4.8, reviews: 156, category_id: 2, uom: "ST." },
+//   { id: 2, name: "24-Port Gigabit Network Switch",      brand: "COMMSCOPE", price: 8530, image: "/assets/network-switch-professional.jpg", sku: "AM-2129", discount: "80%", rating: 4.6, reviews: 234, category_id: 9, uom: "EA." },
+//   { id: 3, name: "RG-6 Coaxial Cable 305m",             brand: "GERMANYRACK", price: 4540, image: "/assets/coaxial-cable-reel.jpg", sku: "AM-2162-03", discount: "60%", rating: 4.5, reviews: 189, category_id: 6, uom: "ST." },
+//   { id: 4, name: "Solar Cable 4mm² PV Wire 100m",       brand: "LINK", price: 4860, image: "/assets/solar-cable-red.jpg", sku: "AM-2166-03", discount: "80%", rating: 4.7, reviews: 145, category_id: 7, uom: "M." },
+//   { id: 5, name: "Telephone Cable 4-Pair Indoor 305m",  brand: "COMMSCOPE", price: 1470, image: "/assets/telephone-cable.jpg", sku: "AM-2220-02", discount: "60%", rating: 4.4, reviews: 98,  category_id: 3, uom: "ST." },
+//   { id: 6, name: "19'' Server Rack Cabinet 42U",        brand: "LINK", price: 2000, image: "/assets/server-rack-19inch.jpg", sku: "AM-3032", discount: "90%", rating: 4.9, reviews: 87,  category_id: 10, uom: "EA." },
+//   { id: 7, name: "US-9035 CAT 5E UTP Cable Indoor 305m",brand: "LINK", price: 1770, image: "/assets/lan-cat5e-box.jpg", sku: "AM-3602A", discount: "60%", rating: 4.7, reviews: 178, category_id: 1, uom: "PC." },
+//   { id: 8, name: "UT-0216 Fiber Media Converter RJ45",  brand: "COMMSCOPE", price: 3108, image: "/assets/fiber-media-converter.jpg", sku: "AM-3620A", discount: "0%",  rating: 4.6, reviews: 124, category_id: 9, uom: "PC." },
+// ];
+
+// const parsePercent = (text?: string) => {
+//   if (!text) return 0;
+//   const m = String(text).match(/(\d+)(\.\d+)?/);
+//   return m ? Math.round(Number(m[0])) : 0;
+// };
+
+// /** ===== In-memory state ===== */
+// let state: UIProduct[] = seedRows.map((r, i) => ({
+//   id: r.id,
+//   name: r.name,
+//   brand: r.brand,
+//   sku: r.sku,
+//   price: r.price,
+//   discountPercent: parsePercent((r as any).discount),
+//   image_url: (r as any).image || "/placeholder.png",
+//   visible: true,
+//   order: i,
+//   rating: (r as any).rating,
+//   reviews: (r as any).reviews,
+//   category_id: (r as any).category_id,
+//   uom: (r as any).uom,
+// }));
+
+// const seedMeta: ProductsMeta = {
+//   title: "สินค้าทั้งหมด",
+//   subtitle: "ตัวอย่างข้อมูลจาก mock API (in-memory)",
+//   updatedAt: new Date().toISOString(),
+//   cardParts: { ...defaultCardPartsVisibility }, // NEW
+// };
+
+// let meta: ProductsMeta = { ...seedMeta };
+
+// /** ===== Helpers ===== */
+// const sortByOrder = (a: UIProduct, b: UIProduct) => (a.order ?? 0) - (b.order ?? 0);
+// const coerceId = (v: any) => (isNaN(Number(v)) ? v : Number(v));
+
+// /** (NEW) full-text แบบง่ายๆ: แยกคำแล้วเช็ค name/sku/brand */
+// function matchesSearch(p: UIProduct, q?: string) {
+//   if (!q) return true;
+//   const hay = `${p.name ?? ""} ${p.sku ?? ""} ${p.brand ?? ""}`.toLowerCase();
+//   return q
+//     .toLowerCase()
+//     .split(/\s+/)
+//     .every((kw) => hay.includes(kw));
+// }
+
+// /** (NEW) จัดเรียงตามค่า sort */
+// function applySort(list: UIProduct[], sort: ProductQuery["sort"]) {
+//   const s = sort ?? "order";
+//   const arr = [...list];
+//   switch (s) {
+//     case "price_asc":
+//       return arr.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+//     case "price_desc":
+//       return arr.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+//     case "discount_desc":
+//       return arr.sort((a, b) => (b.discountPercent ?? 0) - (a.discountPercent ?? 0));
+//     case "rating_desc":
+//       return arr.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+//     case "newest":
+//       // ไม่มี createdAt จริง ใช้ id แบบตัวเลขแทน (ถ้าเป็น string จะคงลำดับเดิม)
+//       return arr.sort((a, b) => {
+//         const an = typeof a.id === "number" ? a.id : 0;
+//         const bn = typeof b.id === "number" ? b.id : 0;
+//         return bn - an;
+//       });
+//     case "order":
+//     default:
+//       return arr.sort(sortByOrder);
+//   }
+// }
+
+// /** ===== Queries ===== */
+// export function getAll(opts?: { includeHidden?: boolean }): UIProduct[] {
+//   const includeHidden = opts?.includeHidden ?? true;
+//   const list = includeHidden ? state : state.filter((c) => c.visible !== false);
+//   return [...list].sort(sortByOrder);
+// }
+
+// export function getMeta(): ProductsMeta {
+//   // clone ปลอดภัย (แต่ shallow ก็พอสำหรับโครงสร้างนี้)
+//   return { ...meta, cardParts: { ...meta.cardParts } };
+// }
+
+// /** อ่านสินค้าตาม id เดียว */
+// export function getById(id: UIProduct["id"]): UIProduct | undefined {
+//   const key = coerceId(id);
+//   const found = state.find((x) => x.id === key);
+//   // คืน clone บาง ๆ กันโดนแก้ไขอ้างอิงจากภายนอก
+//   return found ? { ...found } : undefined;
+// }
+
+// /** อ่านสินค้าหลาย id และคงลำดับตามที่ส่งมา */
+// export function getManyByIds(ids: Array<UIProduct["id"]>): UIProduct[] {
+//   if (!Array.isArray(ids) || ids.length === 0) return [];
+//   // แปลง id ให้เป็นชนิดเดียวกับที่เก็บไว้ก่อน (number ถ้าเป็นตัวเลข)
+//   const norm = ids.map((v) => coerceId(v));
+//   const map = new Map(state.map((p) => [p.id, p]));
+//   return norm
+//     .map((id) => map.get(id))
+//     .filter(Boolean)
+//     .map((p) => ({ ...(p as UIProduct) })); // clone
+// }
+
+// /** (NEW) ค้นหา/ฟิลเตอร์ + แบ่งหน้า */
+// export function queryProducts(params: ProductQuery) {
+//   const {
+//     q,
+//     category_id,
+//     visible,
+//     sort,
+//     page = 1,
+//     pageSize = 24,
+//   } = params ?? {};
+
+//   let list = [...state];
+
+//   // ฟิลเตอร์แสดง/ซ่อน
+//   if (typeof visible === "boolean") {
+//     list = list.filter((x) => (x.visible ?? true) === visible);
+//   }
+
+//   // ฟิลเตอร์หมวด
+//   if (typeof category_id !== "undefined") {
+//     const cid = coerceId(category_id);
+//     list = list.filter((x) => x.category_id === cid);
+//   }
+
+//   // ค้นหา
+//   if (q && q.trim()) {
+//     list = list.filter((p) => matchesSearch(p, q));
+//   }
+
+//   // เรียง
+//   list = applySort(list, sort);
+
+//   // แบ่งหน้า
+//   const p = Math.max(1, Math.floor(page));
+//   const ps = Math.min(200, Math.max(1, Math.floor(pageSize))); // guard
+//   const total = list.length;
+//   const start = (p - 1) * ps;
+//   const items = list.slice(start, start + ps);
+
+//   return { items, total, page: p, pageSize: ps };
+// }
+
+// /** ===== Mutations ===== */
+// type MetaPatch =
+//   Partial<Omit<ProductsMeta, "cardParts">> & { cardParts?: Partial<CardPartsVisibility> };
+
+// export function setMeta(patch: MetaPatch) {
+//   meta = {
+//     ...meta,
+//     ...patch,
+//     // merge ซ้อนสำหรับ cardParts
+//     cardParts: { ...meta.cardParts, ...(patch.cardParts ?? {}) },
+//     updatedAt: new Date().toISOString(),
+//   };
+// }
+
+// export function setVisible(id: UIProduct["id"], visible: boolean) {
+//   state = state.map((x) => (x.id === id ? { ...x, visible } : x));
+// }
+
+// export function toggleVisible(id: UIProduct["id"]) {
+//   state = state.map((x) => (x.id === id ? { ...x, visible: !(x.visible ?? true) } : x));
+// }
+
+// export function remove(id: UIProduct["id"]) {
+//   state = state.filter((x) => x.id !== id).sort(sortByOrder).map((x, i) => ({ ...x, order: i }));
+// }
+
+// export function reorder(orders: { id: UIProduct["id"]; order: number }[]) {
+//   const map = new Map(orders.map((o) => [o.id, o.order]));
+//   state = state
+//     .map((x) => ({ ...x, order: map.get(x.id) ?? x.order }))
+//     .sort(sortByOrder)
+//     .map((x, i) => ({ ...x, order: i }));
+// }
+
+// /** create/update */
+// export function upsert(p: Partial<UIProduct>): UIProduct {
+//   const idx = state.findIndex((c) => c.id === p.id);
+//   if (idx >= 0) {
+//     const merged: UIProduct = { ...state[idx], ...p } as UIProduct;
+//     state = state.map((c, i) => (i === idx ? merged : c)).sort(sortByOrder);
+//     return merged;
+//   } else {
+//     const nextId =
+//       typeof p.id !== "undefined"
+//         ? p.id
+//         : Math.max(0, ...state.map((c) => (typeof c.id === "number" ? c.id : 0))) + 1;
+
+//     const newItem: UIProduct = {
+//       id: nextId,
+//       name: p.name ?? "New Product",
+//       brand: p.brand ?? "",
+//       sku: p.sku ?? "",
+//       price: typeof p.price === "number" ? p.price : 0,
+//       discountPercent: typeof p.discountPercent === "number" ? p.discountPercent : 0,
+//       image_url: p.image_url ?? "/placeholder.png",
+//       visible: p.visible ?? false,
+//       order: state.length,
+//       rating: typeof p.rating === "number" ? p.rating : undefined,
+//       reviews: typeof p.reviews === "number" ? p.reviews : undefined,
+//       category_id: p.category_id,
+//       uom: p.uom,
+//     };
+//     state = [...state, newItem].sort(sortByOrder);
+//     return newItem;
+//   }
+// }
+
+// export function reset() {
+//   state = seedRows.map((r, i) => ({
+//     id: r.id,
+//     name: r.name,
+//     brand: r.brand,
+//     sku: r.sku,
+//     price: r.price,
+//     discountPercent: parsePercent((r as any).discount),
+//     image_url: (r as any).image || "/placeholder.png",
+//     visible: true,
+//     order: i,
+//     rating: (r as any).rating,
+//     reviews: (r as any).reviews,
+//     category_id: (r as any).category_id,
+//     uom: (r as any).uom,
+//   }));
+//   meta = {
+//     ...seedMeta,
+//     cardParts: { ...defaultCardPartsVisibility },
+//     updatedAt: new Date().toISOString(),
+//   };
+// }
 // v.1.1.9 =============================================
 
 // v.1.1.8 ==============================================

@@ -1,4 +1,4 @@
-// v.1.1.4 ================================================
+// v.1.1.5 ================================================
 // src/app/admin/components/sidebar.tsx
 "use client";
 
@@ -11,7 +11,8 @@ const items: Item[] = [
   { label: "Dashboard", href: "/admin" },
   { label: "Categories Management", href: "/admin/categories" },
   { label: "Product Management", href: "/admin/products" },
-  { label: "Featured Lists", href: "/admin/featured-lists" }, // ⬅️ เพิ่มเมนูใหม่
+  { label: "Category Products", href: "/admin/category-products" }, // ⬅️ เมนูใหม่
+  { label: "Featured Lists", href: "/admin/featured-lists" },
   { label: "Discount Rules", href: "/admin/discount-rules" },
 ];
 
@@ -51,6 +52,62 @@ export default function AdminSidebar() {
     </aside>
   );
 }
+
+// v.1.1.5 ================================================
+
+// v.1.1.4 ================================================
+// // src/app/admin/components/sidebar.tsx
+// "use client";
+
+// import Link from "next/link";
+// import { usePathname } from "next/navigation";
+
+// type Item = { label: string; href: string };
+
+// const items: Item[] = [
+//   { label: "Dashboard", href: "/admin" },
+//   { label: "Categories Management", href: "/admin/categories" },
+//   { label: "Product Management", href: "/admin/products" },
+//   { label: "Featured Lists", href: "/admin/featured-lists" }, // ⬅️ เพิ่มเมนูใหม่
+//   { label: "Discount Rules", href: "/admin/discount-rules" },
+// ];
+
+// export default function AdminSidebar() {
+//   const pathname = usePathname();
+//   const cleanPath = (pathname ?? "").replace(/\/+$/, "") || "/";
+
+//   const isActive = (href: string) => {
+//     if (href === "/admin") return cleanPath === "/admin";
+//     return cleanPath === href || cleanPath.startsWith(href + "/");
+//   };
+
+//   return (
+//     <aside className="h-full border-r bg-card/60 backdrop-blur p-4">
+//       <div className="mb-2 text-sm font-medium text-muted-foreground">Management</div>
+//       <nav className="flex flex-col gap-2">
+//         {items.map((it) => {
+//           const active = isActive(it.href);
+//           return (
+//             <Link
+//               key={it.href}
+//               href={it.href}
+//               prefetch={false}
+//               aria-current={active ? "page" : undefined}
+//               className={[
+//                 "w-full rounded-lg px-3 py-2 text-left text-sm font-medium transition",
+//                 active
+//                   ? "bg-primary/10 text-primary ring-1 ring-primary/30"
+//                   : "hover:bg-muted text-foreground",
+//               ].join(" ")}
+//             >
+//               {it.label}
+//             </Link>
+//           );
+//         })}
+//       </nav>
+//     </aside>
+//   );
+// }
 
 // v.1.1.4 ================================================
 
