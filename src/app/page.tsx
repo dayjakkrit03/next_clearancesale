@@ -1,6 +1,7 @@
 // v.1.1.9 ================================================
 // src/app/page.tsx
 import { HeroSection } from "@/components/hero-section";
+import DiscountRuleStripServer from "@/components/discount-rule-strip.server"; // ⇐ เพิ่มบรรทัดนี้
 import { CategoryGrid } from "@/components/category-grid";
 // import { FlashSale } from "@/components/flash-sale";
 // import { InterlinkMall } from "@/components/interlink-mall";
@@ -43,6 +44,9 @@ export default async function IndexPage() {
   return (
     <>
       <HeroSection />
+
+      {/* แถบส่วนลด เรนเดอร์จากฝั่งเซิร์ฟเวอร์ (ขึ้นพร้อม HTML ของหน้า) */}
+      <DiscountRuleStripServer />
 
       {/* ใช้ค่า title/subtitle/limit จาก featured list: home_weekly */}
       <ProductGridServer listKey="home_weekly" />
