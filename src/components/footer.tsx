@@ -17,13 +17,13 @@ export const Footer = () => {
               Interlink Shop
             </div>
             <p className="text-white/80 mb-6 leading-relaxed">
-              ผู้จำหน่ายอุปกรณ์เครือข่ายชั้นนำของไทย พร้อมให้บริการลูกค้าด้วยสินค้าคุณภาพสูง
+              ผู้นำเข้าและจัดจำหน่ายสายสัญญาณคอมพิวเตอร์ และ อุปกรณ์เครือข่ายคอมพิวเตอร์ พร้อมให้บริการลูกค้าด้วยสินค้าคุณภาพสูงมาตรฐานสากล ในราคาที่คุ้มค้า
             </p>
             <div className="flex gap-4">
-              <Facebook className="h-6 w-6 hover:text-accent cursor-pointer transition-colors duration-300 hover:scale-110" />
-              <Instagram className="h-6 w-6 hover:text-accent cursor-pointer transition-colors duration-300 hover:scale-110" />
-              <Twitter className="h-6 w-6 hover:text-accent cursor-pointer transition-colors duration-300 hover:scale-110" />
-              <Youtube className="h-6 w-6 hover:text-accent cursor-pointer transition-colors duration-300 hover:scale-110" />
+              <a href="https://www.facebook.com/interlinkfan/?locale=th_TH"><Facebook className="h-6 w-6 hover:text-accent cursor-pointer transition-colors duration-300 hover:scale-110" /></a>
+              <a href="https://line.me/R/ti/p/@interlinkfan?from=page&openQrModal=true&searchId=interlinkfan"><Instagram className="h-6 w-6 hover:text-accent cursor-pointer transition-colors duration-300 hover:scale-110" /></a>
+              <a href="https://www.tiktok.com/@interlink_official?_t=8fBaR6oujvW&_r=1"><Twitter className="h-6 w-6 hover:text-accent cursor-pointer transition-colors duration-300 hover:scale-110" /></a>
+              <a href="https://www.youtube.com/channel/UCa-mUrk77iW8HXKaJm-Kp1Q"><Youtube className="h-6 w-6 hover:text-accent cursor-pointer transition-colors duration-300 hover:scale-110" /></a>
             </div>
           </div>
 
@@ -57,11 +57,11 @@ export const Footer = () => {
             <ul className="space-y-4 text-sm text-white/80">
               <li className="flex items-start gap-3">
                 <MapPin className="h-4 w-4 mt-1 shrink-0 text-accent" />
-                <span>123/45 ถนนรัชดาภิเษก แขวงห้วยขวาง เขตห้วยขวาง กรุงเทพฯ 10310</span>
+                <span>บริษัท อินเตอร์ลิ้งค์ คอมมิวนิเคชั่น จำกัด (มหาชน) 48 อาคารอินเตอร์ลิ้งค์ ซอยรุ่งเรือง ถนนรัชดาภิเษก แขวงสามเสนนอก เขตห้วยขวาง กรุงเทพฯ 10310</span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="h-4 w-4 shrink-0 text-accent" />
-                <span>02-123-4567</span>
+                <span>02-666-111</span>
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="h-4 w-4 shrink-0 text-accent" />
@@ -81,13 +81,13 @@ export const Footer = () => {
         {/* Bottom footer */}
         <div className="border-t border-white/20 pt-8 flex flex-col md:flex-row justify-between items-center text-sm">
           <div className="mb-4 md:mb-0 text-white/80">
-            © 2024 Interlink Shop สงวนลิขสิทธิ์
+            Copyright © 2025 Interlink All right reserved.
           </div>
-          <div className="flex gap-6 text-white/80">
+          {/* <div className="flex gap-6 text-white/80">
             <span className="hover:text-white transition-colors cursor-pointer">ประเทศไทย</span>
             <span>|</span>
             <span className="hover:text-white transition-colors cursor-pointer">ภาษาไทย</span>
-          </div>
+          </div> */}
         </div>
       </div>
     </footer>

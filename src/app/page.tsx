@@ -48,17 +48,17 @@ export default async function IndexPage() {
       {/* แถบส่วนลด เรนเดอร์จากฝั่งเซิร์ฟเวอร์ (ขึ้นพร้อม HTML ของหน้า) */}
       <DiscountRuleStripServer />
 
-      {/* ใช้ค่า title/subtitle/limit จาก featured list: home_weekly */}
-      <ProductGridServer listKey="home_weekly" />
-
       <CategoryGrid
         items={items}
         title={meta.title}
         subtitle={meta.subtitle}
       />
 
+      {/* ใช้ค่า title/subtitle/limit จาก featured list: home_weekly */}
+      <ProductGridServer listKey="home_weekly" />
+
       {/* อีกบล็อกจาก featured list: home_cable (จะดึง title/subtitle/limit จากลิสต์เอง) */}
-      <ProductGridServer listKey="home_cable" />
+      {/* <ProductGridServer listKey="home_cable" /> */}
 
       {/* <FlashSale /> */}
       {/* <InterlinkMall /> */}
