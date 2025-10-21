@@ -1,17 +1,21 @@
-// v.1.1.5 ================================================
+// v.1.1.6 ================================================
 // src/app/api/mock/categories/route.ts
 
 import { NextResponse } from "next/server";
 import { getAll, getMeta, upsert } from "./_store";
 import { validateCategoryCreate } from "@/lib/validation/category";
-import { fa } from "zod/v4/locales";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET() {
+  const [items, meta] = await Promise.all([
+    getAll({ includeHidden: true }),
+    getMeta(),
+  ]);
+
   return NextResponse.json(
-    { items: getAll({ includeHidden: true }), meta: getMeta() },
+    { items, meta },
     { headers: { "Cache-Control": "no-store" } }
   );
 }
@@ -23,7 +27,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Bad payload" }, { status: 400 });
     }
 
-    // ✅ validate: name/slug/image_url ต้องไม่ว่าง
     const result = validateCategoryCreate(body);
     if (!result.ok) {
       return NextResponse.json({ error: "Validation failed", errors: result.errors }, { status: 400 });
@@ -32,15 +35,61 @@ export async function POST(req: Request) {
     const payload = {
       ...body,
       ...result.data,
-      visible: typeof body.visible === "boolean" ? body.visible : false, // default เป็น false
+      visible: typeof body.visible === "boolean" ? body.visible : false,
     };
 
-    const item = upsert(payload);
+    const item = await upsert(payload); // ✅ await
     return NextResponse.json({ item }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
   }
 }
+
+// v.1.1.6 ================================================
+
+// v.1.1.5 ================================================
+// // src/app/api/mock/categories/route.ts
+
+// import { NextResponse } from "next/server";
+// import { getAll, getMeta, upsert } from "./_store";
+// import { validateCategoryCreate } from "@/lib/validation/category";
+// import { fa } from "zod/v4/locales";
+
+// export const dynamic = "force-dynamic";
+// export const revalidate = 0;
+
+// export async function GET() {
+//   return NextResponse.json(
+//     { items: getAll({ includeHidden: true }), meta: getMeta() },
+//     { headers: { "Cache-Control": "no-store" } }
+//   );
+// }
+
+// export async function POST(req: Request) {
+//   try {
+//     const body = await req.json().catch(() => null);
+//     if (!body || typeof body !== "object") {
+//       return NextResponse.json({ error: "Bad payload" }, { status: 400 });
+//     }
+
+//     // ✅ validate: name/slug/image_url ต้องไม่ว่าง
+//     const result = validateCategoryCreate(body);
+//     if (!result.ok) {
+//       return NextResponse.json({ error: "Validation failed", errors: result.errors }, { status: 400 });
+//     }
+
+//     const payload = {
+//       ...body,
+//       ...result.data,
+//       visible: typeof body.visible === "boolean" ? body.visible : false, // default เป็น false
+//     };
+
+//     const item = upsert(payload);
+//     return NextResponse.json({ item }, { status: 201 });
+//   } catch {
+//     return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
+//   }
+// }
 
 // v.1.1.5 ================================================
 

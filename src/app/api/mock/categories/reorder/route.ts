@@ -1,4 +1,4 @@
-// v.1.1.3 ================================================
+// v.1.1.4 ================================================
 // src/app/api/mock/categories/reorder/route.ts
 
 import { NextResponse } from "next/server";
@@ -13,10 +13,32 @@ export async function POST(req: Request) {
   if (!Array.isArray(orders)) {
     return NextResponse.json({ error: "orders required" }, { status: 400 });
   }
-  // orders: Array<{ id: number|string, order: number }>
-  reorder(orders);
+
+  await reorder(orders); // ✅ await
   return NextResponse.json({ ok: true });
 }
+
+// v.1.1.4 ================================================
+
+// v.1.1.3 ================================================
+// // src/app/api/mock/categories/reorder/route.ts
+
+// import { NextResponse } from "next/server";
+// import { reorder } from "../_store";
+
+// export const dynamic = "force-dynamic";
+// export const revalidate = 0;
+
+// export async function POST(req: Request) {
+//   const body = await req.json().catch(() => null);
+//   const orders = body?.orders;
+//   if (!Array.isArray(orders)) {
+//     return NextResponse.json({ error: "orders required" }, { status: 400 });
+//   }
+//   // orders: Array<{ id: number|string, order: number }>
+//   reorder(orders);
+//   return NextResponse.json({ ok: true });
+// }
 
 // v.1.1.3 ================================================
 

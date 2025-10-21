@@ -366,9 +366,119 @@ exports.Prisma.Sub_clearanceScalarFieldEnum = {
   updated_at: 'updated_at'
 };
 
+exports.Prisma.Discount_rulesScalarFieldEnum = {
+  id: 'id',
+  min_percent: 'min_percent',
+  max_percent: 'max_percent',
+  border_width: 'border_width',
+  border_color_hex: 'border_color_hex',
+  badge_bg_hex: 'badge_bg_hex',
+  badge_text_hex: 'badge_text_hex',
+  display_order: 'display_order',
+  enabled: 'enabled',
+  frame_mode: 'frame_mode',
+  frame_image_url: 'frame_image_url',
+  frame_inset_px: 'frame_inset_px',
+  frame_opacity: 'frame_opacity',
+  frame_object_fit: 'frame_object_fit',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.Discount_rules_metaScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  subtitle: 'subtitle',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.Featured_list_itemsScalarFieldEnum = {
+  id: 'id',
+  list_id: 'list_id',
+  product_id: 'product_id',
+  display_order: 'display_order'
+};
+
+exports.Prisma.Featured_listsScalarFieldEnum = {
+  id: 'id',
+  list_key: 'list_key',
+  title: 'title',
+  subtitle: 'subtitle',
+  limit_size: 'limit_size',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.Products_clearanceScalarFieldEnum = {
+  product_id: 'product_id',
+  category_id: 'category_id',
+  sub_id: 'sub_id',
+  part_id: 'part_id',
+  product_name: 'product_name',
+  product_brand: 'product_brand',
+  product_description: 'product_description',
+  product_picture: 'product_picture',
+  product_sku: 'product_sku',
+  product_file: 'product_file',
+  product_filename: 'product_filename',
+  product_price: 'product_price',
+  product_new: 'product_new',
+  product_best: 'product_best',
+  product_status: 'product_status',
+  users_action: 'users_action',
+  created_at: 'created_at',
+  updated_at: 'updated_at',
+  product_uom: 'product_uom',
+  visible: 'visible',
+  display_order: 'display_order',
+  clearanceSales: 'clearanceSales',
+  clearanceQuantity: 'clearanceQuantity',
+  clearancePrice: 'clearancePrice',
+  expo_status: 'expo_status',
+  expo_price: 'expo_price',
+  cat5e: 'cat5e',
+  cat6: 'cat6',
+  tool_tester: 'tool_tester',
+  image_url: 'image_url',
+  discount_label: 'discount_label',
+  rating_score: 'rating_score',
+  rating_count: 'rating_count'
+};
+
+exports.Prisma.Products_metaScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  subtitle: 'subtitle',
+  card_parts: 'card_parts',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.Ui_categoriesScalarFieldEnum = {
+  id: 'id',
+  slug: 'slug',
+  name: 'name',
+  image_url: 'image_url',
+  visible: 'visible',
+  display_order: 'display_order',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.Ui_categories_metaScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  subtitle: 'subtitle',
+  updated_at: 'updated_at'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
 };
 
 exports.Prisma.NullsOrder = {
@@ -499,6 +609,73 @@ exports.Prisma.sub_clearanceOrderByRelevanceFieldEnum = {
   sub_color: 'sub_color'
 };
 
+exports.Prisma.discount_rulesOrderByRelevanceFieldEnum = {
+  border_color_hex: 'border_color_hex',
+  badge_bg_hex: 'badge_bg_hex',
+  badge_text_hex: 'badge_text_hex',
+  frame_image_url: 'frame_image_url'
+};
+
+exports.Prisma.discount_rules_metaOrderByRelevanceFieldEnum = {
+  title: 'title',
+  subtitle: 'subtitle'
+};
+
+exports.Prisma.featured_listsOrderByRelevanceFieldEnum = {
+  list_key: 'list_key',
+  title: 'title',
+  subtitle: 'subtitle'
+};
+
+exports.Prisma.products_clearanceOrderByRelevanceFieldEnum = {
+  product_name: 'product_name',
+  product_brand: 'product_brand',
+  product_description: 'product_description',
+  product_picture: 'product_picture',
+  product_sku: 'product_sku',
+  product_file: 'product_file',
+  product_filename: 'product_filename',
+  product_uom: 'product_uom',
+  image_url: 'image_url',
+  discount_label: 'discount_label'
+};
+
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+
+exports.Prisma.QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+};
+
+exports.Prisma.products_metaOrderByRelevanceFieldEnum = {
+  title: 'title',
+  subtitle: 'subtitle'
+};
+
+exports.Prisma.ui_categoriesOrderByRelevanceFieldEnum = {
+  slug: 'slug',
+  name: 'name',
+  image_url: 'image_url'
+};
+
+exports.Prisma.ui_categories_metaOrderByRelevanceFieldEnum = {
+  title: 'title',
+  subtitle: 'subtitle'
+};
+exports.discount_rules_frame_mode = exports.$Enums.discount_rules_frame_mode = {
+  draw: 'draw',
+  image: 'image'
+};
+
+exports.discount_rules_frame_object_fit = exports.$Enums.discount_rules_frame_object_fit = {
+  contain: 'contain',
+  cover: 'cover',
+  stretch: 'stretch'
+};
 
 exports.Prisma.ModelName = {
   category: 'category',
@@ -516,7 +693,15 @@ exports.Prisma.ModelName = {
   producoptions_tb: 'producoptions_tb',
   product_clearance: 'product_clearance',
   product_test_upload: 'product_test_upload',
-  sub_clearance: 'sub_clearance'
+  sub_clearance: 'sub_clearance',
+  discount_rules: 'discount_rules',
+  discount_rules_meta: 'discount_rules_meta',
+  featured_list_items: 'featured_list_items',
+  featured_lists: 'featured_lists',
+  products_clearance: 'products_clearance',
+  products_meta: 'products_meta',
+  ui_categories: 'ui_categories',
+  ui_categories_meta: 'ui_categories_meta'
 };
 
 /**
