@@ -1,52 +1,145 @@
-// v.1.1.3 =======================================================
-// src/app/api/mock/discount-rules/[id]/route.ts
-
+// v.1.1.5 =======================================================
 import { NextResponse } from "next/server";
-import { store, sanitizePatch } from "../_store";
+import {
+  updateRule,
+  toggleRuleEnabled,
+  removeRule,
+  sanitizePatch,
+} from "../_store";
 
 export const dynamic = "force-dynamic";
 
-// ช่วยให้ไม่เตือนเรื่อง params ต้อง await ก่อน
-export async function PATCH(
-  req: Request,
-  ctx: { params: Promise<{ id: string }> } // เปลี่ยนเป็น Promise
-) {
-  const { id } = await ctx.params;        // <-- await ก่อนใช้งาน
-
-  const idx = store.items.findIndex((x) => String(x.id) === String(id));
-  if (idx === -1) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
-
+// PATCH /api/mock/discount-rules/[id]
+export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const { id } = await ctx.params;
   const body = await req.json().catch(() => ({} as any));
 
-  // shorthand toggle
-  if (body?.toggleEnabled) {
-    store.items[idx].enabled = !store.items[idx].enabled;
-  } else {
-    Object.assign(store.items[idx], sanitizePatch(body));
-  }
+  const item = body?.toggleEnabled
+    ? await toggleRuleEnabled(id)
+    : await updateRule(id, sanitizePatch(body));
 
-  return NextResponse.json({ item: store.items[idx] });
+  if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return NextResponse.json({ item });
 }
 
-export async function DELETE(
-  _req: Request,
-  ctx: { params: Promise<{ id: string }> } // เปลี่ยนเป็น Promise
-) {
-  const { id } = await ctx.params;        // <-- await ก่อนใช้งาน
-
-  const idx = store.items.findIndex((x) => String(x.id) === String(id));
-  if (idx === -1) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
-
-  const [removed] = store.items.splice(idx, 1);
-  // re-number order
-  store.items = store.items.map((x, i) => ({ ...x, order: i }));
-
-  return NextResponse.json({ ok: true, removedId: removed.id });
+// DELETE /api/mock/discount-rules/[id]
+export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const { id } = await ctx.params;
+  const ok = await removeRule(id);
+  return ok
+    ? NextResponse.json({ ok: true, removedId: id })
+    : NextResponse.json({ error: "Not found" }, { status: 404 });
 }
+
+// v.1.1.5 =======================================================
+
+// v.1.1.4 =======================================================
+// // src/app/api/mock/discount-rules/[id]/route.ts
+
+// import { NextResponse } from "next/server";
+// import { 
+//     getRuleById, 
+//     updateItem, 
+//     deleteItem, 
+//     sanitizePatch 
+// } from "../_store";
+
+// export const dynamic = "force-dynamic";
+
+// export async function PATCH(
+//   req: Request,
+//   // FIX: Destructure params directly from the second argument to avoid Next.js sync dynamic API error
+//   { params }: { params: { id: string } } 
+// ) {
+//   const id = Number(params.id); // ใช้ params ที่ถูก Destructure แล้ว
+
+//   // ตรวจสอบว่ามี item นี้อยู่จริงหรือไม่
+//   const existingItem = await getRuleById(id);
+//   if (!existingItem) {
+//     return NextResponse.json({ error: "Not found" }, { status: 404 });
+//   }
+
+//   const body = await req.json().catch(() => ({} as any));
+
+//   let updatedItem;
+//   // shorthand toggle
+//   if (body?.toggleEnabled !== undefined) {
+//     updatedItem = await updateItem(id, { enabled: !existingItem.enabled });
+//   } else {
+//     updatedItem = await updateItem(id, sanitizePatch(body));
+//   }
+
+//   return NextResponse.json({ item: updatedItem });
+// }
+
+// export async function DELETE(
+//   _req: Request,
+//   // FIX: Destructure params directly from the second argument
+//   { params }: { params: { id: string } } 
+// ) {
+//   const id = Number(params.id); // ใช้ params ที่ถูก Destructure แล้ว
+
+//   try {
+//     await deleteItem(id);
+//   } catch (e) {
+//     console.error(`Failed to delete rule ID ${id}:`, e);
+//     return NextResponse.json({ error: "Not found or delete failed" }, { status: 404 });
+//   }
+
+//   return NextResponse.json({ ok: true, removedId: id });
+// }
+// v.1.1.4 =======================================================
+
+
+// v.1.1.3 =======================================================
+// // src/app/api/mock/discount-rules/[id]/route.ts
+
+// import { NextResponse } from "next/server";
+// import { store, sanitizePatch } from "../_store";
+
+// export const dynamic = "force-dynamic";
+
+// // ช่วยให้ไม่เตือนเรื่อง params ต้อง await ก่อน
+// export async function PATCH(
+//   req: Request,
+//   ctx: { params: Promise<{ id: string }> } // เปลี่ยนเป็น Promise
+// ) {
+//   const { id } = await ctx.params;        // <-- await ก่อนใช้งาน
+
+//   const idx = store.items.findIndex((x) => String(x.id) === String(id));
+//   if (idx === -1) {
+//     return NextResponse.json({ error: "Not found" }, { status: 404 });
+//   }
+
+//   const body = await req.json().catch(() => ({} as any));
+
+//   // shorthand toggle
+//   if (body?.toggleEnabled) {
+//     store.items[idx].enabled = !store.items[idx].enabled;
+//   } else {
+//     Object.assign(store.items[idx], sanitizePatch(body));
+//   }
+
+//   return NextResponse.json({ item: store.items[idx] });
+// }
+
+// export async function DELETE(
+//   _req: Request,
+//   ctx: { params: Promise<{ id: string }> } // เปลี่ยนเป็น Promise
+// ) {
+//   const { id } = await ctx.params;        // <-- await ก่อนใช้งาน
+
+//   const idx = store.items.findIndex((x) => String(x.id) === String(id));
+//   if (idx === -1) {
+//     return NextResponse.json({ error: "Not found" }, { status: 404 });
+//   }
+
+//   const [removed] = store.items.splice(idx, 1);
+//   // re-number order
+//   store.items = store.items.map((x, i) => ({ ...x, order: i }));
+
+//   return NextResponse.json({ ok: true, removedId: removed.id });
+// }
 
 // v.1.1.3 =======================================================
 
