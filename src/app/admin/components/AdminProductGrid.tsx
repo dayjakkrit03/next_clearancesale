@@ -1,4 +1,5 @@
-// v.1.1.22 ================================================= 
+
+// v.1.1.23 ================================================
 // src/app/admin/components/AdminProductGrid.tsx
 "use client";
 
@@ -7,7 +8,6 @@ import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
 
 import AdminProductEditDialog, { ProductEditValues } from "./AdminProductEditDialog";
-
 import ProductCard from "./products/ProductCardAdmin";
 import ProductRow from "./products/ProductRowAdmin";
 import Toolbar from "./products/Toolbar";
@@ -31,6 +31,11 @@ import {
   type CardPartsVisibility,
 } from "./products/cardSettings";
 
+/* ---------- helpers: guard ให้เป็น array เสมอ ---------- */
+function toArray<T = any>(v: unknown): T[] {
+  return Array.isArray(v) ? (v as T[]) : [];
+}
+
 /* ================= Constants (API endpoints) ================= */
 const API_BASE = "/api/mock/products";
 const CAT_API = "/api/mock/categories";
@@ -44,7 +49,8 @@ export default function AdminProductGrid({
   initial: UIProduct[];
   initialMeta?: UIMeta;
 }) {
-  const [items, setItems] = useState<UIProduct[]>(initial);
+  // ให้ state เป็น array เสมอ เผื่อ initial ผิดรูป
+  const [items, setItems] = useState<UIProduct[]>(toArray<UIProduct>(initial));
   const [meta, setMeta] = useState<UIMeta>(
     initialMeta ?? { title: "Products Management", subtitle: "หน้านี้เชื่อมกับ /api/mock/products" },
   );
@@ -73,9 +79,7 @@ export default function AdminProductGrid({
         if (!res.ok) return;
         const data = await res.json();
         const fromApi = (data?.meta?.cardParts ?? null) as Partial<CardPartsVisibility> | null;
-        if (fromApi) {
-          setCardParts((prev) => mergeAndSave(prev, fromApi));
-        }
+        if (fromApi) setCardParts((prev) => mergeAndSave(prev, fromApi));
       } catch {
         /* ignore */
       }
@@ -112,7 +116,8 @@ export default function AdminProductGrid({
     return () => clearTimeout(t);
   }, [q]);
 
-  useEffect(() => setItems(initial), [initial]);
+  // ถ้า initial เปลี่ยนมากะทันหัน ให้การันตีเป็น array
+  useEffect(() => setItems(toArray<UIProduct>(initial)), [initial]);
 
   // โหลด meta, categories, rules
   useEffect(() => {
@@ -151,15 +156,10 @@ export default function AdminProductGrid({
             id: r.id,
             minPercent: Number(r.minPercent) || 0,
             maxPercent: typeof r.maxPercent === "number" ? r.maxPercent : undefined,
-
-            // DRAW
             borderWidth: Number(r.borderWidth) || 2,
             borderColorHex: String(r.borderColorHex || "#000000"),
-
             enabled: !!r.enabled,
             order: typeof r.order === "number" ? r.order : undefined,
-
-            // IMAGE — optional fields
             frameMode: r.frameMode === "image" ? "image" : "draw",
             frameImageUrl: r.frameImageUrl || undefined,
             frameInsetPx: typeof r.frameInsetPx === "number" ? r.frameInsetPx : undefined,
@@ -175,7 +175,6 @@ export default function AdminProductGrid({
                 : r.frameMode === "image"
                 ? "contain"
                 : undefined,
-
             badgeBgHex: r.badgeBgHex || undefined,
             badgeTextHex: r.badgeTextHex || undefined,
           }))
@@ -221,24 +220,36 @@ export default function AdminProductGrid({
       const params = new URLSearchParams();
       if (qDebounced) params.set("q", qDebounced);
       if (categoryId != null && categoryId !== "") params.set("categoryId", String(categoryId));
-      params.set("sort", sort);
-      params.set("order", order);
+      // แก้: API รองรับ 'visible', ไม่ใช่ includeHidden
+      if (includeHidden === "visibleOnly") params.set("visible", "true");
+      // map sort/order -> ของฝั่ง API
+      if (sort === "price") {
+        params.set("sort", "price");
+        params.set("order", order);
+      } else if (sort === "name") {
+        // ไม่มี sort=name ที่ API mock รองรับ → ใช้ q/กรองฝั่ง client ไปแล้ว
+        // เอาไว้เป็น no-op หรือส่ง sort=order ก็ได้
+        params.set("sort", "order");
+        params.set("order", "asc");
+      } else {
+        params.set("sort", "order");
+        params.set("order", "asc");
+      }
       params.set("page", String(page));
       params.set("pageSize", String(pageSize));
-      params.set("includeHidden", includeHidden === "all" ? "1" : "0");
 
       const res = await fetch(`${API_BASE}?${params.toString()}`, { cache: "no-store" });
       if (!res.ok) throw new Error("Fetch failed");
       const data: ListResponse = await res.json();
 
-      setItems(data.items ?? []);
-      setTotal(data.total ?? (data.items?.length ?? 0));
+      setItems(toArray<UIProduct>(data?.items));
+      setTotal(Number.isFinite(data?.total as any) ? (data.total as number) : toArray(data?.items).length);
 
-      // reset selections เมื่อรีเฟรชรายการ
       setSelected(new Set());
       setSelectMode(false);
     } catch (e: any) {
       setError(e?.message ?? "Load failed");
+      setItems([]); // กันพลาด
     } finally {
       setLoading(false);
     }
@@ -452,7 +463,6 @@ export default function AdminProductGrid({
     setError(null);
     try {
       const ids = Array.from(selected);
-      // optimistic
       setItems((prev) => prev.map((x) => (ids.includes(x.id) ? { ...x, visible } : x)));
       await Promise.allSettled(
         ids.map((id) =>
@@ -472,7 +482,6 @@ export default function AdminProductGrid({
     }
   };
 
-  // แปลงค่าหมวดจาก string -> number|string (ตามที่ API รองรับ)
   const parseCategoryValue = (v: string) => {
     if (v === "") return undefined;
     const n = Number(v);
@@ -488,8 +497,6 @@ export default function AdminProductGrid({
     setError(null);
     try {
       const ids = Array.from(selected);
-
-      // optimistic
       setItems((prev) => prev.map((x) => (ids.includes(x.id) ? { ...x, category_id: parsed } : x)));
 
       await Promise.allSettled(
@@ -512,7 +519,6 @@ export default function AdminProductGrid({
     }
   };
 
-  // UI helpers
   const totalPages = Math.max(1, Math.ceil((total || 0) / pageSize));
 
   return (
@@ -531,23 +537,21 @@ export default function AdminProductGrid({
         </div>
       )}
 
-      {/* Header + Add */}
       <HeaderBar
         title={meta.title}
         subtitle={meta.subtitle}
         onTitleChange={(v) => patchMeta({ title: v })}
         onSubtitleChange={(v) => patchMeta({ subtitle: v })}
         viewMode={viewMode}
-        onViewModeChange={(m: "grid" | "list") => setViewMode(m)}  // ✅ typed
+        onViewModeChange={(m: "grid" | "list") => setViewMode(m)}
         quickEdit={quickEdit}
         onToggleQuickEdit={() => setQuickEdit((x) => !x)}
         selectMode={selectMode}
         onToggleSelectMode={() => setSelectMode((x) => !x)}
         onCreate={() => setCreating(true)}
-        onOpenCardSettings={() => setCardSettingsOpen(true)}   // ← เปิด dialog
+        onOpenCardSettings={() => setCardSettingsOpen(true)}
       />
 
-      {/* Toolbar: ค้นหา / หมวด / แสดง / เรียง */}
       <Toolbar
         q={q}
         onQChange={setQ}
@@ -565,7 +569,6 @@ export default function AdminProductGrid({
         onResetPage={() => setPage(1)}
       />
 
-      {/* Bulk actions bar */}
       {selectMode && (
         <BulkActionsBar
           selectedCount={selected.size}
@@ -607,7 +610,6 @@ export default function AdminProductGrid({
         />
       )}
 
-      {/* List / Grid */}
       <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={items.map((x) => x.id)} strategy={verticalListSortingStrategy}>
           {viewMode === "grid" ? (
@@ -628,7 +630,7 @@ export default function AdminProductGrid({
                     onSelectToggle={(id: UIProduct["id"], checked: boolean) => toggleSelect(id, checked)}
                     quickEdit={quickEdit}
                     onInlineChange={handleInlineChange}
-                    visibleParts={cardParts}   // ✅ ส่งค่าเปิด/ปิดส่วนต่างๆ
+                    visibleParts={cardParts}
                   />
                 );
               })}
@@ -651,7 +653,7 @@ export default function AdminProductGrid({
                     onSelectToggle={(id: UIProduct["id"], checked: boolean) => toggleSelect(id, checked)}
                     quickEdit={quickEdit}
                     onInlineChange={handleInlineChange}
-                    visibleParts={cardParts}   // ✅ ส่งค่าเปิด/ปิดส่วนต่างๆ
+                    visibleParts={cardParts}
                   />
                 );
               })}
@@ -660,7 +662,6 @@ export default function AdminProductGrid({
         </SortableContext>
       </DndContext>
 
-      {/* Footer: จำนวน/หน้า + เปลี่ยน page/pageSize */}
       <Pagination
         itemsInPage={items.length}
         total={total}
@@ -745,35 +746,35 @@ export default function AdminProductGrid({
           <div className="w-full max-w-xl rounded-xl bg-card shadow-lg border border-border flex flex-col max-h-[90vh]">
             <div className="p-4 border-b">
               <div className="text-lg font-semibold">ตั้งค่าการแสดงผลของการ์ดสินค้า</div>
-              <div className="text-xs text-muted-foreground">
-                เลือกเปิด/ปิดส่วนต่างๆ (ค่ามาตรฐาน: เปิดทั้งหมด)
-              </div>
+              <div className="text-xs text-muted-foreground">เลือกเปิด/ปิดส่วนต่างๆ (ค่ามาตรฐาน: เปิดทั้งหมด)</div>
             </div>
 
             <div className="p-4 flex-1 overflow-y-auto space-y-4">
-              {/* ปุ่มเปิด/ปิดทั้งหมด */}
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
-                  onClick={() => patchCardParts(
-                    Object.fromEntries(Object.keys(cardParts).map((k) => [k, true])) as CardPartsVisibility
-                  )}
+                  onClick={() =>
+                    patchCardParts(
+                      Object.fromEntries(Object.keys(cardParts).map((k) => [k, true])) as CardPartsVisibility
+                    )
+                  }
                 >
                   เปิดทั้งหมด
                 </button>
                 <button
                   type="button"
                   className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
-                  onClick={() => patchCardParts(
-                    Object.fromEntries(Object.keys(cardParts).map((k) => [k, false])) as CardPartsVisibility
-                  )}
+                  onClick={() =>
+                    patchCardParts(
+                      Object.fromEntries(Object.keys(cardParts).map((k) => [k, false])) as CardPartsVisibility
+                    )
+                  }
                 >
                   ปิดทั้งหมด
                 </button>
               </div>
 
-              {/* กลุ่มบนรูป */}
               <div>
                 <div className="text-sm font-medium mb-2">บนรูปสินค้า</div>
                 <div className="grid grid-cols-2 gap-2">
@@ -784,7 +785,6 @@ export default function AdminProductGrid({
                 </div>
               </div>
 
-              {/* ข้อมูลใต้รูป */}
               <div>
                 <div className="text-sm font-medium mb-2">ข้อมูลใต้รูป</div>
                 <div className="grid grid-cols-2 gap-2">
@@ -801,11 +801,7 @@ export default function AdminProductGrid({
             </div>
 
             <div className="p-4 border-t flex items-center justify-end gap-2">
-              <button
-                type="button"
-                className="rounded-md border px-3 py-2 text-sm hover:bg-muted"
-                onClick={() => setCardSettingsOpen(false)}
-              >
+              <button type="button" className="rounded-md border px-3 py-2 text-sm hover:bg-muted" onClick={() => setCardSettingsOpen(false)}>
                 ปิด
               </button>
             </div>
@@ -828,16 +824,854 @@ function Toggle({
 }) {
   return (
     <label className="inline-flex items-center gap-2 text-sm">
-      <input
-        type="checkbox"
-        className="h-4 w-4"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-      />
+      <input type="checkbox" className="h-4 w-4" checked={checked} onChange={(e) => onChange(e.target.checked)} />
       {label}
     </label>
   );
 }
+
+// v.1.1.23 ================================================
+
+// v.1.1.22 ================================================= 
+// // src/app/admin/components/AdminProductGrid.tsx
+// "use client";
+
+// import { useEffect, useMemo, useRef, useState } from "react";
+// import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core";
+// import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
+
+// import AdminProductEditDialog, { ProductEditValues } from "./AdminProductEditDialog";
+
+// import ProductCard from "./products/ProductCardAdmin";
+// import ProductRow from "./products/ProductRowAdmin";
+// import Toolbar from "./products/Toolbar";
+// import BulkActionsBar from "./products/BulkActionsBar";
+// import Pagination from "./products/Pagination";
+// import HeaderBar from "./products/HeaderBar";
+
+// import type {
+//   UIProduct,
+//   UIMeta,
+//   UICategoryLite,
+//   DiscountRuleLite,
+//   ListResponse,
+// } from "./products/types";
+
+// /* === NEW: card settings helpers === */
+// import {
+//   loadCardSettings,
+//   mergeAndSave,
+//   defaultCardPartsVisibility,
+//   type CardPartsVisibility,
+// } from "./products/cardSettings";
+
+// /* ================= Constants (API endpoints) ================= */
+// const API_BASE = "/api/mock/products";
+// const CAT_API = "/api/mock/categories";
+// const RULES_API = "/api/mock/discount-rules";
+
+// /* ================= Main Component ================= */
+// export default function AdminProductGrid({
+//   initial,
+//   initialMeta,
+// }: {
+//   initial: UIProduct[];
+//   initialMeta?: UIMeta;
+// }) {
+//   const [items, setItems] = useState<UIProduct[]>(initial);
+//   const [meta, setMeta] = useState<UIMeta>(
+//     initialMeta ?? { title: "Products Management", subtitle: "หน้านี้เชื่อมกับ /api/mock/products" },
+//   );
+//   const [catMap, setCatMap] = useState<Record<string | number, UICategoryLite>>({});
+//   const [rules, setRules] = useState<DiscountRuleLite[]>([]);
+
+//   const [saving, setSaving] = useState(false);
+//   const [error, setError] = useState<string | null>(null);
+//   const [metaSaving, setMetaSaving] = useState(false);
+//   const [loading, setLoading] = useState(false);
+
+//   const [editingId, setEditingId] = useState<UIProduct["id"] | null>(null);
+//   const editingItem = editingId != null ? items.find((i) => i.id === editingId) ?? null : null;
+//   const [creating, setCreating] = useState(false);
+
+//   /* === NEW: Card settings state + dialog open flag === */
+//   const [cardSettingsOpen, setCardSettingsOpen] = useState(false);
+//   const [cardParts, setCardParts] = useState<CardPartsVisibility>(defaultCardPartsVisibility);
+
+//   // โหลดค่าจาก localStorage + ดึง meta.cardParts จาก API มาทับ (source of truth)
+//   useEffect(() => {
+//     setCardParts(loadCardSettings());
+//     (async () => {
+//       try {
+//         const res = await fetch(`${API_BASE}/meta`, { cache: "no-store" });
+//         if (!res.ok) return;
+//         const data = await res.json();
+//         const fromApi = (data?.meta?.cardParts ?? null) as Partial<CardPartsVisibility> | null;
+//         if (fromApi) {
+//           setCardParts((prev) => mergeAndSave(prev, fromApi));
+//         }
+//       } catch {
+//         /* ignore */
+//       }
+//     })();
+//   }, []);
+
+//   // ====== ฟิลเตอร์/ค้นหา/เรียง/แบ่งหน้า ======
+//   const [q, setQ] = useState("");
+//   const [qDebounced, setQDebounced] = useState("");
+//   const [categoryId, setCategoryId] = useState<string | number | undefined>(undefined);
+//   const [includeHidden, setIncludeHidden] = useState<"all" | "visibleOnly">("all");
+
+//   const [sort, setSort] = useState<"order" | "price" | "name">("order");
+//   const [order, setOrder] = useState<"asc" | "desc">("asc");
+
+//   const [page, setPage] = useState(1);
+//   const [pageSize, setPageSize] = useState(24);
+//   const [total, setTotal] = useState(0);
+
+//   // ====== Bulk select & Quick edit ======
+//   const [selected, setSelected] = useState<Set<UIProduct["id"]>>(new Set());
+//   const [selectMode, setSelectMode] = useState(false);
+//   const [quickEdit, setQuickEdit] = useState(false);
+
+//   // ====== View mode (grid | list) ======
+//   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+
+//   // ====== Bulk change category ======
+//   const [bulkCat, setBulkCat] = useState<string>("");
+
+//   // debounce คำค้น
+//   useEffect(() => {
+//     const t = setTimeout(() => setQDebounced(q.trim()), 300);
+//     return () => clearTimeout(t);
+//   }, [q]);
+
+//   useEffect(() => setItems(initial), [initial]);
+
+//   // โหลด meta, categories, rules
+//   useEffect(() => {
+//     if (!initialMeta) {
+//       (async () => {
+//         try {
+//           const res = await fetch(API_BASE, { cache: "no-store" });
+//           if (!res.ok) return;
+//           const data: ListResponse = await res.json();
+//           if (data?.meta) setMeta(data.meta as UIMeta);
+//         } catch {}
+//       })();
+//     }
+
+//     (async () => {
+//       try {
+//         const res = await fetch(CAT_API, { cache: "no-store" });
+//         if (!res.ok) return;
+//         const data = await res.json();
+//         const items: Array<{ id: number | string; name: string; slug?: string }> = data?.items ?? [];
+//         const map: Record<string | number, UICategoryLite> = {};
+//         for (const c of items) map[c.id] = { id: c.id, name: c.name, slug: c.slug };
+//         setCatMap(map);
+//       } catch {}
+//     })();
+
+//     (async () => {
+//       try {
+//         const res = await fetch(RULES_API, { cache: "no-store" });
+//         if (!res.ok) return;
+//         const data = await res.json();
+
+//         const list: DiscountRuleLite[] = (data?.items ?? [])
+//           .filter((r: any) => r && r.enabled)
+//           .map((r: any): DiscountRuleLite => ({
+//             id: r.id,
+//             minPercent: Number(r.minPercent) || 0,
+//             maxPercent: typeof r.maxPercent === "number" ? r.maxPercent : undefined,
+
+//             // DRAW
+//             borderWidth: Number(r.borderWidth) || 2,
+//             borderColorHex: String(r.borderColorHex || "#000000"),
+
+//             enabled: !!r.enabled,
+//             order: typeof r.order === "number" ? r.order : undefined,
+
+//             // IMAGE — optional fields
+//             frameMode: r.frameMode === "image" ? "image" : "draw",
+//             frameImageUrl: r.frameImageUrl || undefined,
+//             frameInsetPx: typeof r.frameInsetPx === "number" ? r.frameInsetPx : undefined,
+//             frameOpacity:
+//               typeof r.frameOpacity === "number"
+//                 ? Math.max(0, Math.min(1, Number(r.frameOpacity)))
+//                 : undefined,
+//             frameObjectFit:
+//               r.frameObjectFit === "cover"
+//                 ? "cover"
+//                 : r.frameObjectFit === "stretch"
+//                 ? "stretch"
+//                 : r.frameMode === "image"
+//                 ? "contain"
+//                 : undefined,
+
+//             badgeBgHex: r.badgeBgHex || undefined,
+//             badgeTextHex: r.badgeTextHex || undefined,
+//           }))
+//           .sort((a: DiscountRuleLite, b: DiscountRuleLite) => (a.order ?? 0) - (b.order ?? 0));
+
+//         setRules(list);
+//       } catch {}
+//     })();
+//   }, [initialMeta]);
+
+//   // options สำหรับ Dialog
+//   const categoryOptions = useMemo(
+//     () => Object.values(catMap).map((c) => ({ id: c.id, name: c.name })),
+//     [catMap],
+//   );
+
+//   // เลือกกฎที่ match ตามส่วนลด
+//   const pickRule = useMemo(() => {
+//     const active = rules;
+//     return (percent?: number): DiscountRuleLite | null => {
+//       if (percent == null) return null;
+//       for (const r of active) {
+//         const lowerOk = percent >= (r.minPercent ?? 0);
+//         const upperOk = typeof r.maxPercent === "number" ? percent <= r.maxPercent : true;
+//         if (lowerOk && upperOk) return r;
+//       }
+//       return null;
+//     };
+//   }, [rules]);
+
+//   const jsonHeaders = useMemo(() => ({ "Content-Type": "application/json" }), []);
+//   const saveAbortRef = useRef<AbortController | null>(null);
+//   const reorderTimer = useRef<NodeJS.Timeout | null>(null);
+//   const metaTimer = useRef<NodeJS.Timeout | null>(null);
+//   const cardTimer = useRef<NodeJS.Timeout | null>(null);
+//   const lastOrdersRef = useRef<Array<{ id: UIProduct["id"]; order: number }>>([]);
+
+//   // ====== โหลดรายการตามฟิลเตอร์ ======
+//   async function fetchList() {
+//     setLoading(true);
+//     setError(null);
+//     try {
+//       const params = new URLSearchParams();
+//       if (qDebounced) params.set("q", qDebounced);
+//       if (categoryId != null && categoryId !== "") params.set("categoryId", String(categoryId));
+//       params.set("sort", sort);
+//       params.set("order", order);
+//       params.set("page", String(page));
+//       params.set("pageSize", String(pageSize));
+//       params.set("includeHidden", includeHidden === "all" ? "1" : "0");
+
+//       const res = await fetch(`${API_BASE}?${params.toString()}`, { cache: "no-store" });
+//       if (!res.ok) throw new Error("Fetch failed");
+//       const data: ListResponse = await res.json();
+
+//       setItems(data.items ?? []);
+//       setTotal(data.total ?? (data.items?.length ?? 0));
+
+//       // reset selections เมื่อรีเฟรชรายการ
+//       setSelected(new Set());
+//       setSelectMode(false);
+//     } catch (e: any) {
+//       setError(e?.message ?? "Load failed");
+//     } finally {
+//       setLoading(false);
+//     }
+//   }
+
+//   // re-fetch เมื่อ filter/page เปลี่ยน
+//   useEffect(() => {
+//     fetchList();
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, [qDebounced, categoryId, sort, order, page, pageSize, includeHidden]);
+
+//   // ===== Reorder =====
+//   const postReorder = (orders: Array<{ id: UIProduct["id"]; order: number }>) => {
+//     if (reorderTimer.current) clearTimeout(reorderTimer.current);
+//     lastOrdersRef.current = orders;
+//     reorderTimer.current = setTimeout(async () => {
+//       try {
+//         setSaving(true);
+//         setError(null);
+//         saveAbortRef.current?.abort();
+//         saveAbortRef.current = new AbortController();
+
+//         const res = await fetch(`${API_BASE}/reorder`, {
+//           method: "POST",
+//           headers: jsonHeaders,
+//           body: JSON.stringify({ orders: lastOrdersRef.current }),
+//           signal: saveAbortRef.current.signal,
+//         });
+//         if (!res.ok) throw new Error("REORDER failed");
+//       } catch (e: any) {
+//         setError(e?.message ?? "Reorder failed");
+//       } finally {
+//         setSaving(false);
+//       }
+//     }, 400);
+//   };
+
+//   // ===== Meta title/subtitle =====
+//   const patchMeta = (patch: Partial<UIMeta>) => {
+//     if (metaTimer.current) clearTimeout(metaTimer.current);
+//     setMeta((m) => ({ ...m, ...patch }));
+
+//     metaTimer.current = setTimeout(async () => {
+//       try {
+//         setMetaSaving(true);
+//         const res = await fetch(`${API_BASE}/meta`, {
+//           method: "PATCH",
+//           headers: jsonHeaders,
+//           body: JSON.stringify(patch),
+//         });
+//         if (!res.ok) throw new Error("Update meta failed");
+//       } catch {
+//       } finally {
+//         setMetaSaving(false);
+//       }
+//     }, 500);
+//   };
+
+//   // ===== (NEW) Card parts patch (optimistic + debounce PATCH) =====
+//   const patchCardParts = (patch: Partial<CardPartsVisibility>) => {
+//     setCardParts((prev) => mergeAndSave(prev, patch));
+//     if (cardTimer.current) clearTimeout(cardTimer.current);
+//     cardTimer.current = setTimeout(async () => {
+//       try {
+//         setMetaSaving(true);
+//         await fetch(`${API_BASE}/meta`, {
+//           method: "PATCH",
+//           headers: jsonHeaders,
+//           body: JSON.stringify({ cardParts: patch }),
+//         });
+//       } catch {
+//         /* ignore */
+//       } finally {
+//         setMetaSaving(false);
+//       }
+//     }, 300);
+//   };
+
+//   // ===== Single item ops =====
+//   const handleDelete = async (id: UIProduct["id"]) => {
+//     const snapshot = items;
+//     setItems((prev) => prev.filter((x) => x.id !== id));
+//     setSaving(true);
+//     setError(null);
+//     try {
+//       const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+//       if (!res.ok) throw new Error("DELETE failed");
+//       fetchList();
+//     } catch (e: any) {
+//       setItems(snapshot);
+//       setError(e?.message ?? "Delete failed");
+//     } finally {
+//       setSaving(false);
+//     }
+//   };
+
+//   const handleToggle = async (id: UIProduct["id"]) => {
+//     const snapshot = items;
+//     const current = snapshot.find((x) => x.id === id);
+//     const nextVisible = !(current?.visible ?? true);
+
+//     setItems((prev) => prev.map((x) => (x.id === id ? { ...x, visible: nextVisible } : x)));
+//     setSaving(true);
+//     setError(null);
+
+//     try {
+//       const res = await fetch(`${API_BASE}/${id}`, {
+//         method: "PATCH",
+//         headers: jsonHeaders,
+//         body: JSON.stringify({ visible: nextVisible }),
+//       });
+//       if (!res.ok) throw new Error("PATCH failed");
+//     } catch (e: any) {
+//       setItems(snapshot);
+//       setError(e?.message ?? "Update failed");
+//     } finally {
+//       setSaving(false);
+//     }
+//   };
+
+//   const onDragEnd = (ev: DragEndEvent) => {
+//     const { active, over } = ev;
+//     if (!over || active.id === over.id) return;
+
+//     const oldIndex = items.findIndex((i) => i.id === active.id);
+//     const newIndex = items.findIndex((i) => i.id === over.id);
+
+//     const next = arrayMove(items, oldIndex, newIndex).map((x, i) => ({ ...x, order: i }));
+//     setItems(next);
+//     postReorder(next.map((x) => ({ id: x.id, order: x.order ?? 0 })));
+//   };
+
+//   const saveCreate = async (values: ProductEditValues) => {
+//     const res = await fetch(`${API_BASE}`, {
+//       method: "POST",
+//       headers: jsonHeaders,
+//       body: JSON.stringify({ ...values, visible: false }),
+//     });
+//     if (!res.ok) {
+//       const t = await res.text().catch(() => "");
+//       throw new Error(t || "Create failed");
+//     }
+//     await fetchList();
+//   };
+
+//   const saveEdit = async (values: ProductEditValues) => {
+//     if (!editingItem) return;
+//     const id = editingItem.id;
+
+//     const snapshot = items;
+//     setItems((prev) => prev.map((x) => (x.id === id ? { ...x, ...values } : x)));
+
+//     try {
+//       const res = await fetch(`${API_BASE}/${id}`, {
+//         method: "PATCH",
+//         headers: jsonHeaders,
+//         body: JSON.stringify(values),
+//       });
+//       if (!res.ok) throw new Error("PATCH failed");
+//       await fetchList();
+//     } catch (e: any) {
+//       setItems(snapshot);
+//       throw e;
+//     }
+//   };
+
+//   // ===== Quick edit: inline PATCH (optimistic) =====
+//   const handleInlineChange = async (
+//     id: UIProduct["id"],
+//     patch: Partial<Pick<UIProduct, "price" | "discountPercent">>,
+//   ) => {
+//     setItems((prev) => prev.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+//     try {
+//       const res = await fetch(`${API_BASE}/${id}`, {
+//         method: "PATCH",
+//         headers: jsonHeaders,
+//         body: JSON.stringify(patch),
+//       });
+//       if (!res.ok) throw new Error("PATCH failed");
+//     } catch {
+//       await fetchList();
+//     }
+//   };
+
+//   // ===== Bulk actions =====
+//   const selectedCount = selected.size;
+//   const visibleIdsOnPage = items.map((i) => i.id);
+
+//   const toggleSelect = (id: UIProduct["id"], checked: boolean) => {
+//     setSelected((prev) => {
+//       const next = new Set(prev);
+//       if (checked) next.add(id);
+//       else next.delete(id);
+//       return next;
+//     });
+//   };
+
+//   const selectAllThisPage = () => {
+//     setSelected(new Set(visibleIdsOnPage));
+//     setSelectMode(true);
+//   };
+//   const clearSelection = () => {
+//     setSelected(new Set());
+//     setSelectMode(false);
+//     setBulkCat("");
+//   };
+
+//   const bulkPatchVisible = async (visible: boolean) => {
+//     if (!selectedCount) return;
+//     setSaving(true);
+//     setError(null);
+//     try {
+//       const ids = Array.from(selected);
+//       // optimistic
+//       setItems((prev) => prev.map((x) => (ids.includes(x.id) ? { ...x, visible } : x)));
+//       await Promise.allSettled(
+//         ids.map((id) =>
+//           fetch(`${API_BASE}/${id}`, {
+//             method: "PATCH",
+//             headers: jsonHeaders,
+//             body: JSON.stringify({ visible }),
+//           }),
+//         ),
+//       );
+//       await fetchList();
+//       clearSelection();
+//     } catch (e: any) {
+//       setError(e?.message ?? "Bulk update failed");
+//     } finally {
+//       setSaving(false);
+//     }
+//   };
+
+//   // แปลงค่าหมวดจาก string -> number|string (ตามที่ API รองรับ)
+//   const parseCategoryValue = (v: string) => {
+//     if (v === "") return undefined;
+//     const n = Number(v);
+//     return Number.isFinite(n) && String(n) === v ? n : v;
+//   };
+
+//   const bulkChangeCategory = async () => {
+//     if (!selectedCount) return;
+//     const parsed = parseCategoryValue(bulkCat);
+//     if (typeof parsed === "undefined") return;
+
+//     setSaving(true);
+//     setError(null);
+//     try {
+//       const ids = Array.from(selected);
+
+//       // optimistic
+//       setItems((prev) => prev.map((x) => (ids.includes(x.id) ? { ...x, category_id: parsed } : x)));
+
+//       await Promise.allSettled(
+//         ids.map((id) =>
+//           fetch(`${API_BASE}/${id}`, {
+//             method: "PATCH",
+//             headers: jsonHeaders,
+//             body: JSON.stringify({ category_id: parsed }),
+//           }),
+//         ),
+//       );
+
+//       await fetchList();
+//       clearSelection();
+//       setBulkCat("");
+//     } catch (e: any) {
+//       setError(e?.message ?? "Bulk change category failed");
+//     } finally {
+//       setSaving(false);
+//     }
+//   };
+
+//   // UI helpers
+//   const totalPages = Math.max(1, Math.ceil((total || 0) / pageSize));
+
+//   return (
+//     <section className="py-4 relative">
+//       {(saving || metaSaving || loading) && (
+//         <div className="pointer-events-none absolute inset-0 flex items-start justify-end pr-2 pt-2 gap-2">
+//           {saving && <span className="rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground shadow">Saving…</span>}
+//           {metaSaving && <span className="rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground shadow">Saving settings…</span>}
+//           {loading && <span className="rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground shadow">Loading…</span>}
+//         </div>
+//       )}
+
+//       {error && (
+//         <div className="mb-3 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+//           {error}
+//         </div>
+//       )}
+
+//       {/* Header + Add */}
+//       <HeaderBar
+//         title={meta.title}
+//         subtitle={meta.subtitle}
+//         onTitleChange={(v) => patchMeta({ title: v })}
+//         onSubtitleChange={(v) => patchMeta({ subtitle: v })}
+//         viewMode={viewMode}
+//         onViewModeChange={(m: "grid" | "list") => setViewMode(m)}  // ✅ typed
+//         quickEdit={quickEdit}
+//         onToggleQuickEdit={() => setQuickEdit((x) => !x)}
+//         selectMode={selectMode}
+//         onToggleSelectMode={() => setSelectMode((x) => !x)}
+//         onCreate={() => setCreating(true)}
+//         onOpenCardSettings={() => setCardSettingsOpen(true)}   // ← เปิด dialog
+//       />
+
+//       {/* Toolbar: ค้นหา / หมวด / แสดง / เรียง */}
+//       <Toolbar
+//         q={q}
+//         onQChange={setQ}
+//         categoryOptions={categoryOptions}
+//         categoryId={categoryId}
+//         onCategoryChange={setCategoryId}
+//         includeHidden={includeHidden}
+//         onIncludeHiddenChange={setIncludeHidden}
+//         sort={sort}
+//         order={order}
+//         onSortOrderChange={(s, o) => {
+//           setSort(s);
+//           setOrder(o);
+//         }}
+//         onResetPage={() => setPage(1)}
+//       />
+
+//       {/* Bulk actions bar */}
+//       {selectMode && (
+//         <BulkActionsBar
+//           selectedCount={selected.size}
+//           onSelectAllThisPage={() => {
+//             setSelected(new Set(items.map((i) => i.id)));
+//             setSelectMode(true);
+//           }}
+//           onClearSelection={() => {
+//             setSelected(new Set());
+//             setSelectMode(false);
+//             setBulkCat("");
+//           }}
+//           onBulkHide={() => bulkPatchVisible(false)}
+//           onBulkShow={() => bulkPatchVisible(true)}
+//           onBulkDelete={async () => {
+//             const count = selected.size;
+//             if (!count) return;
+//             if (!confirm(`ยืนยันลบ ${count} รายการ?`)) return;
+//             setSaving(true);
+//             setError(null);
+//             try {
+//               const ids = Array.from(selected);
+//               setItems((prev) => prev.filter((x) => !ids.includes(x.id)));
+//               await Promise.allSettled(ids.map((id) => fetch(`${API_BASE}/${id}`, { method: "DELETE" })));
+//               await fetchList();
+//               setSelected(new Set());
+//               setSelectMode(false);
+//             } catch (e: any) {
+//               setError(e?.message ?? "Bulk delete failed");
+//             } finally {
+//               setSaving(false);
+//             }
+//           }}
+//           categoryOptions={categoryOptions}
+//           bulkCat={bulkCat}
+//           onBulkCatChange={setBulkCat}
+//           onBulkMove={bulkChangeCategory}
+//           disabledMove={!selected.size || !bulkCat}
+//         />
+//       )}
+
+//       {/* List / Grid */}
+//       <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+//         <SortableContext items={items.map((x) => x.id)} strategy={verticalListSortingStrategy}>
+//           {viewMode === "grid" ? (
+//             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 gap-4 sm:gap-5 lg:gap-6">
+//               {items.map((item) => {
+//                 const rule = pickRule(item.discountPercent);
+//                 return (
+//                   <ProductCard
+//                     key={item.id}
+//                     item={item}
+//                     onDelete={handleDelete}
+//                     onToggleVisible={handleToggle}
+//                     onEdit={(id: UIProduct["id"]) => setEditingId(id)}
+//                     categoryName={item.category_id != null ? catMap[item.category_id]?.name : undefined}
+//                     frameRule={rule}
+//                     selectable={selectMode}
+//                     selected={selected.has(item.id)}
+//                     onSelectToggle={(id: UIProduct["id"], checked: boolean) => toggleSelect(id, checked)}
+//                     quickEdit={quickEdit}
+//                     onInlineChange={handleInlineChange}
+//                     visibleParts={cardParts}   // ✅ ส่งค่าเปิด/ปิดส่วนต่างๆ
+//                   />
+//                 );
+//               })}
+//             </div>
+//           ) : (
+//             <div className="flex flex-col gap-3">
+//               {items.map((item) => {
+//                 const rule = pickRule(item.discountPercent);
+//                 return (
+//                   <ProductRow
+//                     key={item.id}
+//                     item={item}
+//                     onDelete={handleDelete}
+//                     onToggleVisible={handleToggle}
+//                     onEdit={(id: UIProduct["id"]) => setEditingId(id)}
+//                     categoryName={item.category_id != null ? catMap[item.category_id]?.name : undefined}
+//                     frameRule={rule}
+//                     selectable={selectMode}
+//                     selected={selected.has(item.id)}
+//                     onSelectToggle={(id: UIProduct["id"], checked: boolean) => toggleSelect(id, checked)}
+//                     quickEdit={quickEdit}
+//                     onInlineChange={handleInlineChange}
+//                     visibleParts={cardParts}   // ✅ ส่งค่าเปิด/ปิดส่วนต่างๆ
+//                   />
+//                 );
+//               })}
+//             </div>
+//           )}
+//         </SortableContext>
+//       </DndContext>
+
+//       {/* Footer: จำนวน/หน้า + เปลี่ยน page/pageSize */}
+//       <Pagination
+//         itemsInPage={items.length}
+//         total={total}
+//         page={page}
+//         totalPages={Math.max(1, Math.ceil((total || 0) / pageSize))}
+//         pageSize={pageSize}
+//         onPageSizeChange={(n) => {
+//           setPageSize(n);
+//           setPage(1);
+//         }}
+//         onPrev={() => setPage((p) => Math.max(1, p - 1))}
+//         onNext={() =>
+//           setPage((p) => Math.min(Math.max(1, Math.ceil((total || 0) / pageSize)), p + 1))
+//         }
+//       />
+
+//       {/* Create */}
+//       <AdminProductEditDialog
+//         open={creating}
+//         initial={{
+//           name: "",
+//           brand: "",
+//           sku: "",
+//           price: 0,
+//           discountPercent: 0,
+//           image_url: undefined,
+//           category_id: undefined,
+//           rating: 0,
+//           reviews: 0,
+//           uom: "",
+//         }}
+//         onClose={() => setCreating(false)}
+//         onSave={async (vals) => {
+//           await saveCreate(vals);
+//           setCreating(false);
+//         }}
+//         mode="create"
+//         categories={categoryOptions}
+//       />
+
+//       {/* Edit */}
+//       <AdminProductEditDialog
+//         open={!!editingItem}
+//         initial={
+//           editingItem
+//             ? {
+//                 name: editingItem.name,
+//                 brand: editingItem.brand ?? "",
+//                 sku: editingItem.sku ?? "",
+//                 price: editingItem.price,
+//                 discountPercent: editingItem.discountPercent ?? 0,
+//                 image_url: editingItem.image_url,
+//                 category_id: editingItem.category_id,
+//                 rating: editingItem.rating ?? 0,
+//                 reviews: editingItem.reviews ?? 0,
+//                 uom: editingItem.uom ?? "",
+//               }
+//             : {
+//                 name: "",
+//                 brand: "",
+//                 sku: "",
+//                 price: 0,
+//                 discountPercent: 0,
+//                 category_id: undefined,
+//                 rating: 0,
+//                 reviews: 0,
+//                 uom: "",
+//               }
+//         }
+//         onClose={() => setEditingId(null)}
+//         onSave={async (vals) => {
+//           await saveEdit(vals);
+//           setEditingId(null);
+//         }}
+//         mode="edit"
+//         categories={categoryOptions}
+//       />
+
+//       {/* === Card Settings Dialog (inline) === */}
+//       {cardSettingsOpen && (
+//         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3">
+//           <div className="w-full max-w-xl rounded-xl bg-card shadow-lg border border-border flex flex-col max-h-[90vh]">
+//             <div className="p-4 border-b">
+//               <div className="text-lg font-semibold">ตั้งค่าการแสดงผลของการ์ดสินค้า</div>
+//               <div className="text-xs text-muted-foreground">
+//                 เลือกเปิด/ปิดส่วนต่างๆ (ค่ามาตรฐาน: เปิดทั้งหมด)
+//               </div>
+//             </div>
+
+//             <div className="p-4 flex-1 overflow-y-auto space-y-4">
+//               {/* ปุ่มเปิด/ปิดทั้งหมด */}
+//               <div className="flex items-center gap-2">
+//                 <button
+//                   type="button"
+//                   className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+//                   onClick={() => patchCardParts(
+//                     Object.fromEntries(Object.keys(cardParts).map((k) => [k, true])) as CardPartsVisibility
+//                   )}
+//                 >
+//                   เปิดทั้งหมด
+//                 </button>
+//                 <button
+//                   type="button"
+//                   className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+//                   onClick={() => patchCardParts(
+//                     Object.fromEntries(Object.keys(cardParts).map((k) => [k, false])) as CardPartsVisibility
+//                   )}
+//                 >
+//                   ปิดทั้งหมด
+//                 </button>
+//               </div>
+
+//               {/* กลุ่มบนรูป */}
+//               <div>
+//                 <div className="text-sm font-medium mb-2">บนรูปสินค้า</div>
+//                 <div className="grid grid-cols-2 gap-2">
+//                   <Toggle label="รูปภาพสินค้า" checked={cardParts.image} onChange={(v) => patchCardParts({ image: v })} />
+//                   <Toggle label="ป้ายเปอร์เซ็นต์ส่วนลด" checked={cardParts.discountBadge} onChange={(v) => patchCardParts({ discountBadge: v })} />
+//                   <Toggle label="โลโก้ยี่ห้อ" checked={cardParts.brandLogo} onChange={(v) => patchCardParts({ brandLogo: v })} />
+//                   <Toggle label="กรอบรูป (frame)" checked={cardParts.frame} onChange={(v) => patchCardParts({ frame: v })} />
+//                 </div>
+//               </div>
+
+//               {/* ข้อมูลใต้รูป */}
+//               <div>
+//                 <div className="text-sm font-medium mb-2">ข้อมูลใต้รูป</div>
+//                 <div className="grid grid-cols-2 gap-2">
+//                   <Toggle label="ชื่อยี่ห้อ (ตัวหนังสือ)" checked={cardParts.brandName} onChange={(v) => patchCardParts({ brandName: v })} />
+//                   <Toggle label="SKU" checked={cardParts.sku} onChange={(v) => patchCardParts({ sku: v })} />
+//                   <Toggle label="ชื่อสินค้า" checked={cardParts.name} onChange={(v) => patchCardParts({ name: v })} />
+//                   <Toggle label="Rating & Reviews" checked={cardParts.ratingReview} onChange={(v) => patchCardParts({ ratingReview: v })} />
+//                   <Toggle label="Category" checked={cardParts.category} onChange={(v) => patchCardParts({ category: v })} />
+//                   <Toggle label="ราคาขาย" checked={cardParts.price} onChange={(v) => patchCardParts({ price: v })} />
+//                   <Toggle label="ราคาก่อนลด" checked={cardParts.originalPrice} onChange={(v) => patchCardParts({ originalPrice: v })} />
+//                   <Toggle label="หน่วย (UoM)" checked={cardParts.uom} onChange={(v) => patchCardParts({ uom: v })} />
+//                 </div>
+//               </div>
+//             </div>
+
+//             <div className="p-4 border-t flex items-center justify-end gap-2">
+//               <button
+//                 type="button"
+//                 className="rounded-md border px-3 py-2 text-sm hover:bg-muted"
+//                 onClick={() => setCardSettingsOpen(false)}
+//               >
+//                 ปิด
+//               </button>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+//     </section>
+//   );
+// }
+
+// /* === Small Toggle component for dialog === */
+// function Toggle({
+//   label,
+//   checked,
+//   onChange,
+// }: {
+//   label: string;
+//   checked: boolean;
+//   onChange: (v: boolean) => void;
+// }) {
+//   return (
+//     <label className="inline-flex items-center gap-2 text-sm">
+//       <input
+//         type="checkbox"
+//         className="h-4 w-4"
+//         checked={checked}
+//         onChange={(e) => onChange(e.target.checked)}
+//       />
+//       {label}
+//     </label>
+//   );
+// }
 
 // v.1.1.22 =================================================
 

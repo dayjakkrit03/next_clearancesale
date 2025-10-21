@@ -1,4 +1,4 @@
-// v.1.1.3 ==============================================
+// v.1.1.4 ===============================================
 // src/app/api/mock/products/meta/route.ts
 import { NextResponse } from "next/server";
 import { setMeta, getMeta } from "../_store";
@@ -6,7 +6,6 @@ import { setMeta, getMeta } from "../_store";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-/** แปลงค่าที่ส่งมาให้เป็น boolean แบบยืดหยุ่น */
 function toBool(v: any): boolean | undefined {
   if (typeof v === "boolean") return v;
   if (v === 1 || v === "1" || v === "true") return true;
@@ -14,32 +13,17 @@ function toBool(v: any): boolean | undefined {
   return undefined;
 }
 
-/** คีย์ที่อนุญาตใน cardParts */
 const CARD_PART_KEYS = [
-  "image",
-  "discountBadge",
-  "brandLogo",
-  "frame",
-  "brandName",
-  "sku",
-  "name",
-  "ratingReview",
-  "category",
-  "price",
-  "originalPrice",
-  "uom",
+  "image","discountBadge","brandLogo","frame",
+  "brandName","sku","name","ratingReview","category","price","originalPrice","uom",
 ] as const;
 type CardPartKey = (typeof CARD_PART_KEYS)[number];
 
-/** อ่าน meta ปัจจุบัน (รวม cardParts) */
 export async function GET() {
-  return NextResponse.json(
-    { meta: getMeta() },
-    { headers: { "Cache-Control": "no-store" } },
-  );
+  const meta = await getMeta(); // ✅ await
+  return NextResponse.json({ meta }, { headers: { "Cache-Control": "no-store" } });
 }
 
-/** อัปเดต meta (รองรับ patch เฉพาะ field ที่ส่งมา รวมถึง cardParts แบบบางส่วน) */
 export async function PATCH(req: Request) {
   const raw = await req.json().catch(() => null);
   if (!raw || typeof raw !== "object") {
@@ -47,17 +31,9 @@ export async function PATCH(req: Request) {
   }
 
   const safePatch: any = {};
+  if (typeof raw.title === "string") safePatch.title = raw.title.trim();
+  if (typeof raw.subtitle === "string") safePatch.subtitle = raw.subtitle.trim();
 
-  // title / subtitle (ถ้ามี)
-  if (typeof raw.title === "string") {
-    const v = raw.title.trim();
-    if (v.length) safePatch.title = v;
-  }
-  if (typeof raw.subtitle === "string") {
-    safePatch.subtitle = raw.subtitle.trim();
-  }
-
-  // cardParts (ถ้ามี) — กรองเฉพาะคีย์ที่อนุญาตและแปลงเป็น boolean
   if (raw.cardParts && typeof raw.cardParts === "object") {
     const incoming = raw.cardParts as Record<string, any>;
     const next: Partial<Record<CardPartKey, boolean>> = {};
@@ -65,25 +41,106 @@ export async function PATCH(req: Request) {
       const bv = toBool(incoming[k]);
       if (typeof bv === "boolean") next[k] = bv;
     }
-    if (Object.keys(next).length) {
-      safePatch.cardParts = next;
-    }
+    if (Object.keys(next).length) safePatch.cardParts = next;
   }
 
-  // ไม่มีอะไรให้แก้จริง ๆ
   if (!Object.keys(safePatch).length) {
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
   }
 
-  // อัปเดต (setMeta จะ merge cardParts และใส่ updatedAt ให้เอง)
-  setMeta(safePatch);
-
-  // ส่งค่า meta ล่าสุดกลับไปให้ UI sync ต่อ
-  return NextResponse.json(
-    { ok: true, meta: getMeta() },
-    { headers: { "Cache-Control": "no-store" } },
-  );
+  await setMeta(safePatch);      // ✅ await
+  const meta = await getMeta();  // ✅ await
+  return NextResponse.json({ ok: true, meta }, { headers: { "Cache-Control": "no-store" } });
 }
+
+// v.1.1.4 ===============================================
+
+// v.1.1.3 ==============================================
+// // src/app/api/mock/products/meta/route.ts
+// import { NextResponse } from "next/server";
+// import { setMeta, getMeta } from "../_store";
+
+// export const dynamic = "force-dynamic";
+// export const revalidate = 0;
+
+// /** แปลงค่าที่ส่งมาให้เป็น boolean แบบยืดหยุ่น */
+// function toBool(v: any): boolean | undefined {
+//   if (typeof v === "boolean") return v;
+//   if (v === 1 || v === "1" || v === "true") return true;
+//   if (v === 0 || v === "0" || v === "false") return false;
+//   return undefined;
+// }
+
+// /** คีย์ที่อนุญาตใน cardParts */
+// const CARD_PART_KEYS = [
+//   "image",
+//   "discountBadge",
+//   "brandLogo",
+//   "frame",
+//   "brandName",
+//   "sku",
+//   "name",
+//   "ratingReview",
+//   "category",
+//   "price",
+//   "originalPrice",
+//   "uom",
+// ] as const;
+// type CardPartKey = (typeof CARD_PART_KEYS)[number];
+
+// /** อ่าน meta ปัจจุบัน (รวม cardParts) */
+// export async function GET() {
+//   return NextResponse.json(
+//     { meta: getMeta() },
+//     { headers: { "Cache-Control": "no-store" } },
+//   );
+// }
+
+// /** อัปเดต meta (รองรับ patch เฉพาะ field ที่ส่งมา รวมถึง cardParts แบบบางส่วน) */
+// export async function PATCH(req: Request) {
+//   const raw = await req.json().catch(() => null);
+//   if (!raw || typeof raw !== "object") {
+//     return NextResponse.json({ error: "Bad payload" }, { status: 400 });
+//   }
+
+//   const safePatch: any = {};
+
+//   // title / subtitle (ถ้ามี)
+//   if (typeof raw.title === "string") {
+//     const v = raw.title.trim();
+//     if (v.length) safePatch.title = v;
+//   }
+//   if (typeof raw.subtitle === "string") {
+//     safePatch.subtitle = raw.subtitle.trim();
+//   }
+
+//   // cardParts (ถ้ามี) — กรองเฉพาะคีย์ที่อนุญาตและแปลงเป็น boolean
+//   if (raw.cardParts && typeof raw.cardParts === "object") {
+//     const incoming = raw.cardParts as Record<string, any>;
+//     const next: Partial<Record<CardPartKey, boolean>> = {};
+//     for (const k of CARD_PART_KEYS) {
+//       const bv = toBool(incoming[k]);
+//       if (typeof bv === "boolean") next[k] = bv;
+//     }
+//     if (Object.keys(next).length) {
+//       safePatch.cardParts = next;
+//     }
+//   }
+
+//   // ไม่มีอะไรให้แก้จริง ๆ
+//   if (!Object.keys(safePatch).length) {
+//     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
+//   }
+
+//   // อัปเดต (setMeta จะ merge cardParts และใส่ updatedAt ให้เอง)
+//   setMeta(safePatch);
+
+//   // ส่งค่า meta ล่าสุดกลับไปให้ UI sync ต่อ
+//   return NextResponse.json(
+//     { ok: true, meta: getMeta() },
+//     { headers: { "Cache-Control": "no-store" } },
+//   );
+// }
 
 // v.1.1.3 ==============================================
 

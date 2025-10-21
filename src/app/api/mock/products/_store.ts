@@ -1,8 +1,10 @@
-
-// v.1.1.10 =============================================
+// v.1.1.12 ===========================================
 // src/app/api/mock/products/_store.ts
+// DB-backed implementation (drop-in replacement of the old in-memory store)
 
-/** ===== Types ===== */
+import { prismaInterlink, setInterlinkSessionTZ } from "@/lib/db";
+
+/** ===== Types (คงแบบเดิม) ===== */
 export type UIProduct = {
   id: number | string;
   name: string;
@@ -15,13 +17,13 @@ export type UIProduct = {
   order: number;
 
   rating?: number;   // 0..5
-  reviews?: number;  // จำนวนรีวิว
+  reviews?: number;  // count
 
   category_id?: number | string;
-  uom?: string;      // <<< หน่วยสินค้า เช่น "ST.", "EA.", "PC."
+  uom?: string;
 };
 
-/** ===== (NEW) Card parts visibility (ฝั่ง API เก็บค่าเดียวกับแอดมิน) ===== */
+/** ===== (เหมือนเดิม) Card parts visibility ===== */
 export type CardPartsVisibility = {
   image: boolean;
   discountBadge: boolean;
@@ -58,296 +60,1236 @@ export type ProductsMeta = {
   title: string;
   subtitle: string;
   updatedAt?: string;
-  /** (NEW) การตั้งค่าการแสดงผลการ์ด */
   cardParts: CardPartsVisibility;
 };
 
-/** ===== (NEW) Query types for admin listing ===== */
+/** ===== (เหมือนเดิม) Query types ===== */
 export type ProductQuery = {
   q?: string;
   category_id?: number | string;
+  /** ใช้เวลาหน้าค้นหาตรงกับชื่อหมวด — เติมเข้ามาเพื่อให้ route.ts ใช้ได้เหมือนเดิม */
+  matchCategoryIds?: Array<number | string>;
   visible?: boolean;
-  sort?:
-    | "order"
-    | "newest"
-    | "price_asc"
-    | "price_desc"
-    | "discount_desc"
-    | "rating_desc";
+  sort?: "order" | "newest" | "price_asc" | "price_desc" | "discount_desc" | "rating_desc";
   page?: number;     // 1-based
   pageSize?: number; // e.g. 24/48/96
 };
 
-/** ===== Seed from legacy-like sample ===== */
-const seedRows = [
-  { id: 1, name: "Fiber Optic Cable Single Mode 305m", brand: "COMMSCOPE", price: 2160, image: "/assets/fiber-optic-cable.jpg", sku: "AM-2120-02XG", discount: "60%", rating: 4.8, reviews: 156, category_id: 2, uom: "ST." },
-  { id: 2, name: "24-Port Gigabit Network Switch",      brand: "COMMSCOPE", price: 8530, image: "/assets/network-switch-professional.jpg", sku: "AM-2129", discount: "80%", rating: 4.6, reviews: 234, category_id: 9, uom: "EA." },
-  { id: 3, name: "RG-6 Coaxial Cable 305m",             brand: "GERMANYRACK", price: 4540, image: "/assets/coaxial-cable-reel.jpg", sku: "AM-2162-03", discount: "60%", rating: 4.5, reviews: 189, category_id: 6, uom: "ST." },
-  { id: 4, name: "Solar Cable 4mm² PV Wire 100m",       brand: "LINK", price: 4860, image: "/assets/solar-cable-red.jpg", sku: "AM-2166-03", discount: "80%", rating: 4.7, reviews: 145, category_id: 7, uom: "M." },
-  { id: 5, name: "Telephone Cable 4-Pair Indoor 305m",  brand: "COMMSCOPE", price: 1470, image: "/assets/telephone-cable.jpg", sku: "AM-2220-02", discount: "60%", rating: 4.4, reviews: 98,  category_id: 3, uom: "ST." },
-  { id: 6, name: "19'' Server Rack Cabinet 42U",        brand: "LINK", price: 2000, image: "/assets/server-rack-19inch.jpg", sku: "AM-3032", discount: "90%", rating: 4.9, reviews: 87,  category_id: 10, uom: "EA." },
-  { id: 7, name: "US-9035 CAT 5E UTP Cable Indoor 305m",brand: "LINK", price: 1770, image: "/assets/lan-cat5e-box.jpg", sku: "AM-3602A", discount: "60%", rating: 4.7, reviews: 178, category_id: 1, uom: "PC." },
-  { id: 8, name: "UT-0216 Fiber Media Converter RJ45",  brand: "COMMSCOPE", price: 3108, image: "/assets/fiber-media-converter.jpg", sku: "AM-3620A", discount: "0%",  rating: 4.6, reviews: 124, category_id: 9, uom: "PC." },
-];
-
-const parsePercent = (text?: string) => {
-  if (!text) return 0;
-  const m = String(text).match(/(\d+)(\.\d+)?/);
-  return m ? Math.round(Number(m[0])) : 0;
-};
-
-/** ===== In-memory state ===== */
-let state: UIProduct[] = seedRows.map((r, i) => ({
-  id: r.id,
-  name: r.name,
-  brand: r.brand,
-  sku: r.sku,
-  price: r.price,
-  discountPercent: parsePercent((r as any).discount),
-  image_url: (r as any).image || "/placeholder.png",
-  visible: true,
-  order: i,
-  rating: (r as any).rating,
-  reviews: (r as any).reviews,
-  category_id: (r as any).category_id,
-  uom: (r as any).uom,
-}));
-
-const seedMeta: ProductsMeta = {
+/** ===== In-memory meta (จะ sync กับ DB เมื่ออ่าน/เขียน) ===== */
+let meta: ProductsMeta = {
   title: "สินค้าทั้งหมด",
-  subtitle: "ตัวอย่างข้อมูลจาก mock API (in-memory)",
+  subtitle: "ข้อมูลจากฐานข้อมูล (DB-backed)",
   updatedAt: new Date().toISOString(),
-  cardParts: { ...defaultCardPartsVisibility }, // NEW
+  cardParts: { ...defaultCardPartsVisibility },
 };
-
-let meta: ProductsMeta = { ...seedMeta };
 
 /** ===== Helpers ===== */
-const sortByOrder = (a: UIProduct, b: UIProduct) => (a.order ?? 0) - (b.order ?? 0);
-const coerceId = (v: any) => (isNaN(Number(v)) ? v : Number(v));
+const TABLE = "products_clearance";
+const META_TABLE = "products_meta";
 
-/** (NEW) full-text แบบง่ายๆ: แยกคำแล้วเช็ค name/sku/brand */
-function matchesSearch(p: UIProduct, q?: string) {
-  if (!q) return true;
-  const hay = `${p.name ?? ""} ${p.sku ?? ""} ${p.brand ?? ""}`.toLowerCase();
-  return q
-    .toLowerCase()
-    .split(/\s+/)
-    .every((kw) => hay.includes(kw));
+/** บังคับ session TZ +07:00 (กันเวลาคลาดเคลื่อน) */
+async function ensureTZ() {
+  try {
+    await setInterlinkSessionTZ("+07:00");
+  } catch {
+    /* ignore */
+  }
 }
 
-/** (NEW) จัดเรียงตามค่า sort */
-function applySort(list: UIProduct[], sort: ProductQuery["sort"]) {
+/** แปลง id ที่เป็นตัวเลขให้เป็น number */
+const coerceId = (v: any) => (isNaN(Number(v)) ? v : Number(v));
+
+/** "60%" -> 60 */
+function parseDiscountLabel(label?: string | null): number | undefined {
+  if (!label) return undefined;
+  const m = String(label).match(/(\d+(?:\.\d+)?)/);
+  return m ? Math.round(Number(m[1])) : undefined;
+}
+/** 60 -> "60%" (สำหรับ upsert) */
+function toDiscountLabel(n?: number): string | null {
+  if (typeof n !== "number" || !Number.isFinite(n)) return null;
+  const v = Math.max(0, Math.min(100, Math.round(n)));
+  return `${v}%`;
+}
+
+/** map แถว DB -> UIProduct (แปลง BigInt/Decimal เป็น number เสมอ) */
+function mapRowToUI(r: any): UIProduct {
+  return {
+    id: Number(r.product_id), // ✅ กัน BigInt
+    name: String(r.product_name ?? ""),
+    brand: r.product_brand ?? undefined,
+    // ใช้ sku จริงก่อน ถ้าไม่มีค่อย fallback เป็น filename (คงพฤติกรรมก่อนได้)
+    sku: r.product_sku ?? r.product_filename ?? undefined,
+    price: Number(r.product_price ?? 0),
+    discountPercent: parseDiscountLabel(r.discount_label),
+    image_url: r.image_url ?? undefined,
+    visible: r.visible === 1 || r.visible === true,
+    order: Number(r.display_order ?? 0),
+    rating: r.rating_score != null ? Number(r.rating_score) : undefined,
+    reviews: r.rating_count != null ? Number(r.rating_count) : undefined,
+    category_id:
+      r.category_id == null
+        ? undefined
+        : (Number.isFinite(Number(r.category_id)) ? Number(r.category_id) : String(r.category_id)),
+    uom: r.product_uom ?? undefined,
+  };
+}
+
+/** WHERE builder — คงฟิลเตอร์เดิม และรองรับ matchCategoryIds (OR กับ q หา category) */
+function buildWhere(q: ProductQuery) {
+  const conds: string[] = [];
+  const params: any[] = [];
+
+  if (typeof q.visible === "boolean") {
+    conds.push("visible = ?");
+    params.push(q.visible ? 1 : 0);
+  }
+  if (typeof q.category_id !== "undefined") {
+    conds.push("category_id = ?");
+    params.push(coerceId(q.category_id));
+  }
+
+  // ค้นหาในชื่อ/แบรนด์/SKU/filename
+  if (q.q && q.q.trim()) {
+    const like = `%${q.q.trim()}%`;
+    const searchCond = "(product_name LIKE ? OR product_brand LIKE ? OR product_sku LIKE ? OR product_filename LIKE ?)";
+    if (q.matchCategoryIds && q.matchCategoryIds.length) {
+      const ids = q.matchCategoryIds.map(coerceId);
+      const ph = ids.map(() => "?").join(",");
+      conds.push(`(${searchCond} OR category_id IN (${ph}))`);
+      params.push(like, like, like, like, ...ids);
+    } else {
+      conds.push(searchCond);
+      params.push(like, like, like, like);
+    }
+  }
+
+  const where = conds.length ? `WHERE ${conds.join(" AND ")}` : "";
+  return { where, params };
+}
+
+/** ORDER BY builder (คง semantics เดิม) */
+function buildOrderBy(sort?: ProductQuery["sort"]) {
   const s = sort ?? "order";
-  const arr = [...list];
   switch (s) {
     case "price_asc":
-      return arr.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+      return "ORDER BY product_price ASC, display_order ASC, product_id ASC";
     case "price_desc":
-      return arr.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+      return "ORDER BY product_price DESC, display_order ASC, product_id ASC";
     case "discount_desc":
-      return arr.sort((a, b) => (b.discountPercent ?? 0) - (a.discountPercent ?? 0));
+      return "ORDER BY CAST(REPLACE(discount_label,'%','') AS UNSIGNED) DESC, display_order ASC, product_id ASC";
     case "rating_desc":
-      return arr.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+      return "ORDER BY rating_score DESC, display_order ASC, product_id ASC";
     case "newest":
-      // ไม่มี createdAt จริง ใช้ id แบบตัวเลขแทน (ถ้าเป็น string จะคงลำดับเดิม)
-      return arr.sort((a, b) => {
-        const an = typeof a.id === "number" ? a.id : 0;
-        const bn = typeof b.id === "number" ? b.id : 0;
-        return bn - an;
-      });
+      return "ORDER BY product_id DESC";
     case "order":
     default:
-      return arr.sort(sortByOrder);
+      return "ORDER BY display_order ASC, product_id ASC";
   }
 }
 
 /** ===== Queries ===== */
-export function getAll(opts?: { includeHidden?: boolean }): UIProduct[] {
+export async function getAll(opts?: { includeHidden?: boolean }): Promise<UIProduct[]> {
+  await ensureTZ();
   const includeHidden = opts?.includeHidden ?? true;
-  const list = includeHidden ? state : state.filter((c) => c.visible !== false);
-  return [...list].sort(sortByOrder);
+  const where = includeHidden ? "" : "WHERE visible = 1";
+
+  const rows: any[] = await prismaInterlink.$queryRawUnsafe(
+    `
+    SELECT
+      product_id, product_name, product_brand, product_sku, product_filename,
+      product_price, discount_label, image_url, visible, display_order,
+      rating_score, rating_count, category_id, product_uom
+    FROM ${TABLE}
+    ${where}
+    ORDER BY display_order ASC, product_id ASC
+    `
+  );
+  return rows.map(mapRowToUI);
 }
 
-export function getMeta(): ProductsMeta {
-  // clone ปลอดภัย (แต่ shallow ก็พอสำหรับโครงสร้างนี้)
-  return { ...meta, cardParts: { ...meta.cardParts } };
-}
+/** ===== Meta: อ่านจากตาราง products_meta (id=1) ===== */
+export async function getMeta(): Promise<ProductsMeta> {
+  await ensureTZ();
 
-/** อ่านสินค้าตาม id เดียว */
-export function getById(id: UIProduct["id"]): UIProduct | undefined {
-  const key = coerceId(id);
-  const found = state.find((x) => x.id === key);
-  // คืน clone บาง ๆ กันโดนแก้ไขอ้างอิงจากภายนอก
-  return found ? { ...found } : undefined;
-}
+  // ดึงจาก DB
+  const rows: any[] = await prismaInterlink.$queryRawUnsafe(
+    `
+    SELECT id, title, subtitle, card_parts, updated_at
+    FROM ${META_TABLE}
+    WHERE id = 1
+    LIMIT 1
+    `
+  );
 
-/** อ่านสินค้าหลาย id และคงลำดับตามที่ส่งมา */
-export function getManyByIds(ids: Array<UIProduct["id"]>): UIProduct[] {
-  if (!Array.isArray(ids) || ids.length === 0) return [];
-  const norm = ids.map((v) => coerceId(v));
-  const map = new Map(state.map((p) => [p.id, p]));
-  return norm
-    .map((id) => map.get(id))
-    .filter(Boolean)
-    .map((p) => ({ ...(p as UIProduct) })); // clone
-}
-
-/** (NEW) ค้นหา/ฟิลเตอร์ + แบ่งหน้า */
-export function queryProducts(params: ProductQuery) {
-  const {
-    q,
-    category_id,
-    visible,
-    sort,
-    page = 1,
-    pageSize = 24,
-  } = params ?? {};
-
-  let list = [...state];
-
-  // ฟิลเตอร์แสดง/ซ่อน
-  if (typeof visible === "boolean") {
-    list = list.filter((x) => (x.visible ?? true) === visible);
+  if (!rows?.length) {
+    // ไม่มีแถวใน DB → คืนค่า default (พร้อมอัปเดต in-memory)
+    meta = { ...meta, updatedAt: new Date().toISOString() };
+    return { ...meta, cardParts: { ...defaultCardPartsVisibility, ...(meta.cardParts ?? {}) } };
   }
 
-  // ฟิลเตอร์หมวด
-  if (typeof category_id !== "undefined") {
-    const cid = coerceId(category_id);
-    list = list.filter((x) => x.category_id === cid);
+  const r = rows[0];
+
+  // card_parts อาจถูกคืนมาเป็น JSON object หรือ string → แปลงเป็น object ให้ได้เสมอ
+  let cardPartsRaw: any = r.card_parts;
+  if (typeof cardPartsRaw === "string") {
+    try { cardPartsRaw = JSON.parse(cardPartsRaw); } catch { cardPartsRaw = {}; }
+  }
+  if (cardPartsRaw == null || typeof cardPartsRaw !== "object") {
+    cardPartsRaw = {};
   }
 
-  // ค้นหา
-  if (q && q.trim()) {
-    list = list.filter((p) => matchesSearch(p, q));
+  // กรองเฉพาะ key ที่รู้จัก และ merge กับ default
+  const allowedKeys = Object.keys(defaultCardPartsVisibility);
+  const filtered: Partial<CardPartsVisibility> = {};
+  for (const k of allowedKeys) {
+    const v = cardPartsRaw[k];
+    if (typeof v === "boolean") (filtered as any)[k] = v;
   }
 
-  // เรียง
-  list = applySort(list, sort);
+  const merged: ProductsMeta = {
+    title: r.title ?? meta.title,
+    subtitle: r.subtitle ?? meta.subtitle,
+    updatedAt: r.updated_at ? new Date(r.updated_at).toISOString() : meta.updatedAt,
+    cardParts: { ...defaultCardPartsVisibility, ...filtered },
+  };
 
-  // แบ่งหน้า
-  const p = Math.max(1, Math.floor(page));
-  const ps = Math.min(200, Math.max(1, Math.floor(pageSize))); // guard
-  const total = list.length;
-  const start = (p - 1) * ps;
-  const items = list.slice(start, start + ps);
+  // sync เข้า in-memory ให้ตรงกับ DB
+  meta = { ...merged };
 
-  return { items, total, page: p, pageSize: ps };
+  return merged;
 }
 
-/** ===== Mutations ===== */
+/** ===== Meta: เขียนกลับ DB (upsert id=1) ===== */
 type MetaPatch =
   Partial<Omit<ProductsMeta, "cardParts">> & { cardParts?: Partial<CardPartsVisibility> };
 
-export function setMeta(patch: MetaPatch) {
-  meta = {
-    ...meta,
-    ...patch,
-    // merge ซ้อนสำหรับ cardParts
-    cardParts: { ...meta.cardParts, ...(patch.cardParts ?? {}) },
+export async function setMeta(patch: MetaPatch) {
+  await ensureTZ();
+
+  // โหลดของเดิมจาก DB (หรือ default)
+  const current = await getMeta();
+
+  // รวมค่าใหม่ (รวม nested cardParts)
+  const next: ProductsMeta = {
+    title: typeof patch.title === "string" && patch.title.trim() ? patch.title.trim() : current.title,
+    subtitle: typeof patch.subtitle === "string" && patch.subtitle.trim() ? patch.subtitle.trim() : current.subtitle,
     updatedAt: new Date().toISOString(),
+    cardParts: { ...current.cardParts, ...(patch.cardParts ?? {}) },
   };
-}
 
-export function setVisible(id: UIProduct["id"], visible: boolean) {
-  state = state.map((x) => (x.id === id ? { ...x, visible } : x));
-}
+  // Upsert: ถ้ามีแล้ว → UPDATE, ถ้าไม่มีก็ INSERT id=1
+  const existsRows: any[] = await prismaInterlink.$queryRawUnsafe(
+    `SELECT 1 AS ok FROM ${META_TABLE} WHERE id = 1 LIMIT 1`
+  );
+  const cardPartsJson = JSON.stringify(next.cardParts);
 
-export function toggleVisible(id: UIProduct["id"]) {
-  state = state.map((x) => (x.id === id ? { ...x, visible: !(x.visible ?? true) } : x));
-}
-
-export function remove(id: UIProduct["id"]) {
-  state = state.filter((x) => x.id !== id).sort(sortByOrder).map((x, i) => ({ ...x, order: i }));
-}
-
-export function reorder(orders: { id: UIProduct["id"]; order: number }[]) {
-  const map = new Map(orders.map((o) => [o.id, o.order]));
-  state = state
-    .map((x) => ({ ...x, order: map.get(x.id) ?? x.order }))
-    .sort(sortByOrder)
-    .map((x, i) => ({ ...x, order: i }));
-}
-
-/** create/update */
-export function upsert(p: Partial<UIProduct>): UIProduct {
-  const idx = state.findIndex((c) => c.id === p.id);
-  if (idx >= 0) {
-    const merged: UIProduct = { ...state[idx], ...p } as UIProduct;
-    state = state.map((c, i) => (i === idx ? merged : c)).sort(sortByOrder);
-    return merged;
+  if (existsRows?.length) {
+    await prismaInterlink.$executeRawUnsafe(
+      `
+      UPDATE ${META_TABLE}
+      SET title = ?, subtitle = ?, card_parts = ?, updated_at = NOW()
+      WHERE id = 1
+      `,
+      next.title,
+      next.subtitle,
+      cardPartsJson
+    );
   } else {
-    const nextId =
-      typeof p.id !== "undefined"
-        ? p.id
-        : Math.max(0, ...state.map((c) => (typeof c.id === "number" ? c.id : 0))) + 1;
-
-    const newItem: UIProduct = {
-      id: nextId,
-      name: p.name ?? "New Product",
-      brand: p.brand ?? "",
-      sku: p.sku ?? "",
-      price: typeof p.price === "number" ? p.price : 0,
-      discountPercent: typeof p.discountPercent === "number" ? p.discountPercent : 0,
-      image_url: p.image_url ?? "/placeholder.png",
-      visible: p.visible ?? false,
-      order: state.length,
-      rating: typeof p.rating === "number" ? p.rating : undefined,
-      reviews: typeof p.reviews === "number" ? p.reviews : undefined,
-      category_id: p.category_id,
-      uom: p.uom,
-    };
-    state = [...state, newItem].sort(sortByOrder);
-    return newItem;
+    await prismaInterlink.$executeRawUnsafe(
+      `
+      INSERT INTO ${META_TABLE} (id, title, subtitle, card_parts, updated_at)
+      VALUES (1, ?, ?, ?, NOW())
+      `,
+      next.title,
+      next.subtitle,
+      cardPartsJson
+    );
   }
+
+  // sync เข้า in-memory
+  meta = { ...next };
 }
 
-/** (NEW) helper สำหรับจัดหมวดสินค้าแบบเดี่ยว/หลายรายการ */
-export function setCategory(
-  id: UIProduct["id"],
-  category_id?: UIProduct["category_id"]
-) {
-  // ใช้ upsert เพื่อคงลำดับ/ฟิลด์อื่น ๆ
-  upsert({ id, category_id });
+/** อ่านสินค้าตาม id เดียว */
+export async function getById(id: UIProduct["id"]): Promise<UIProduct | undefined> {
+  await ensureTZ();
+  const rows: any[] = await prismaInterlink.$queryRawUnsafe(
+    `
+    SELECT
+      product_id, product_name, product_brand, product_sku, product_filename,
+      product_price, discount_label, image_url, visible, display_order,
+      rating_score, rating_count, category_id, product_uom
+    FROM ${TABLE}
+    WHERE product_id = ?
+    LIMIT 1
+    `,
+    coerceId(id)
+  );
+  return rows.length ? mapRowToUI(rows[0]) : undefined;
 }
 
-export function bulkSetCategory(
-  ops: Array<{ id: UIProduct["id"]; category_id?: UIProduct["category_id"] }>
-): { updated: number; results: Array<{ id: UIProduct["id"]; ok: boolean; reason?: string }> } {
-  const results: Array<{ id: UIProduct["id"]; ok: boolean; reason?: string }> = [];
-  for (const { id, category_id } of ops ?? []) {
-    try {
-      upsert({ id, category_id });
-      results.push({ id, ok: true });
-    } catch (e: any) {
-      results.push({ id, ok: false, reason: e?.message ?? "update_failed" });
+/** อ่านสินค้าหลาย id และคงลำดับตามที่ส่งมา */
+export async function getManyByIds(ids: Array<UIProduct["id"]>): Promise<UIProduct[]> {
+  await ensureTZ();
+  if (!Array.isArray(ids) || ids.length === 0) return [];
+  const norm = ids.map((v) => coerceId(v));
+  const placeholders = norm.map(() => "?").join(", ");
+
+  const rows: any[] = await prismaInterlink.$queryRawUnsafe(
+    `
+    SELECT
+      product_id, product_name, product_brand, product_sku, product_filename,
+      product_price, discount_label, image_url, visible, display_order,
+      rating_score, rating_count, category_id, product_uom
+    FROM ${TABLE}
+    WHERE product_id IN (${placeholders})
+    `,
+    ...norm
+  );
+  const mapped = rows.map(mapRowToUI);
+  const mapById = new Map(mapped.map((p) => [p.id, p]));
+  return norm.map((id) => mapById.get(id)).filter(Boolean) as UIProduct[];
+}
+
+/** ค้นหา/ฟิลเตอร์ + แบ่งหน้า (SQL) */
+export async function queryProducts(params: ProductQuery) {
+  await ensureTZ();
+
+  const page = Math.max(1, Math.floor(params.page ?? 1));
+  const pageSize = Math.min(200, Math.max(1, Math.floor(params.pageSize ?? 24)));
+  const offset = (page - 1) * pageSize;
+
+  const { where, params: p } = buildWhere(params);
+  const orderBy = buildOrderBy(params.sort);
+
+  // total (cast กัน BigInt)
+  const totalRows: any[] = await prismaInterlink.$queryRawUnsafe(
+    `SELECT CAST(COUNT(*) AS UNSIGNED) AS total FROM ${TABLE} ${where}`,
+    ...p
+  );
+  const total = Number(totalRows?.[0]?.total ?? 0);
+
+  // items
+  const items: any[] = await prismaInterlink.$queryRawUnsafe(
+    `
+    SELECT
+      product_id, product_name, product_brand, product_sku, product_filename,
+      product_price, discount_label, image_url, visible, display_order,
+      rating_score, rating_count, category_id, product_uom
+    FROM ${TABLE}
+    ${where}
+    ${orderBy}
+    LIMIT ? OFFSET ?
+    `,
+    ...p,
+    pageSize,
+    offset
+  );
+
+  return { items: items.map(mapRowToUI), total, page, pageSize };
+}
+
+/** ===== Mutations (คงอินเตอร์เฟซเดิม) ===== */
+
+export async function setVisible(id: UIProduct["id"], visible: boolean) {
+  await ensureTZ();
+  await prismaInterlink.$executeRawUnsafe(
+    `UPDATE ${TABLE} SET visible = ?, updated_at = NOW() WHERE product_id = ?`,
+    visible ? 1 : 0,
+    coerceId(id)
+  );
+}
+
+export async function toggleVisible(id: UIProduct["id"]) {
+  await ensureTZ();
+  await prismaInterlink.$executeRawUnsafe(
+    `UPDATE ${TABLE} SET visible = IF(visible=1,0,1), updated_at = NOW() WHERE product_id = ?`,
+    coerceId(id)
+  );
+}
+
+export async function remove(id: UIProduct["id"]) {
+  await ensureTZ();
+  await prismaInterlink.$executeRawUnsafe(
+    `DELETE FROM ${TABLE} WHERE product_id = ?`,
+    coerceId(id)
+  );
+}
+
+export async function reorder(orders: { id: UIProduct["id"]; order: number }[]) {
+  await ensureTZ();
+  if (!orders?.length) return;
+
+  const ids = orders.map((o) => Number(coerceId(o.id)));
+  const caseWhen = orders
+    .map((o) => `WHEN ${Number(coerceId(o.id))} THEN ${Number(o.order)}`)
+    .join(" ");
+  const inList = ids.join(", ");
+
+  const sql = `
+    UPDATE ${TABLE}
+    SET display_order = CASE product_id ${caseWhen} END,
+        updated_at = NOW()
+    WHERE product_id IN (${inList})
+  `;
+  await prismaInterlink.$executeRawUnsafe(sql);
+}
+
+export async function upsert(p: Partial<UIProduct>): Promise<UIProduct> {
+  await ensureTZ();
+  const hasId = typeof p.id !== "undefined" && p.id !== null;
+
+  if (hasId) {
+    // UPDATE เฉพาะฟิลด์ที่ส่งมา
+    const fields: string[] = [];
+    const values: any[] = [];
+    const push = (col: string, val: any) => { fields.push(`${col} = ?`); values.push(val); };
+
+    if (typeof p.name !== "undefined")        push("product_name", String(p.name));
+    if (typeof p.brand !== "undefined")       push("product_brand", p.brand ?? null);
+    if (typeof p.sku !== "undefined")         push("product_filename", p.sku ?? null); // ใช้ช่องเดิมตาม mock
+    if (typeof p.price !== "undefined")       push("product_price", Number(p.price) || 0);
+    if (typeof p.discountPercent !== "undefined") push("discount_label", toDiscountLabel(p.discountPercent));
+    if (typeof p.image_url !== "undefined")   push("image_url", p.image_url ?? null);
+    if (typeof p.visible !== "undefined")     push("visible", p.visible ? 1 : 0);
+    if (typeof p.order !== "undefined")       push("display_order", Number(p.order) || 0);
+    if (typeof p.rating !== "undefined")      push("rating_score", p.rating == null ? null : Number(p.rating));
+    if (typeof p.reviews !== "undefined")     push("rating_count", p.reviews == null ? null : Number(p.reviews));
+    if (typeof p.category_id !== "undefined") push("category_id", p.category_id == null ? null : coerceId(p.category_id));
+    if (typeof p.uom !== "undefined")         push("product_uom", p.uom ?? null);
+
+    if (fields.length) {
+      const sql = `UPDATE ${TABLE} SET ${fields.join(", ")}, updated_at = NOW() WHERE product_id = ?`;
+      values.push(coerceId(p.id));
+      await prismaInterlink.$executeRawUnsafe(sql, ...values);
     }
+
+    const row = await getById(p.id as any);
+    if (!row) throw new Error("Product not found after update");
+    return row;
+  } else {
+    // INSERT ใหม่ (order = max(display_order)+1)
+    const nextOrderRows: any[] = await prismaInterlink.$queryRawUnsafe(
+      `SELECT COALESCE(MAX(display_order), -1) + 1 AS nextOrder FROM ${TABLE}`
+    );
+    const nextOrder = Number(nextOrderRows?.[0]?.nextOrder ?? 0);
+
+    await prismaInterlink.$executeRawUnsafe(
+      `
+      INSERT INTO ${TABLE}
+        (product_name, product_brand, product_filename, product_price, discount_label, image_url, visible,
+         display_order, rating_score, rating_count, category_id, product_uom, created_at, updated_at)
+      VALUES
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+      `,
+      String(p.name ?? "New Product"),
+      p.brand ?? null,
+      p.sku ?? null,
+      Number(p.price) || 0,
+      toDiscountLabel(p.discountPercent),
+      p.image_url ?? null,
+      p.visible ? 1 : 0,
+      nextOrder,
+      p.rating == null ? null : Number(p.rating),
+      p.reviews == null ? null : Number(p.reviews),
+      p.category_id == null ? null : coerceId(p.category_id),
+      p.uom ?? null
+    );
+
+    // ดึง id ที่เพิ่ง insert มา (cast เป็น number กัน BigInt)
+    const insertedIdRows: any[] = await prismaInterlink.$queryRawUnsafe(`SELECT LAST_INSERT_ID() AS id`);
+    const newId = Number(insertedIdRows?.[0]?.id);
+    const row = await getById(newId);
+    if (!row) throw new Error("Product not found after insert");
+    return row;
   }
-  return { updated: results.filter((r) => r.ok).length, results };
 }
 
+/** (dev only) reset — ไม่ยุ่ง DB เพื่อเลี่ยงลบข้อมูลจริง */
 export function reset() {
-  state = seedRows.map((r, i) => ({
-    id: r.id,
-    name: r.name,
-    brand: r.brand,
-    sku: r.sku,
-    price: r.price,
-    discountPercent: parsePercent((r as any).discount),
-    image_url: (r as any).image || "/placeholder.png",
-    visible: true,
-    order: i,
-    rating: (r as any).rating,
-    reviews: (r as any).reviews,
-    category_id: (r as any).category_id,
-    uom: (r as any).uom,
-  }));
-  meta = {
-    ...seedMeta,
-    cardParts: { ...defaultCardPartsVisibility },
-    updatedAt: new Date().toISOString(),
-  };
+  meta = { ...meta, updatedAt: new Date().toISOString() };
 }
+
+// v.1.1.12 ===========================================
+
+// v.1.1.11 ============================================
+// // src/app/api/mock/products/_store.ts
+// // DB-backed implementation (drop-in replacement of the old in-memory store)
+
+// import { prismaInterlink, setInterlinkSessionTZ } from "@/lib/db";
+
+// /** ===== Types (คงแบบเดิม) ===== */
+// export type UIProduct = {
+//   id: number | string;
+//   name: string;
+//   brand?: string;
+//   sku?: string;
+//   price: number;
+//   discountPercent?: number; // 0..100
+//   image_url?: string;
+//   visible?: boolean;
+//   order: number;
+
+//   rating?: number;   // 0..5
+//   reviews?: number;  // count
+
+//   category_id?: number | string;
+//   uom?: string;
+// };
+
+// /** ===== (เหมือนเดิม) Card parts visibility ===== */
+// export type CardPartsVisibility = {
+//   image: boolean;
+//   discountBadge: boolean;
+//   brandLogo: boolean;
+//   frame: boolean;
+
+//   brandName: boolean;
+//   sku: boolean;
+//   name: boolean;
+//   ratingReview: boolean;
+//   category: boolean;
+//   price: boolean;
+//   originalPrice: boolean;
+//   uom: boolean;
+// };
+
+// export const defaultCardPartsVisibility: CardPartsVisibility = {
+//   image: true,
+//   discountBadge: true,
+//   brandLogo: true,
+//   frame: true,
+
+//   brandName: true,
+//   sku: true,
+//   name: true,
+//   ratingReview: true,
+//   category: true,
+//   price: true,
+//   originalPrice: true,
+//   uom: true,
+// };
+
+// export type ProductsMeta = {
+//   title: string;
+//   subtitle: string;
+//   updatedAt?: string;
+//   cardParts: CardPartsVisibility;
+// };
+
+// /** ===== (เหมือนเดิม) Query types ===== */
+// export type ProductQuery = {
+//   q?: string;
+//   category_id?: number | string;
+//   /** ใช้เวลาหน้าค้นหาตรงกับชื่อหมวด — เติมเข้ามาเพื่อให้ route.ts ใช้ได้เหมือนเดิม */
+//   matchCategoryIds?: Array<number | string>;
+//   visible?: boolean;
+//   sort?: "order" | "newest" | "price_asc" | "price_desc" | "discount_desc" | "rating_desc";
+//   page?: number;     // 1-based
+//   pageSize?: number; // e.g. 24/48/96
+// };
+
+// /** ===== In-memory meta only (คงพฤติกรรมเดิม) ===== */
+// let meta: ProductsMeta = {
+//   title: "สินค้าทั้งหมด",
+//   subtitle: "ข้อมูลจากฐานข้อมูล (DB-backed)",
+//   updatedAt: new Date().toISOString(),
+//   cardParts: { ...defaultCardPartsVisibility },
+// };
+
+// /** ===== Helpers ===== */
+// const TABLE = "products_clearance";
+
+// /** บังคับ session TZ +07:00 (กันเวลาคลาดเคลื่อน) */
+// async function ensureTZ() {
+//   try {
+//     await setInterlinkSessionTZ("+07:00");
+//   } catch {
+//     /* ignore */
+//   }
+// }
+
+// /** แปลง id ที่เป็นตัวเลขให้เป็น number */
+// const coerceId = (v: any) => (isNaN(Number(v)) ? v : Number(v));
+
+// /** "60%" -> 60 */
+// function parseDiscountLabel(label?: string | null): number | undefined {
+//   if (!label) return undefined;
+//   const m = String(label).match(/(\d+(?:\.\d+)?)/);
+//   return m ? Math.round(Number(m[1])) : undefined;
+// }
+// /** 60 -> "60%" (สำหรับ upsert) */
+// function toDiscountLabel(n?: number): string | null {
+//   if (typeof n !== "number" || !Number.isFinite(n)) return null;
+//   const v = Math.max(0, Math.min(100, Math.round(n)));
+//   return `${v}%`;
+// }
+
+// /** map แถว DB -> UIProduct (แปลง BigInt/Decimal เป็น number เสมอ) */
+// function mapRowToUI(r: any): UIProduct {
+//   return {
+//     id: Number(r.product_id), // ✅ กัน BigInt
+//     name: String(r.product_name ?? ""),
+//     brand: r.product_brand ?? undefined,
+//     // ใช้ sku จริงก่อน ถ้าไม่มีค่อย fallback เป็น filename (คงพฤติกรรมก่อนได้)
+//     sku: r.product_sku ?? r.product_filename ?? undefined,
+//     price: Number(r.product_price ?? 0),
+//     discountPercent: parseDiscountLabel(r.discount_label),
+//     image_url: r.image_url ?? undefined,
+//     visible: r.visible === 1 || r.visible === true,
+//     order: Number(r.display_order ?? 0),
+//     rating: r.rating_score != null ? Number(r.rating_score) : undefined,
+//     reviews: r.rating_count != null ? Number(r.rating_count) : undefined,
+//     category_id:
+//       r.category_id == null
+//         ? undefined
+//         : (Number.isFinite(Number(r.category_id)) ? Number(r.category_id) : String(r.category_id)),
+//     uom: r.product_uom ?? undefined,
+//   };
+// }
+
+// /** WHERE builder — คงฟิลเตอร์เดิม และรองรับ matchCategoryIds (OR กับ q หา category) */
+// function buildWhere(q: ProductQuery) {
+//   const conds: string[] = [];
+//   const params: any[] = [];
+
+//   if (typeof q.visible === "boolean") {
+//     conds.push("visible = ?");
+//     params.push(q.visible ? 1 : 0);
+//   }
+//   if (typeof q.category_id !== "undefined") {
+//     conds.push("category_id = ?");
+//     params.push(coerceId(q.category_id));
+//   }
+
+//   // ค้นหาในชื่อ/แบรนด์/SKU/filename
+//   if (q.q && q.q.trim()) {
+//     const like = `%${q.q.trim()}%`;
+//     const searchCond = "(product_name LIKE ? OR product_brand LIKE ? OR product_sku LIKE ? OR product_filename LIKE ?)";
+//     if (q.matchCategoryIds && q.matchCategoryIds.length) {
+//       const ids = q.matchCategoryIds.map(coerceId);
+//       const ph = ids.map(() => "?").join(",");
+//       conds.push(`(${searchCond} OR category_id IN (${ph}))`);
+//       params.push(like, like, like, like, ...ids);
+//     } else {
+//       conds.push(searchCond);
+//       params.push(like, like, like, like);
+//     }
+//   }
+
+//   const where = conds.length ? `WHERE ${conds.join(" AND ")}` : "";
+//   return { where, params };
+// }
+
+// /** ORDER BY builder (คง semantics เดิม) */
+// function buildOrderBy(sort?: ProductQuery["sort"]) {
+//   const s = sort ?? "order";
+//   switch (s) {
+//     case "price_asc":
+//       return "ORDER BY product_price ASC, display_order ASC, product_id ASC";
+//     case "price_desc":
+//       return "ORDER BY product_price DESC, display_order ASC, product_id ASC";
+//     case "discount_desc":
+//       return "ORDER BY CAST(REPLACE(discount_label,'%','') AS UNSIGNED) DESC, display_order ASC, product_id ASC";
+//     case "rating_desc":
+//       return "ORDER BY rating_score DESC, display_order ASC, product_id ASC";
+//     case "newest":
+//       return "ORDER BY product_id DESC";
+//     case "order":
+//     default:
+//       return "ORDER BY display_order ASC, product_id ASC";
+//   }
+// }
+
+// /** ===== Queries ===== */
+// export async function getAll(opts?: { includeHidden?: boolean }): Promise<UIProduct[]> {
+//   await ensureTZ();
+//   const includeHidden = opts?.includeHidden ?? true;
+//   const where = includeHidden ? "" : "WHERE visible = 1";
+
+//   const rows: any[] = await prismaInterlink.$queryRawUnsafe(
+//     `
+//     SELECT
+//       product_id, product_name, product_brand, product_sku, product_filename,
+//       product_price, discount_label, image_url, visible, display_order,
+//       rating_score, rating_count, category_id, product_uom
+//     FROM ${TABLE}
+//     ${where}
+//     ORDER BY display_order ASC, product_id ASC
+//     `
+//   );
+//   return rows.map(mapRowToUI);
+// }
+
+// export async function getMeta(): Promise<ProductsMeta> {
+//   // ยังเก็บ meta ในหน่วยความจำเหมือนเดิม
+//   return { ...meta, cardParts: { ...meta.cardParts } };
+// }
+
+// /** อ่านสินค้าตาม id เดียว */
+// export async function getById(id: UIProduct["id"]): Promise<UIProduct | undefined> {
+//   await ensureTZ();
+//   const rows: any[] = await prismaInterlink.$queryRawUnsafe(
+//     `
+//     SELECT
+//       product_id, product_name, product_brand, product_sku, product_filename,
+//       product_price, discount_label, image_url, visible, display_order,
+//       rating_score, rating_count, category_id, product_uom
+//     FROM ${TABLE}
+//     WHERE product_id = ?
+//     LIMIT 1
+//     `,
+//     coerceId(id)
+//   );
+//   return rows.length ? mapRowToUI(rows[0]) : undefined;
+// }
+
+// /** อ่านสินค้าหลาย id และคงลำดับตามที่ส่งมา */
+// export async function getManyByIds(ids: Array<UIProduct["id"]>): Promise<UIProduct[]> {
+//   await ensureTZ();
+//   if (!Array.isArray(ids) || ids.length === 0) return [];
+//   const norm = ids.map((v) => coerceId(v));
+//   const placeholders = norm.map(() => "?").join(", ");
+
+//   const rows: any[] = await prismaInterlink.$queryRawUnsafe(
+//     `
+//     SELECT
+//       product_id, product_name, product_brand, product_sku, product_filename,
+//       product_price, discount_label, image_url, visible, display_order,
+//       rating_score, rating_count, category_id, product_uom
+//     FROM ${TABLE}
+//     WHERE product_id IN (${placeholders})
+//     `,
+//     ...norm
+//   );
+//   const mapped = rows.map(mapRowToUI);
+//   const mapById = new Map(mapped.map((p) => [p.id, p]));
+//   return norm.map((id) => mapById.get(id)).filter(Boolean) as UIProduct[];
+// }
+
+// /** ค้นหา/ฟิลเตอร์ + แบ่งหน้า (SQL) */
+// export async function queryProducts(params: ProductQuery) {
+//   await ensureTZ();
+
+//   const page = Math.max(1, Math.floor(params.page ?? 1));
+//   const pageSize = Math.min(200, Math.max(1, Math.floor(params.pageSize ?? 24)));
+//   const offset = (page - 1) * pageSize;
+
+//   const { where, params: p } = buildWhere(params);
+//   const orderBy = buildOrderBy(params.sort);
+
+//   // total (cast กัน BigInt)
+//   const totalRows: any[] = await prismaInterlink.$queryRawUnsafe(
+//     `SELECT CAST(COUNT(*) AS UNSIGNED) AS total FROM ${TABLE} ${where}`,
+//     ...p
+//   );
+//   const total = Number(totalRows?.[0]?.total ?? 0);
+
+//   // items
+//   const items: any[] = await prismaInterlink.$queryRawUnsafe(
+//     `
+//     SELECT
+//       product_id, product_name, product_brand, product_sku, product_filename,
+//       product_price, discount_label, image_url, visible, display_order,
+//       rating_score, rating_count, category_id, product_uom
+//     FROM ${TABLE}
+//     ${where}
+//     ${orderBy}
+//     LIMIT ? OFFSET ?
+//     `,
+//     ...p,
+//     pageSize,
+//     offset
+//   );
+
+//   return { items: items.map(mapRowToUI), total, page, pageSize };
+// }
+
+// /** ===== Mutations (คงอินเตอร์เฟซเดิม) ===== */
+// type MetaPatch =
+//   Partial<Omit<ProductsMeta, "cardParts">> & { cardParts?: Partial<CardPartsVisibility> };
+
+// export async function setMeta(patch: MetaPatch) {
+//   // คงเก็บใน memory (ไม่ได้ไปเขียนตาราง products_meta ที่คุณมี)
+//   meta = {
+//     ...meta,
+//     ...patch,
+//     cardParts: { ...meta.cardParts, ...(patch.cardParts ?? {}) },
+//     updatedAt: new Date().toISOString(),
+//   };
+// }
+
+// export async function setVisible(id: UIProduct["id"], visible: boolean) {
+//   await ensureTZ();
+//   await prismaInterlink.$executeRawUnsafe(
+//     `UPDATE ${TABLE} SET visible = ?, updated_at = NOW() WHERE product_id = ?`,
+//     visible ? 1 : 0,
+//     coerceId(id)
+//   );
+// }
+
+// export async function toggleVisible(id: UIProduct["id"]) {
+//   await ensureTZ();
+//   await prismaInterlink.$executeRawUnsafe(
+//     `UPDATE ${TABLE} SET visible = IF(visible=1,0,1), updated_at = NOW() WHERE product_id = ?`,
+//     coerceId(id)
+//   );
+// }
+
+// export async function remove(id: UIProduct["id"]) {
+//   await ensureTZ();
+//   await prismaInterlink.$executeRawUnsafe(
+//     `DELETE FROM ${TABLE} WHERE product_id = ?`,
+//     coerceId(id)
+//   );
+// }
+
+// export async function reorder(orders: { id: UIProduct["id"]; order: number }[]) {
+//   await ensureTZ();
+//   if (!orders?.length) return;
+
+//   const ids = orders.map((o) => Number(coerceId(o.id)));
+//   const caseWhen = orders
+//     .map((o) => `WHEN ${Number(coerceId(o.id))} THEN ${Number(o.order)}`)
+//     .join(" ");
+//   const inList = ids.join(", ");
+
+//   const sql = `
+//     UPDATE ${TABLE}
+//     SET display_order = CASE product_id ${caseWhen} END,
+//         updated_at = NOW()
+//     WHERE product_id IN (${inList})
+//   `;
+//   await prismaInterlink.$executeRawUnsafe(sql);
+// }
+
+// export async function upsert(p: Partial<UIProduct>): Promise<UIProduct> {
+//   await ensureTZ();
+//   const hasId = typeof p.id !== "undefined" && p.id !== null;
+
+//   if (hasId) {
+//     // UPDATE เฉพาะฟิลด์ที่ส่งมา
+//     const fields: string[] = [];
+//     const values: any[] = [];
+//     const push = (col: string, val: any) => { fields.push(`${col} = ?`); values.push(val); };
+
+//     if (typeof p.name !== "undefined")        push("product_name", String(p.name));
+//     if (typeof p.brand !== "undefined")       push("product_brand", p.brand ?? null);
+//     if (typeof p.sku !== "undefined")         push("product_filename", p.sku ?? null); // ใช้ช่องเดิมตาม mock
+//     if (typeof p.price !== "undefined")       push("product_price", Number(p.price) || 0);
+//     if (typeof p.discountPercent !== "undefined") push("discount_label", toDiscountLabel(p.discountPercent));
+//     if (typeof p.image_url !== "undefined")   push("image_url", p.image_url ?? null);
+//     if (typeof p.visible !== "undefined")     push("visible", p.visible ? 1 : 0);
+//     if (typeof p.order !== "undefined")       push("display_order", Number(p.order) || 0);
+//     if (typeof p.rating !== "undefined")      push("rating_score", p.rating == null ? null : Number(p.rating));
+//     if (typeof p.reviews !== "undefined")     push("rating_count", p.reviews == null ? null : Number(p.reviews));
+//     if (typeof p.category_id !== "undefined") push("category_id", p.category_id == null ? null : coerceId(p.category_id));
+//     if (typeof p.uom !== "undefined")         push("product_uom", p.uom ?? null);
+
+//     if (fields.length) {
+//       const sql = `UPDATE ${TABLE} SET ${fields.join(", ")}, updated_at = NOW() WHERE product_id = ?`;
+//       values.push(coerceId(p.id));
+//       await prismaInterlink.$executeRawUnsafe(sql, ...values);
+//     }
+
+//     const row = await getById(p.id as any);
+//     if (!row) throw new Error("Product not found after update");
+//     return row;
+//   } else {
+//     // INSERT ใหม่ (order = max(display_order)+1)
+//     const nextOrderRows: any[] = await prismaInterlink.$queryRawUnsafe(
+//       `SELECT COALESCE(MAX(display_order), -1) + 1 AS nextOrder FROM ${TABLE}`
+//     );
+//     const nextOrder = Number(nextOrderRows?.[0]?.nextOrder ?? 0);
+
+//     await prismaInterlink.$executeRawUnsafe(
+//       `
+//       INSERT INTO ${TABLE}
+//         (product_name, product_brand, product_filename, product_price, discount_label, image_url, visible,
+//          display_order, rating_score, rating_count, category_id, product_uom, created_at, updated_at)
+//       VALUES
+//         (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+//       `,
+//       String(p.name ?? "New Product"),
+//       p.brand ?? null,
+//       p.sku ?? null,
+//       Number(p.price) || 0,
+//       toDiscountLabel(p.discountPercent),
+//       p.image_url ?? null,
+//       p.visible ? 1 : 0,
+//       nextOrder,
+//       p.rating == null ? null : Number(p.rating),
+//       p.reviews == null ? null : Number(p.reviews),
+//       p.category_id == null ? null : coerceId(p.category_id),
+//       p.uom ?? null
+//     );
+
+//     // ดึง id ที่เพิ่ง insert มา (cast เป็น number กัน BigInt)
+//     const insertedIdRows: any[] = await prismaInterlink.$queryRawUnsafe(`SELECT LAST_INSERT_ID() AS id`);
+//     const newId = Number(insertedIdRows?.[0]?.id);
+//     const row = await getById(newId);
+//     if (!row) throw new Error("Product not found after insert");
+//     return row;
+//   }
+// }
+
+// /** (dev only) reset — ไม่ยุ่ง DB เพื่อเลี่ยงลบข้อมูลจริง */
+// export function reset() {
+//   meta = { ...meta, updatedAt: new Date().toISOString() };
+// }
+
+// v.1.1.11 ============================================
+
+// v.1.1.10 =============================================
+// // src/app/api/mock/products/_store.ts
+
+// /** ===== Types ===== */
+// export type UIProduct = {
+//   id: number | string;
+//   name: string;
+//   brand?: string;
+//   sku?: string;
+//   price: number;
+//   discountPercent?: number; // 0..100
+//   image_url?: string;
+//   visible?: boolean;
+//   order: number;
+
+//   rating?: number;   // 0..5
+//   reviews?: number;  // จำนวนรีวิว
+
+//   category_id?: number | string;
+//   uom?: string;      // <<< หน่วยสินค้า เช่น "ST.", "EA.", "PC."
+// };
+
+// /** ===== (NEW) Card parts visibility (ฝั่ง API เก็บค่าเดียวกับแอดมิน) ===== */
+// export type CardPartsVisibility = {
+//   image: boolean;
+//   discountBadge: boolean;
+//   brandLogo: boolean;
+//   frame: boolean;
+
+//   brandName: boolean;
+//   sku: boolean;
+//   name: boolean;
+//   ratingReview: boolean;
+//   category: boolean;
+//   price: boolean;
+//   originalPrice: boolean;
+//   uom: boolean;
+// };
+
+// export const defaultCardPartsVisibility: CardPartsVisibility = {
+//   image: true,
+//   discountBadge: true,
+//   brandLogo: true,
+//   frame: true,
+
+//   brandName: true,
+//   sku: true,
+//   name: true,
+//   ratingReview: true,
+//   category: true,
+//   price: true,
+//   originalPrice: true,
+//   uom: true,
+// };
+
+// export type ProductsMeta = {
+//   title: string;
+//   subtitle: string;
+//   updatedAt?: string;
+//   /** (NEW) การตั้งค่าการแสดงผลการ์ด */
+//   cardParts: CardPartsVisibility;
+// };
+
+// /** ===== (NEW) Query types for admin listing ===== */
+// export type ProductQuery = {
+//   q?: string;
+//   category_id?: number | string;
+//   visible?: boolean;
+//   sort?:
+//     | "order"
+//     | "newest"
+//     | "price_asc"
+//     | "price_desc"
+//     | "discount_desc"
+//     | "rating_desc";
+//   page?: number;     // 1-based
+//   pageSize?: number; // e.g. 24/48/96
+// };
+
+// /** ===== Seed from legacy-like sample ===== */
+// const seedRows = [
+//   { id: 1, name: "Fiber Optic Cable Single Mode 305m", brand: "COMMSCOPE", price: 2160, image: "/assets/fiber-optic-cable.jpg", sku: "AM-2120-02XG", discount: "60%", rating: 4.8, reviews: 156, category_id: 2, uom: "ST." },
+//   { id: 2, name: "24-Port Gigabit Network Switch",      brand: "COMMSCOPE", price: 8530, image: "/assets/network-switch-professional.jpg", sku: "AM-2129", discount: "80%", rating: 4.6, reviews: 234, category_id: 9, uom: "EA." },
+//   { id: 3, name: "RG-6 Coaxial Cable 305m",             brand: "GERMANYRACK", price: 4540, image: "/assets/coaxial-cable-reel.jpg", sku: "AM-2162-03", discount: "60%", rating: 4.5, reviews: 189, category_id: 6, uom: "ST." },
+//   { id: 4, name: "Solar Cable 4mm² PV Wire 100m",       brand: "LINK", price: 4860, image: "/assets/solar-cable-red.jpg", sku: "AM-2166-03", discount: "80%", rating: 4.7, reviews: 145, category_id: 7, uom: "M." },
+//   { id: 5, name: "Telephone Cable 4-Pair Indoor 305m",  brand: "COMMSCOPE", price: 1470, image: "/assets/telephone-cable.jpg", sku: "AM-2220-02", discount: "60%", rating: 4.4, reviews: 98,  category_id: 3, uom: "ST." },
+//   { id: 6, name: "19'' Server Rack Cabinet 42U",        brand: "LINK", price: 2000, image: "/assets/server-rack-19inch.jpg", sku: "AM-3032", discount: "90%", rating: 4.9, reviews: 87,  category_id: 10, uom: "EA." },
+//   { id: 7, name: "US-9035 CAT 5E UTP Cable Indoor 305m",brand: "LINK", price: 1770, image: "/assets/lan-cat5e-box.jpg", sku: "AM-3602A", discount: "60%", rating: 4.7, reviews: 178, category_id: 1, uom: "PC." },
+//   { id: 8, name: "UT-0216 Fiber Media Converter RJ45",  brand: "COMMSCOPE", price: 3108, image: "/assets/fiber-media-converter.jpg", sku: "AM-3620A", discount: "0%",  rating: 4.6, reviews: 124, category_id: 9, uom: "PC." },
+// ];
+
+// const parsePercent = (text?: string) => {
+//   if (!text) return 0;
+//   const m = String(text).match(/(\d+)(\.\d+)?/);
+//   return m ? Math.round(Number(m[0])) : 0;
+// };
+
+// /** ===== In-memory state ===== */
+// let state: UIProduct[] = seedRows.map((r, i) => ({
+//   id: r.id,
+//   name: r.name,
+//   brand: r.brand,
+//   sku: r.sku,
+//   price: r.price,
+//   discountPercent: parsePercent((r as any).discount),
+//   image_url: (r as any).image || "/placeholder.png",
+//   visible: true,
+//   order: i,
+//   rating: (r as any).rating,
+//   reviews: (r as any).reviews,
+//   category_id: (r as any).category_id,
+//   uom: (r as any).uom,
+// }));
+
+// const seedMeta: ProductsMeta = {
+//   title: "สินค้าทั้งหมด",
+//   subtitle: "ตัวอย่างข้อมูลจาก mock API (in-memory)",
+//   updatedAt: new Date().toISOString(),
+//   cardParts: { ...defaultCardPartsVisibility }, // NEW
+// };
+
+// let meta: ProductsMeta = { ...seedMeta };
+
+// /** ===== Helpers ===== */
+// const sortByOrder = (a: UIProduct, b: UIProduct) => (a.order ?? 0) - (b.order ?? 0);
+// const coerceId = (v: any) => (isNaN(Number(v)) ? v : Number(v));
+
+// /** (NEW) full-text แบบง่ายๆ: แยกคำแล้วเช็ค name/sku/brand */
+// function matchesSearch(p: UIProduct, q?: string) {
+//   if (!q) return true;
+//   const hay = `${p.name ?? ""} ${p.sku ?? ""} ${p.brand ?? ""}`.toLowerCase();
+//   return q
+//     .toLowerCase()
+//     .split(/\s+/)
+//     .every((kw) => hay.includes(kw));
+// }
+
+// /** (NEW) จัดเรียงตามค่า sort */
+// function applySort(list: UIProduct[], sort: ProductQuery["sort"]) {
+//   const s = sort ?? "order";
+//   const arr = [...list];
+//   switch (s) {
+//     case "price_asc":
+//       return arr.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+//     case "price_desc":
+//       return arr.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+//     case "discount_desc":
+//       return arr.sort((a, b) => (b.discountPercent ?? 0) - (a.discountPercent ?? 0));
+//     case "rating_desc":
+//       return arr.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+//     case "newest":
+//       // ไม่มี createdAt จริง ใช้ id แบบตัวเลขแทน (ถ้าเป็น string จะคงลำดับเดิม)
+//       return arr.sort((a, b) => {
+//         const an = typeof a.id === "number" ? a.id : 0;
+//         const bn = typeof b.id === "number" ? b.id : 0;
+//         return bn - an;
+//       });
+//     case "order":
+//     default:
+//       return arr.sort(sortByOrder);
+//   }
+// }
+
+// /** ===== Queries ===== */
+// export function getAll(opts?: { includeHidden?: boolean }): UIProduct[] {
+//   const includeHidden = opts?.includeHidden ?? true;
+//   const list = includeHidden ? state : state.filter((c) => c.visible !== false);
+//   return [...list].sort(sortByOrder);
+// }
+
+// export function getMeta(): ProductsMeta {
+//   // clone ปลอดภัย (แต่ shallow ก็พอสำหรับโครงสร้างนี้)
+//   return { ...meta, cardParts: { ...meta.cardParts } };
+// }
+
+// /** อ่านสินค้าตาม id เดียว */
+// export function getById(id: UIProduct["id"]): UIProduct | undefined {
+//   const key = coerceId(id);
+//   const found = state.find((x) => x.id === key);
+//   // คืน clone บาง ๆ กันโดนแก้ไขอ้างอิงจากภายนอก
+//   return found ? { ...found } : undefined;
+// }
+
+// /** อ่านสินค้าหลาย id และคงลำดับตามที่ส่งมา */
+// export function getManyByIds(ids: Array<UIProduct["id"]>): UIProduct[] {
+//   if (!Array.isArray(ids) || ids.length === 0) return [];
+//   const norm = ids.map((v) => coerceId(v));
+//   const map = new Map(state.map((p) => [p.id, p]));
+//   return norm
+//     .map((id) => map.get(id))
+//     .filter(Boolean)
+//     .map((p) => ({ ...(p as UIProduct) })); // clone
+// }
+
+// /** (NEW) ค้นหา/ฟิลเตอร์ + แบ่งหน้า */
+// export function queryProducts(params: ProductQuery) {
+//   const {
+//     q,
+//     category_id,
+//     visible,
+//     sort,
+//     page = 1,
+//     pageSize = 24,
+//   } = params ?? {};
+
+//   let list = [...state];
+
+//   // ฟิลเตอร์แสดง/ซ่อน
+//   if (typeof visible === "boolean") {
+//     list = list.filter((x) => (x.visible ?? true) === visible);
+//   }
+
+//   // ฟิลเตอร์หมวด
+//   if (typeof category_id !== "undefined") {
+//     const cid = coerceId(category_id);
+//     list = list.filter((x) => x.category_id === cid);
+//   }
+
+//   // ค้นหา
+//   if (q && q.trim()) {
+//     list = list.filter((p) => matchesSearch(p, q));
+//   }
+
+//   // เรียง
+//   list = applySort(list, sort);
+
+//   // แบ่งหน้า
+//   const p = Math.max(1, Math.floor(page));
+//   const ps = Math.min(200, Math.max(1, Math.floor(pageSize))); // guard
+//   const total = list.length;
+//   const start = (p - 1) * ps;
+//   const items = list.slice(start, start + ps);
+
+//   return { items, total, page: p, pageSize: ps };
+// }
+
+// /** ===== Mutations ===== */
+// type MetaPatch =
+//   Partial<Omit<ProductsMeta, "cardParts">> & { cardParts?: Partial<CardPartsVisibility> };
+
+// export function setMeta(patch: MetaPatch) {
+//   meta = {
+//     ...meta,
+//     ...patch,
+//     // merge ซ้อนสำหรับ cardParts
+//     cardParts: { ...meta.cardParts, ...(patch.cardParts ?? {}) },
+//     updatedAt: new Date().toISOString(),
+//   };
+// }
+
+// export function setVisible(id: UIProduct["id"], visible: boolean) {
+//   state = state.map((x) => (x.id === id ? { ...x, visible } : x));
+// }
+
+// export function toggleVisible(id: UIProduct["id"]) {
+//   state = state.map((x) => (x.id === id ? { ...x, visible: !(x.visible ?? true) } : x));
+// }
+
+// export function remove(id: UIProduct["id"]) {
+//   state = state.filter((x) => x.id !== id).sort(sortByOrder).map((x, i) => ({ ...x, order: i }));
+// }
+
+// export function reorder(orders: { id: UIProduct["id"]; order: number }[]) {
+//   const map = new Map(orders.map((o) => [o.id, o.order]));
+//   state = state
+//     .map((x) => ({ ...x, order: map.get(x.id) ?? x.order }))
+//     .sort(sortByOrder)
+//     .map((x, i) => ({ ...x, order: i }));
+// }
+
+// /** create/update */
+// export function upsert(p: Partial<UIProduct>): UIProduct {
+//   const idx = state.findIndex((c) => c.id === p.id);
+//   if (idx >= 0) {
+//     const merged: UIProduct = { ...state[idx], ...p } as UIProduct;
+//     state = state.map((c, i) => (i === idx ? merged : c)).sort(sortByOrder);
+//     return merged;
+//   } else {
+//     const nextId =
+//       typeof p.id !== "undefined"
+//         ? p.id
+//         : Math.max(0, ...state.map((c) => (typeof c.id === "number" ? c.id : 0))) + 1;
+
+//     const newItem: UIProduct = {
+//       id: nextId,
+//       name: p.name ?? "New Product",
+//       brand: p.brand ?? "",
+//       sku: p.sku ?? "",
+//       price: typeof p.price === "number" ? p.price : 0,
+//       discountPercent: typeof p.discountPercent === "number" ? p.discountPercent : 0,
+//       image_url: p.image_url ?? "/placeholder.png",
+//       visible: p.visible ?? false,
+//       order: state.length,
+//       rating: typeof p.rating === "number" ? p.rating : undefined,
+//       reviews: typeof p.reviews === "number" ? p.reviews : undefined,
+//       category_id: p.category_id,
+//       uom: p.uom,
+//     };
+//     state = [...state, newItem].sort(sortByOrder);
+//     return newItem;
+//   }
+// }
+
+// /** (NEW) helper สำหรับจัดหมวดสินค้าแบบเดี่ยว/หลายรายการ */
+// export function setCategory(
+//   id: UIProduct["id"],
+//   category_id?: UIProduct["category_id"]
+// ) {
+//   // ใช้ upsert เพื่อคงลำดับ/ฟิลด์อื่น ๆ
+//   upsert({ id, category_id });
+// }
+
+// export function bulkSetCategory(
+//   ops: Array<{ id: UIProduct["id"]; category_id?: UIProduct["category_id"] }>
+// ): { updated: number; results: Array<{ id: UIProduct["id"]; ok: boolean; reason?: string }> } {
+//   const results: Array<{ id: UIProduct["id"]; ok: boolean; reason?: string }> = [];
+//   for (const { id, category_id } of ops ?? []) {
+//     try {
+//       upsert({ id, category_id });
+//       results.push({ id, ok: true });
+//     } catch (e: any) {
+//       results.push({ id, ok: false, reason: e?.message ?? "update_failed" });
+//     }
+//   }
+//   return { updated: results.filter((r) => r.ok).length, results };
+// }
+
+// export function reset() {
+//   state = seedRows.map((r, i) => ({
+//     id: r.id,
+//     name: r.name,
+//     brand: r.brand,
+//     sku: r.sku,
+//     price: r.price,
+//     discountPercent: parsePercent((r as any).discount),
+//     image_url: (r as any).image || "/placeholder.png",
+//     visible: true,
+//     order: i,
+//     rating: (r as any).rating,
+//     reviews: (r as any).reviews,
+//     category_id: (r as any).category_id,
+//     uom: (r as any).uom,
+//   }));
+//   meta = {
+//     ...seedMeta,
+//     cardParts: { ...defaultCardPartsVisibility },
+//     updatedAt: new Date().toISOString(),
+//   };
+// }
 
 // v.1.1.10 =============================================
 
