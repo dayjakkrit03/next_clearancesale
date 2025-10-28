@@ -1,7 +1,8 @@
-// v.1.1.3 ================================================
+// v.1.1.4 ================================================ db version
 // src/mocks/featured-lists.ts
 // In-memory featured lists (mock)
 
+// เก็บ Types ไว้
 export type FeaturedListItem = {
   productId: string | number;
   order: number; // ใช้จัดลำดับโชว์ (1..N)
@@ -50,84 +51,151 @@ const initialLists: FeaturedList[] = [
 
 let FEATURED_LISTS = [...initialLists];
 
-/* ============ helpers ============ */
-function deepClone(list: FeaturedList): FeaturedList {
-  return { ...list, items: list.items.map((i) => ({ ...i })) };
-}
 
-/** บังคับลำดับและรี-index ให้เป็น 1..N พร้อมกรอง duplicate productId (ถ้ามี) */
-function normalizeItems(items: FeaturedListItem[]): FeaturedListItem[] {
-  const seen = new Set<string>();
-  const uniq = items.filter((it) => {
-    const k = String(it.productId);
-    if (seen.has(k)) return false;
-    seen.add(k);
-    return true;
-  });
-  return uniq
-    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-    .map((it, idx) => ({ productId: it.productId, order: idx + 1 }));
-}
-
-/** แปลง limit ให้เป็นจำนวนเต็มบวก (หรือ undefined หากไม่ถูกต้อง) */
-function coerceLimit(v: unknown): number | undefined {
-  const n = typeof v === "string" ? Number(v) : typeof v === "number" ? v : undefined;
-  if (typeof n === "number" && Number.isFinite(n) && n > 0) {
-    return Math.floor(n);
-  }
-  return undefined;
-}
-
-/* ============ queries ============ */
-export function getAllFeaturedLists(): FeaturedList[] {
-  return FEATURED_LISTS.map((l) => deepClone(l));
-}
-
-export function getFeaturedListByKey(key: string): FeaturedList | undefined {
-  const found = FEATURED_LISTS.find((l) => l.key === key);
-  return found ? deepClone(found) : undefined;
-}
-
-/* ============ mutations ============ */
-/** สร้างลิสต์ใหม่ (จะ error ถ้ามี key ซ้ำ) */
-export function createFeaturedList(list: FeaturedList) {
-  const exists = FEATURED_LISTS.some((l) => l.key === list.key);
-  if (exists) {
-    throw new Error(`featured list already exists for key="${list.key}"`);
-  }
-  const toSave: FeaturedList = {
-    key: String(list.key),
-    title: list.title ?? String(list.key),
-    subtitle: list.subtitle,
-    limit: coerceLimit(list.limit),
-    items: normalizeItems(list.items ?? []),
-  };
-  FEATURED_LISTS.push(deepClone(toSave));
-  return getFeaturedListByKey(toSave.key)!;
-}
-
-/** อัปเดต/สร้างทับ (ถ้าไม่มี) – คาดหวังว่าผู้เรียกจะส่ง items มาด้วยเมื่อแก้ลิสต์ */
-export function upsertFeaturedList(list: FeaturedList) {
-  const next: FeaturedList = {
-    key: String(list.key),
-    title: list.title ?? String(list.key),
-    subtitle: list.subtitle,
-    limit: coerceLimit(list.limit),
-    items: normalizeItems(list.items ?? []),
-  };
-
-  const idx = FEATURED_LISTS.findIndex((l) => l.key === next.key);
-  if (idx >= 0) {
-    FEATURED_LISTS[idx] = deepClone(next);
-  } else {
-    FEATURED_LISTS.push(deepClone(next));
-  }
-}
+/* ============ queries & mutations (MOCK) ============ */
+/**
+ * [DEPRECATED] ใช้สำหรับ mock เท่านั้น
+ * *หมายเหตุ*: ฟังก์ชันอื่นๆ ที่มีการเรียกใช้งาน CRUD ได้ถูกลบออกไปแล้ว
+ * ให้ย้ายไปใช้ src/services/featured-list-service.ts แทน
+ */
 
 /** รีเซ็ตกลับเป็นค่าเริ่มต้น */
 export function resetFeaturedLists() {
   FEATURED_LISTS = [...initialLists];
 }
+// v.1.1.4 ================================================
+
+
+// v.1.1.3 ================================================ mock version
+// // src/mocks/featured-lists.ts
+// // In-memory featured lists (mock)
+
+// export type FeaturedListItem = {
+//   productId: string | number;
+//   order: number; // ใช้จัดลำดับโชว์ (1..N)
+// };
+
+// export type FeaturedList = {
+//   key: string;            // เช่น "home_weekly", "home_cable"
+//   title: string;
+//   subtitle?: string;
+//   items: FeaturedListItem[];
+//   limit?: number;         // (optional) จำกัดจำนวนโชว์
+// };
+
+// /* ============ seed ============ */
+// // 👇 แก้ให้ตรงกับ mock products ของคุณ
+// const initialLists: FeaturedList[] = [
+//   {
+//     key: "home_weekly",
+//     title: "แนะนำประจำสัปดาห์",
+//     subtitle: "สินค้าเด่นที่คัดมาแล้ว",
+//     items: [
+//       { productId: 1, order: 1 },
+//       { productId: 2, order: 2 },
+//       { productId: 3, order: 3 },
+//       { productId: 4, order: 4 },
+//       { productId: 5, order: 5 },
+//       { productId: 6, order: 6 },
+//       { productId: 7, order: 7 },
+//       { productId: 8, order: 8 },
+//     ],
+//     // ตั้งค่าให้โชว์เริ่มต้น 6 รายการ (หน้าแสดงผลสามารถโหลดเพิ่มภายหลังได้)
+//     limit: 6,
+//   },
+//   {
+//     key: "home_cable",
+//     title: "สายสื่อสารยอดนิยม",
+//     subtitle: "เลือกสายคุณภาพสำหรับงานเครือข่าย",
+//     items: [
+//       { productId: 3, order: 1 },
+//       { productId: 4, order: 2 },
+//       { productId: 5, order: 3 },
+//       { productId: 6, order: 4 },
+//     ],
+//   },
+// ];
+
+// let FEATURED_LISTS = [...initialLists];
+
+// /* ============ helpers ============ */
+// function deepClone(list: FeaturedList): FeaturedList {
+//   return { ...list, items: list.items.map((i) => ({ ...i })) };
+// }
+
+// /** บังคับลำดับและรี-index ให้เป็น 1..N พร้อมกรอง duplicate productId (ถ้ามี) */
+// function normalizeItems(items: FeaturedListItem[]): FeaturedListItem[] {
+//   const seen = new Set<string>();
+//   const uniq = items.filter((it) => {
+//     const k = String(it.productId);
+//     if (seen.has(k)) return false;
+//     seen.add(k);
+//     return true;
+//   });
+//   return uniq
+//     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+//     .map((it, idx) => ({ productId: it.productId, order: idx + 1 }));
+// }
+
+// /** แปลง limit ให้เป็นจำนวนเต็มบวก (หรือ undefined หากไม่ถูกต้อง) */
+// function coerceLimit(v: unknown): number | undefined {
+//   const n = typeof v === "string" ? Number(v) : typeof v === "number" ? v : undefined;
+//   if (typeof n === "number" && Number.isFinite(n) && n > 0) {
+//     return Math.floor(n);
+//   }
+//   return undefined;
+// }
+
+// /* ============ queries ============ */
+// export function getAllFeaturedLists(): FeaturedList[] {
+//   return FEATURED_LISTS.map((l) => deepClone(l));
+// }
+
+// export function getFeaturedListByKey(key: string): FeaturedList | undefined {
+//   const found = FEATURED_LISTS.find((l) => l.key === key);
+//   return found ? deepClone(found) : undefined;
+// }
+
+// /* ============ mutations ============ */
+// /** สร้างลิสต์ใหม่ (จะ error ถ้ามี key ซ้ำ) */
+// export function createFeaturedList(list: FeaturedList) {
+//   const exists = FEATURED_LISTS.some((l) => l.key === list.key);
+//   if (exists) {
+//     throw new Error(`featured list already exists for key="${list.key}"`);
+//   }
+//   const toSave: FeaturedList = {
+//     key: String(list.key),
+//     title: list.title ?? String(list.key),
+//     subtitle: list.subtitle,
+//     limit: coerceLimit(list.limit),
+//     items: normalizeItems(list.items ?? []),
+//   };
+//   FEATURED_LISTS.push(deepClone(toSave));
+//   return getFeaturedListByKey(toSave.key)!;
+// }
+
+// /** อัปเดต/สร้างทับ (ถ้าไม่มี) – คาดหวังว่าผู้เรียกจะส่ง items มาด้วยเมื่อแก้ลิสต์ */
+// export function upsertFeaturedList(list: FeaturedList) {
+//   const next: FeaturedList = {
+//     key: String(list.key),
+//     title: list.title ?? String(list.key),
+//     subtitle: list.subtitle,
+//     limit: coerceLimit(list.limit),
+//     items: normalizeItems(list.items ?? []),
+//   };
+
+//   const idx = FEATURED_LISTS.findIndex((l) => l.key === next.key);
+//   if (idx >= 0) {
+//     FEATURED_LISTS[idx] = deepClone(next);
+//   } else {
+//     FEATURED_LISTS.push(deepClone(next));
+//   }
+// }
+
+// /** รีเซ็ตกลับเป็นค่าเริ่มต้น */
+// export function resetFeaturedLists() {
+//   FEATURED_LISTS = [...initialLists];
+// }
 
 // v.1.1.3 ================================================
 
