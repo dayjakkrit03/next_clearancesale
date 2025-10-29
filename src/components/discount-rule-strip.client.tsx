@@ -1,4 +1,8 @@
-// src/components/discount-rule-strip.server.tsx
+// v.1.1.2 ======================================================
+
+// v.1.1.2 ======================================================
+
+// src/components/discount-rule-strip.client.tsx
 
 "use client";
 

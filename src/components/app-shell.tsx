@@ -1,4 +1,6 @@
 // v.1.1.3 ================================================
+// src/components/app-shell.tsx
+
 "use client";
 
 import { useState, createContext, useContext } from "react";
@@ -7,7 +9,7 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { ShoppingCart } from "@/components/shopping-cart";
 import { MessageChat } from "@/components/message-chat";
-import HomePromoPopup from "@/components/home-promo-popup";
+// import HomePromoPopup from "@/components/home-promo-popup";
 
 type CartApi = { open: () => void; close: () => void; count: number };
 const CartCtx = createContext<CartApi | null>(null);
@@ -50,17 +52,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <MessageChat />
 
             {/* Popup เฉพาะหน้าแรก */}
-            {isHome && (
-              <HomePromoPopup
-                imageSrc="/uploads/popup/popup.webp"
-                // linkUrl="/promotions/clearance-2024" // ถ้ามีลิงก์ ให้เปิดบรรทัดนี้ได้
-                oncePer="always"         // 'day' | 'session' | 'always'
-                storageKey="home-promo-popup"
-                openDelayMs={300}
-                caption="สอบถามการใช้งานได้ที่ 02-666-1111 ต่อ 1707"
-                captionAlign="center" // หรือ 'left'
-              />
-            )}
+            {/* {isHome && ( */}
+              {/* <HomePromoPopup */}
+                {/* imageSrc="/uploads/popup/popup.webp" */}
+                {/* // linkUrl="/promotions/clearance-2024" // ถ้ามีลิงก์ ให้เปิดบรรทัดนี้ได้ */}
+                {/* oncePer="always"         // 'day' | 'session' | 'always' */}
+                {/* storageKey="home-promo-popup" */}
+                {/* openDelayMs={300} */}
+                {/* caption="สอบถามการใช้งานได้ที่ 02-666-1111 ต่อ 1707" */}
+                {/* captionAlign="center" // หรือ 'left' */}
+              {/* /> */}
+            {/* )} */}
           </>
         )}
       </div>
