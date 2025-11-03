@@ -75,6 +75,8 @@ model product {
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   clearanceSales      Boolean? @default(false)
   clearanceQuantity   Int?     @default(0)
   clearancePrice      Decimal? @db.Decimal(10, 2)
@@ -213,6 +215,8 @@ model product_clearance {
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 09 Boolean @default(true) @map("09")
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   clearanceSales      Boolean? @default(false)
   clearanceQuantity   Int?     @default(0)
   clearancePrice      Decimal? @db.Decimal(10, 2)
@@ -248,6 +252,8 @@ model product_test_upload {
   product_uom         String?  @db.VarChar(10)
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 09 Boolean @default(true) @map("09")
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   clearanceSales      Boolean? @default(false)
   clearanceQuantity   Int?     @default(0)
@@ -356,6 +362,10 @@ model products_clearance {
   // 09 Boolean @default(true) @map("09")
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 13 Boolean @default(true) @map("13")
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   clearanceSales      Boolean               @default(false)
   clearanceQuantity   Int                   @default(0)
   clearancePrice      Decimal?              @db.Decimal(10, 2)
@@ -387,14 +397,15 @@ model products_meta {
 }
 
 model ui_categories {
-  id            Int       @id @default(autoincrement()) @db.UnsignedInt
-  slug          String    @unique(map: "uq_ui_categories_slug") @db.VarChar(64)
-  name          String    @db.VarChar(255)
-  image_url     String?   @db.VarChar(255)
-  visible       Boolean   @default(true)
-  display_order Int       @default(0)
-  created_at    DateTime  @default(now()) @db.Timestamp(0)
-  updated_at    DateTime? @default(now()) @db.Timestamp(0)
+  id                Int                 @id @default(autoincrement()) @db.UnsignedInt
+  slug              String              @unique(map: "uq_ui_categories_slug") @db.VarChar(64)
+  name              String              @db.VarChar(255)
+  image_url         String?             @db.VarChar(255)
+  visible           Boolean             @default(true)
+  display_order     Int                 @default(0)
+  created_at        DateTime            @default(now()) @db.Timestamp(0)
+  updated_at        DateTime?           @default(now()) @db.Timestamp(0)
+  images_categories images_categories[]
 
   @@index([display_order], map: "idx_ui_categories_order")
   @@index([visible], map: "idx_ui_categories_visible")
@@ -405,6 +416,28 @@ model ui_categories_meta {
   title      String   @db.VarChar(255)
   subtitle   String   @db.VarChar(255)
   updated_at DateTime @default(now()) @db.Timestamp(0)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model images_categories {
+  id            Int           @id @default(autoincrement()) @db.UnsignedInt
+  category_id   Int           @db.UnsignedInt
+  image_name    String        @db.VarChar(255)
+  display_order Int           @default(0) @db.UnsignedInt
+  visible       Boolean       @default(true)
+  ui_categories ui_categories @relation(fields: [category_id], references: [id], onDelete: Cascade, map: "fk_category_id")
+
+  @@index([category_id], map: "fk_category_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model config_setting {
+  id            Int      @id @default(autoincrement()) @db.UnsignedInt
+  setting_key   String   @unique(map: "uq_setting_key") @db.VarChar(64)
+  setting_value String?  @db.VarChar(255)
+  module_detail String?  @db.VarChar(64)
+  description   String?  @db.VarChar(255)
+  updated_at    DateTime @default(now()) @db.Timestamp(0)
 }
 
 enum discount_rules_frame_mode {

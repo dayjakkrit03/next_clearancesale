@@ -471,6 +471,23 @@ exports.Prisma.Ui_categories_metaScalarFieldEnum = {
   updated_at: 'updated_at'
 };
 
+exports.Prisma.Images_categoriesScalarFieldEnum = {
+  id: 'id',
+  category_id: 'category_id',
+  image_name: 'image_name',
+  display_order: 'display_order',
+  visible: 'visible'
+};
+
+exports.Prisma.Config_settingScalarFieldEnum = {
+  id: 'id',
+  setting_key: 'setting_key',
+  setting_value: 'setting_value',
+  module_detail: 'module_detail',
+  description: 'description',
+  updated_at: 'updated_at'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -666,6 +683,17 @@ exports.Prisma.ui_categories_metaOrderByRelevanceFieldEnum = {
   title: 'title',
   subtitle: 'subtitle'
 };
+
+exports.Prisma.images_categoriesOrderByRelevanceFieldEnum = {
+  image_name: 'image_name'
+};
+
+exports.Prisma.config_settingOrderByRelevanceFieldEnum = {
+  setting_key: 'setting_key',
+  setting_value: 'setting_value',
+  module_detail: 'module_detail',
+  description: 'description'
+};
 exports.discount_rules_frame_mode = exports.$Enums.discount_rules_frame_mode = {
   draw: 'draw',
   image: 'image'
@@ -701,7 +729,9 @@ exports.Prisma.ModelName = {
   products_clearance: 'products_clearance',
   products_meta: 'products_meta',
   ui_categories: 'ui_categories',
-  ui_categories_meta: 'ui_categories_meta'
+  ui_categories_meta: 'ui_categories_meta',
+  images_categories: 'images_categories',
+  config_setting: 'config_setting'
 };
 
 /**

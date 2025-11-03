@@ -133,6 +133,16 @@ export type ui_categories = $Result.DefaultSelection<Prisma.$ui_categoriesPayloa
  * 
  */
 export type ui_categories_meta = $Result.DefaultSelection<Prisma.$ui_categories_metaPayload>
+/**
+ * Model images_categories
+ * This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+ */
+export type images_categories = $Result.DefaultSelection<Prisma.$images_categoriesPayload>
+/**
+ * Model config_setting
+ * This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+ */
+export type config_setting = $Result.DefaultSelection<Prisma.$config_settingPayload>
 
 /**
  * Enums
@@ -521,6 +531,26 @@ export class PrismaClient<
     * ```
     */
   get ui_categories_meta(): Prisma.ui_categories_metaDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.images_categories`: Exposes CRUD operations for the **images_categories** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Images_categories
+    * const images_categories = await prisma.images_categories.findMany()
+    * ```
+    */
+  get images_categories(): Prisma.images_categoriesDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.config_setting`: Exposes CRUD operations for the **config_setting** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Config_settings
+    * const config_settings = await prisma.config_setting.findMany()
+    * ```
+    */
+  get config_setting(): Prisma.config_settingDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -984,7 +1014,9 @@ export namespace Prisma {
     products_clearance: 'products_clearance',
     products_meta: 'products_meta',
     ui_categories: 'ui_categories',
-    ui_categories_meta: 'ui_categories_meta'
+    ui_categories_meta: 'ui_categories_meta',
+    images_categories: 'images_categories',
+    config_setting: 'config_setting'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1003,7 +1035,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "category" | "more_pictures" | "part" | "product" | "sub" | "category_clearance" | "discountpercentage_clearance_tb" | "discountpercentage_tb" | "more_pictures_clearance" | "more_pictures_test" | "part_clearance" | "producoptions_clearance_tb" | "producoptions_tb" | "product_clearance" | "product_test_upload" | "sub_clearance" | "discount_rules" | "discount_rules_meta" | "featured_list_items" | "featured_lists" | "products_clearance" | "products_meta" | "ui_categories" | "ui_categories_meta"
+      modelProps: "category" | "more_pictures" | "part" | "product" | "sub" | "category_clearance" | "discountpercentage_clearance_tb" | "discountpercentage_tb" | "more_pictures_clearance" | "more_pictures_test" | "part_clearance" | "producoptions_clearance_tb" | "producoptions_tb" | "product_clearance" | "product_test_upload" | "sub_clearance" | "discount_rules" | "discount_rules_meta" | "featured_list_items" | "featured_lists" | "products_clearance" | "products_meta" | "ui_categories" | "ui_categories_meta" | "images_categories" | "config_setting"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2591,6 +2623,138 @@ export namespace Prisma {
           }
         }
       }
+      images_categories: {
+        payload: Prisma.$images_categoriesPayload<ExtArgs>
+        fields: Prisma.images_categoriesFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.images_categoriesFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$images_categoriesPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.images_categoriesFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$images_categoriesPayload>
+          }
+          findFirst: {
+            args: Prisma.images_categoriesFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$images_categoriesPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.images_categoriesFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$images_categoriesPayload>
+          }
+          findMany: {
+            args: Prisma.images_categoriesFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$images_categoriesPayload>[]
+          }
+          create: {
+            args: Prisma.images_categoriesCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$images_categoriesPayload>
+          }
+          createMany: {
+            args: Prisma.images_categoriesCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.images_categoriesDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$images_categoriesPayload>
+          }
+          update: {
+            args: Prisma.images_categoriesUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$images_categoriesPayload>
+          }
+          deleteMany: {
+            args: Prisma.images_categoriesDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.images_categoriesUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.images_categoriesUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$images_categoriesPayload>
+          }
+          aggregate: {
+            args: Prisma.Images_categoriesAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateImages_categories>
+          }
+          groupBy: {
+            args: Prisma.images_categoriesGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Images_categoriesGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.images_categoriesCountArgs<ExtArgs>
+            result: $Utils.Optional<Images_categoriesCountAggregateOutputType> | number
+          }
+        }
+      }
+      config_setting: {
+        payload: Prisma.$config_settingPayload<ExtArgs>
+        fields: Prisma.config_settingFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.config_settingFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$config_settingPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.config_settingFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$config_settingPayload>
+          }
+          findFirst: {
+            args: Prisma.config_settingFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$config_settingPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.config_settingFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$config_settingPayload>
+          }
+          findMany: {
+            args: Prisma.config_settingFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$config_settingPayload>[]
+          }
+          create: {
+            args: Prisma.config_settingCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$config_settingPayload>
+          }
+          createMany: {
+            args: Prisma.config_settingCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.config_settingDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$config_settingPayload>
+          }
+          update: {
+            args: Prisma.config_settingUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$config_settingPayload>
+          }
+          deleteMany: {
+            args: Prisma.config_settingDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.config_settingUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.config_settingUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$config_settingPayload>
+          }
+          aggregate: {
+            args: Prisma.Config_settingAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateConfig_setting>
+          }
+          groupBy: {
+            args: Prisma.config_settingGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Config_settingGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.config_settingCountArgs<ExtArgs>
+            result: $Utils.Optional<Config_settingCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -2711,6 +2875,8 @@ export namespace Prisma {
     products_meta?: products_metaOmit
     ui_categories?: ui_categoriesOmit
     ui_categories_meta?: ui_categories_metaOmit
+    images_categories?: images_categoriesOmit
+    config_setting?: config_settingOmit
   }
 
   /* Types for Logging */
@@ -2845,6 +3011,37 @@ export namespace Prisma {
    */
   export type Products_clearanceCountOutputTypeCountFeatured_list_itemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: featured_list_itemsWhereInput
+  }
+
+
+  /**
+   * Count Type Ui_categoriesCountOutputType
+   */
+
+  export type Ui_categoriesCountOutputType = {
+    images_categories: number
+  }
+
+  export type Ui_categoriesCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    images_categories?: boolean | Ui_categoriesCountOutputTypeCountImages_categoriesArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * Ui_categoriesCountOutputType without action
+   */
+  export type Ui_categoriesCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Ui_categoriesCountOutputType
+     */
+    select?: Ui_categoriesCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * Ui_categoriesCountOutputType without action
+   */
+  export type Ui_categoriesCountOutputTypeCountImages_categoriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: images_categoriesWhereInput
   }
 
 
@@ -6280,6 +6477,8 @@ export namespace Prisma {
       updated_at: Date
       product_uom: string | null
       /**
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
@@ -16156,6 +16355,8 @@ export namespace Prisma {
       /**
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        */
       clearanceSales: boolean | null
       clearanceQuantity: number | null
@@ -17376,6 +17577,8 @@ export namespace Prisma {
       updated_at: Date
       product_uom: string | null
       /**
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        */
@@ -23630,6 +23833,10 @@ export namespace Prisma {
       /**
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        */
       clearanceSales: boolean
       clearanceQuantity: number
@@ -25569,6 +25776,8 @@ export namespace Prisma {
     display_order?: boolean
     created_at?: boolean
     updated_at?: boolean
+    images_categories?: boolean | ui_categories$images_categoriesArgs<ExtArgs>
+    _count?: boolean | Ui_categoriesCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["ui_categories"]>
 
 
@@ -25585,10 +25794,16 @@ export namespace Prisma {
   }
 
   export type ui_categoriesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "slug" | "name" | "image_url" | "visible" | "display_order" | "created_at" | "updated_at", ExtArgs["result"]["ui_categories"]>
+  export type ui_categoriesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    images_categories?: boolean | ui_categories$images_categoriesArgs<ExtArgs>
+    _count?: boolean | Ui_categoriesCountOutputTypeDefaultArgs<ExtArgs>
+  }
 
   export type $ui_categoriesPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "ui_categories"
-    objects: {}
+    objects: {
+      images_categories: Prisma.$images_categoriesPayload<ExtArgs>[]
+    }
     scalars: $Extensions.GetPayloadResult<{
       id: number
       slug: string
@@ -25938,6 +26153,7 @@ export namespace Prisma {
    */
   export interface Prisma__ui_categoriesClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    images_categories<T extends ui_categories$images_categoriesArgs<ExtArgs> = {}>(args?: Subset<T, ui_categories$images_categoriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$images_categoriesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -25992,6 +26208,10 @@ export namespace Prisma {
      */
     omit?: ui_categoriesOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ui_categoriesInclude<ExtArgs> | null
+    /**
      * Filter, which ui_categories to fetch.
      */
     where: ui_categoriesWhereUniqueInput
@@ -26010,6 +26230,10 @@ export namespace Prisma {
      */
     omit?: ui_categoriesOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ui_categoriesInclude<ExtArgs> | null
+    /**
      * Filter, which ui_categories to fetch.
      */
     where: ui_categoriesWhereUniqueInput
@@ -26027,6 +26251,10 @@ export namespace Prisma {
      * Omit specific fields from the ui_categories
      */
     omit?: ui_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ui_categoriesInclude<ExtArgs> | null
     /**
      * Filter, which ui_categories to fetch.
      */
@@ -26076,6 +26304,10 @@ export namespace Prisma {
      */
     omit?: ui_categoriesOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ui_categoriesInclude<ExtArgs> | null
+    /**
      * Filter, which ui_categories to fetch.
      */
     where?: ui_categoriesWhereInput
@@ -26124,6 +26356,10 @@ export namespace Prisma {
      */
     omit?: ui_categoriesOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ui_categoriesInclude<ExtArgs> | null
+    /**
      * Filter, which ui_categories to fetch.
      */
     where?: ui_categoriesWhereInput
@@ -26167,6 +26403,10 @@ export namespace Prisma {
      */
     omit?: ui_categoriesOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ui_categoriesInclude<ExtArgs> | null
+    /**
      * The data needed to create a ui_categories.
      */
     data: XOR<ui_categoriesCreateInput, ui_categoriesUncheckedCreateInput>
@@ -26195,6 +26435,10 @@ export namespace Prisma {
      * Omit specific fields from the ui_categories
      */
     omit?: ui_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ui_categoriesInclude<ExtArgs> | null
     /**
      * The data needed to update a ui_categories.
      */
@@ -26236,6 +26480,10 @@ export namespace Prisma {
      */
     omit?: ui_categoriesOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ui_categoriesInclude<ExtArgs> | null
+    /**
      * The filter to search for the ui_categories to update in case it exists.
      */
     where: ui_categoriesWhereUniqueInput
@@ -26262,6 +26510,10 @@ export namespace Prisma {
      */
     omit?: ui_categoriesOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ui_categoriesInclude<ExtArgs> | null
+    /**
      * Filter which ui_categories to delete.
      */
     where: ui_categoriesWhereUniqueInput
@@ -26282,6 +26534,30 @@ export namespace Prisma {
   }
 
   /**
+   * ui_categories.images_categories
+   */
+  export type ui_categories$images_categoriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the images_categories
+     */
+    select?: images_categoriesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the images_categories
+     */
+    omit?: images_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: images_categoriesInclude<ExtArgs> | null
+    where?: images_categoriesWhereInput
+    orderBy?: images_categoriesOrderByWithRelationInput | images_categoriesOrderByWithRelationInput[]
+    cursor?: images_categoriesWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Images_categoriesScalarFieldEnum | Images_categoriesScalarFieldEnum[]
+  }
+
+  /**
    * ui_categories without action
    */
   export type ui_categoriesDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -26293,6 +26569,10 @@ export namespace Prisma {
      * Omit specific fields from the ui_categories
      */
     omit?: ui_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ui_categoriesInclude<ExtArgs> | null
   }
 
 
@@ -27202,6 +27482,1904 @@ export namespace Prisma {
 
 
   /**
+   * Model images_categories
+   */
+
+  export type AggregateImages_categories = {
+    _count: Images_categoriesCountAggregateOutputType | null
+    _avg: Images_categoriesAvgAggregateOutputType | null
+    _sum: Images_categoriesSumAggregateOutputType | null
+    _min: Images_categoriesMinAggregateOutputType | null
+    _max: Images_categoriesMaxAggregateOutputType | null
+  }
+
+  export type Images_categoriesAvgAggregateOutputType = {
+    id: number | null
+    category_id: number | null
+    display_order: number | null
+  }
+
+  export type Images_categoriesSumAggregateOutputType = {
+    id: number | null
+    category_id: number | null
+    display_order: number | null
+  }
+
+  export type Images_categoriesMinAggregateOutputType = {
+    id: number | null
+    category_id: number | null
+    image_name: string | null
+    display_order: number | null
+    visible: boolean | null
+  }
+
+  export type Images_categoriesMaxAggregateOutputType = {
+    id: number | null
+    category_id: number | null
+    image_name: string | null
+    display_order: number | null
+    visible: boolean | null
+  }
+
+  export type Images_categoriesCountAggregateOutputType = {
+    id: number
+    category_id: number
+    image_name: number
+    display_order: number
+    visible: number
+    _all: number
+  }
+
+
+  export type Images_categoriesAvgAggregateInputType = {
+    id?: true
+    category_id?: true
+    display_order?: true
+  }
+
+  export type Images_categoriesSumAggregateInputType = {
+    id?: true
+    category_id?: true
+    display_order?: true
+  }
+
+  export type Images_categoriesMinAggregateInputType = {
+    id?: true
+    category_id?: true
+    image_name?: true
+    display_order?: true
+    visible?: true
+  }
+
+  export type Images_categoriesMaxAggregateInputType = {
+    id?: true
+    category_id?: true
+    image_name?: true
+    display_order?: true
+    visible?: true
+  }
+
+  export type Images_categoriesCountAggregateInputType = {
+    id?: true
+    category_id?: true
+    image_name?: true
+    display_order?: true
+    visible?: true
+    _all?: true
+  }
+
+  export type Images_categoriesAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which images_categories to aggregate.
+     */
+    where?: images_categoriesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of images_categories to fetch.
+     */
+    orderBy?: images_categoriesOrderByWithRelationInput | images_categoriesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: images_categoriesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` images_categories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` images_categories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned images_categories
+    **/
+    _count?: true | Images_categoriesCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Images_categoriesAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Images_categoriesSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Images_categoriesMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Images_categoriesMaxAggregateInputType
+  }
+
+  export type GetImages_categoriesAggregateType<T extends Images_categoriesAggregateArgs> = {
+        [P in keyof T & keyof AggregateImages_categories]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateImages_categories[P]>
+      : GetScalarType<T[P], AggregateImages_categories[P]>
+  }
+
+
+
+
+  export type images_categoriesGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: images_categoriesWhereInput
+    orderBy?: images_categoriesOrderByWithAggregationInput | images_categoriesOrderByWithAggregationInput[]
+    by: Images_categoriesScalarFieldEnum[] | Images_categoriesScalarFieldEnum
+    having?: images_categoriesScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Images_categoriesCountAggregateInputType | true
+    _avg?: Images_categoriesAvgAggregateInputType
+    _sum?: Images_categoriesSumAggregateInputType
+    _min?: Images_categoriesMinAggregateInputType
+    _max?: Images_categoriesMaxAggregateInputType
+  }
+
+  export type Images_categoriesGroupByOutputType = {
+    id: number
+    category_id: number
+    image_name: string
+    display_order: number
+    visible: boolean
+    _count: Images_categoriesCountAggregateOutputType | null
+    _avg: Images_categoriesAvgAggregateOutputType | null
+    _sum: Images_categoriesSumAggregateOutputType | null
+    _min: Images_categoriesMinAggregateOutputType | null
+    _max: Images_categoriesMaxAggregateOutputType | null
+  }
+
+  type GetImages_categoriesGroupByPayload<T extends images_categoriesGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Images_categoriesGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Images_categoriesGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Images_categoriesGroupByOutputType[P]>
+            : GetScalarType<T[P], Images_categoriesGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type images_categoriesSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    category_id?: boolean
+    image_name?: boolean
+    display_order?: boolean
+    visible?: boolean
+    ui_categories?: boolean | ui_categoriesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["images_categories"]>
+
+
+
+  export type images_categoriesSelectScalar = {
+    id?: boolean
+    category_id?: boolean
+    image_name?: boolean
+    display_order?: boolean
+    visible?: boolean
+  }
+
+  export type images_categoriesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "category_id" | "image_name" | "display_order" | "visible", ExtArgs["result"]["images_categories"]>
+  export type images_categoriesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    ui_categories?: boolean | ui_categoriesDefaultArgs<ExtArgs>
+  }
+
+  export type $images_categoriesPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "images_categories"
+    objects: {
+      ui_categories: Prisma.$ui_categoriesPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      category_id: number
+      image_name: string
+      display_order: number
+      visible: boolean
+    }, ExtArgs["result"]["images_categories"]>
+    composites: {}
+  }
+
+  type images_categoriesGetPayload<S extends boolean | null | undefined | images_categoriesDefaultArgs> = $Result.GetResult<Prisma.$images_categoriesPayload, S>
+
+  type images_categoriesCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<images_categoriesFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Images_categoriesCountAggregateInputType | true
+    }
+
+  export interface images_categoriesDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['images_categories'], meta: { name: 'images_categories' } }
+    /**
+     * Find zero or one Images_categories that matches the filter.
+     * @param {images_categoriesFindUniqueArgs} args - Arguments to find a Images_categories
+     * @example
+     * // Get one Images_categories
+     * const images_categories = await prisma.images_categories.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends images_categoriesFindUniqueArgs>(args: SelectSubset<T, images_categoriesFindUniqueArgs<ExtArgs>>): Prisma__images_categoriesClient<$Result.GetResult<Prisma.$images_categoriesPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Images_categories that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {images_categoriesFindUniqueOrThrowArgs} args - Arguments to find a Images_categories
+     * @example
+     * // Get one Images_categories
+     * const images_categories = await prisma.images_categories.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends images_categoriesFindUniqueOrThrowArgs>(args: SelectSubset<T, images_categoriesFindUniqueOrThrowArgs<ExtArgs>>): Prisma__images_categoriesClient<$Result.GetResult<Prisma.$images_categoriesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Images_categories that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {images_categoriesFindFirstArgs} args - Arguments to find a Images_categories
+     * @example
+     * // Get one Images_categories
+     * const images_categories = await prisma.images_categories.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends images_categoriesFindFirstArgs>(args?: SelectSubset<T, images_categoriesFindFirstArgs<ExtArgs>>): Prisma__images_categoriesClient<$Result.GetResult<Prisma.$images_categoriesPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Images_categories that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {images_categoriesFindFirstOrThrowArgs} args - Arguments to find a Images_categories
+     * @example
+     * // Get one Images_categories
+     * const images_categories = await prisma.images_categories.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends images_categoriesFindFirstOrThrowArgs>(args?: SelectSubset<T, images_categoriesFindFirstOrThrowArgs<ExtArgs>>): Prisma__images_categoriesClient<$Result.GetResult<Prisma.$images_categoriesPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Images_categories that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {images_categoriesFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Images_categories
+     * const images_categories = await prisma.images_categories.findMany()
+     * 
+     * // Get first 10 Images_categories
+     * const images_categories = await prisma.images_categories.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const images_categoriesWithIdOnly = await prisma.images_categories.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends images_categoriesFindManyArgs>(args?: SelectSubset<T, images_categoriesFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$images_categoriesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Images_categories.
+     * @param {images_categoriesCreateArgs} args - Arguments to create a Images_categories.
+     * @example
+     * // Create one Images_categories
+     * const Images_categories = await prisma.images_categories.create({
+     *   data: {
+     *     // ... data to create a Images_categories
+     *   }
+     * })
+     * 
+     */
+    create<T extends images_categoriesCreateArgs>(args: SelectSubset<T, images_categoriesCreateArgs<ExtArgs>>): Prisma__images_categoriesClient<$Result.GetResult<Prisma.$images_categoriesPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Images_categories.
+     * @param {images_categoriesCreateManyArgs} args - Arguments to create many Images_categories.
+     * @example
+     * // Create many Images_categories
+     * const images_categories = await prisma.images_categories.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends images_categoriesCreateManyArgs>(args?: SelectSubset<T, images_categoriesCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a Images_categories.
+     * @param {images_categoriesDeleteArgs} args - Arguments to delete one Images_categories.
+     * @example
+     * // Delete one Images_categories
+     * const Images_categories = await prisma.images_categories.delete({
+     *   where: {
+     *     // ... filter to delete one Images_categories
+     *   }
+     * })
+     * 
+     */
+    delete<T extends images_categoriesDeleteArgs>(args: SelectSubset<T, images_categoriesDeleteArgs<ExtArgs>>): Prisma__images_categoriesClient<$Result.GetResult<Prisma.$images_categoriesPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Images_categories.
+     * @param {images_categoriesUpdateArgs} args - Arguments to update one Images_categories.
+     * @example
+     * // Update one Images_categories
+     * const images_categories = await prisma.images_categories.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends images_categoriesUpdateArgs>(args: SelectSubset<T, images_categoriesUpdateArgs<ExtArgs>>): Prisma__images_categoriesClient<$Result.GetResult<Prisma.$images_categoriesPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Images_categories.
+     * @param {images_categoriesDeleteManyArgs} args - Arguments to filter Images_categories to delete.
+     * @example
+     * // Delete a few Images_categories
+     * const { count } = await prisma.images_categories.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends images_categoriesDeleteManyArgs>(args?: SelectSubset<T, images_categoriesDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Images_categories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {images_categoriesUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Images_categories
+     * const images_categories = await prisma.images_categories.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends images_categoriesUpdateManyArgs>(args: SelectSubset<T, images_categoriesUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Images_categories.
+     * @param {images_categoriesUpsertArgs} args - Arguments to update or create a Images_categories.
+     * @example
+     * // Update or create a Images_categories
+     * const images_categories = await prisma.images_categories.upsert({
+     *   create: {
+     *     // ... data to create a Images_categories
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Images_categories we want to update
+     *   }
+     * })
+     */
+    upsert<T extends images_categoriesUpsertArgs>(args: SelectSubset<T, images_categoriesUpsertArgs<ExtArgs>>): Prisma__images_categoriesClient<$Result.GetResult<Prisma.$images_categoriesPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Images_categories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {images_categoriesCountArgs} args - Arguments to filter Images_categories to count.
+     * @example
+     * // Count the number of Images_categories
+     * const count = await prisma.images_categories.count({
+     *   where: {
+     *     // ... the filter for the Images_categories we want to count
+     *   }
+     * })
+    **/
+    count<T extends images_categoriesCountArgs>(
+      args?: Subset<T, images_categoriesCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Images_categoriesCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Images_categories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Images_categoriesAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Images_categoriesAggregateArgs>(args: Subset<T, Images_categoriesAggregateArgs>): Prisma.PrismaPromise<GetImages_categoriesAggregateType<T>>
+
+    /**
+     * Group by Images_categories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {images_categoriesGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends images_categoriesGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: images_categoriesGroupByArgs['orderBy'] }
+        : { orderBy?: images_categoriesGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, images_categoriesGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetImages_categoriesGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the images_categories model
+   */
+  readonly fields: images_categoriesFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for images_categories.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__images_categoriesClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    ui_categories<T extends ui_categoriesDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ui_categoriesDefaultArgs<ExtArgs>>): Prisma__ui_categoriesClient<$Result.GetResult<Prisma.$ui_categoriesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the images_categories model
+   */
+  interface images_categoriesFieldRefs {
+    readonly id: FieldRef<"images_categories", 'Int'>
+    readonly category_id: FieldRef<"images_categories", 'Int'>
+    readonly image_name: FieldRef<"images_categories", 'String'>
+    readonly display_order: FieldRef<"images_categories", 'Int'>
+    readonly visible: FieldRef<"images_categories", 'Boolean'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * images_categories findUnique
+   */
+  export type images_categoriesFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the images_categories
+     */
+    select?: images_categoriesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the images_categories
+     */
+    omit?: images_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: images_categoriesInclude<ExtArgs> | null
+    /**
+     * Filter, which images_categories to fetch.
+     */
+    where: images_categoriesWhereUniqueInput
+  }
+
+  /**
+   * images_categories findUniqueOrThrow
+   */
+  export type images_categoriesFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the images_categories
+     */
+    select?: images_categoriesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the images_categories
+     */
+    omit?: images_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: images_categoriesInclude<ExtArgs> | null
+    /**
+     * Filter, which images_categories to fetch.
+     */
+    where: images_categoriesWhereUniqueInput
+  }
+
+  /**
+   * images_categories findFirst
+   */
+  export type images_categoriesFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the images_categories
+     */
+    select?: images_categoriesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the images_categories
+     */
+    omit?: images_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: images_categoriesInclude<ExtArgs> | null
+    /**
+     * Filter, which images_categories to fetch.
+     */
+    where?: images_categoriesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of images_categories to fetch.
+     */
+    orderBy?: images_categoriesOrderByWithRelationInput | images_categoriesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for images_categories.
+     */
+    cursor?: images_categoriesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` images_categories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` images_categories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of images_categories.
+     */
+    distinct?: Images_categoriesScalarFieldEnum | Images_categoriesScalarFieldEnum[]
+  }
+
+  /**
+   * images_categories findFirstOrThrow
+   */
+  export type images_categoriesFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the images_categories
+     */
+    select?: images_categoriesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the images_categories
+     */
+    omit?: images_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: images_categoriesInclude<ExtArgs> | null
+    /**
+     * Filter, which images_categories to fetch.
+     */
+    where?: images_categoriesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of images_categories to fetch.
+     */
+    orderBy?: images_categoriesOrderByWithRelationInput | images_categoriesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for images_categories.
+     */
+    cursor?: images_categoriesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` images_categories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` images_categories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of images_categories.
+     */
+    distinct?: Images_categoriesScalarFieldEnum | Images_categoriesScalarFieldEnum[]
+  }
+
+  /**
+   * images_categories findMany
+   */
+  export type images_categoriesFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the images_categories
+     */
+    select?: images_categoriesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the images_categories
+     */
+    omit?: images_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: images_categoriesInclude<ExtArgs> | null
+    /**
+     * Filter, which images_categories to fetch.
+     */
+    where?: images_categoriesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of images_categories to fetch.
+     */
+    orderBy?: images_categoriesOrderByWithRelationInput | images_categoriesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing images_categories.
+     */
+    cursor?: images_categoriesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` images_categories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` images_categories.
+     */
+    skip?: number
+    distinct?: Images_categoriesScalarFieldEnum | Images_categoriesScalarFieldEnum[]
+  }
+
+  /**
+   * images_categories create
+   */
+  export type images_categoriesCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the images_categories
+     */
+    select?: images_categoriesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the images_categories
+     */
+    omit?: images_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: images_categoriesInclude<ExtArgs> | null
+    /**
+     * The data needed to create a images_categories.
+     */
+    data: XOR<images_categoriesCreateInput, images_categoriesUncheckedCreateInput>
+  }
+
+  /**
+   * images_categories createMany
+   */
+  export type images_categoriesCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many images_categories.
+     */
+    data: images_categoriesCreateManyInput | images_categoriesCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * images_categories update
+   */
+  export type images_categoriesUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the images_categories
+     */
+    select?: images_categoriesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the images_categories
+     */
+    omit?: images_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: images_categoriesInclude<ExtArgs> | null
+    /**
+     * The data needed to update a images_categories.
+     */
+    data: XOR<images_categoriesUpdateInput, images_categoriesUncheckedUpdateInput>
+    /**
+     * Choose, which images_categories to update.
+     */
+    where: images_categoriesWhereUniqueInput
+  }
+
+  /**
+   * images_categories updateMany
+   */
+  export type images_categoriesUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update images_categories.
+     */
+    data: XOR<images_categoriesUpdateManyMutationInput, images_categoriesUncheckedUpdateManyInput>
+    /**
+     * Filter which images_categories to update
+     */
+    where?: images_categoriesWhereInput
+    /**
+     * Limit how many images_categories to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * images_categories upsert
+   */
+  export type images_categoriesUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the images_categories
+     */
+    select?: images_categoriesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the images_categories
+     */
+    omit?: images_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: images_categoriesInclude<ExtArgs> | null
+    /**
+     * The filter to search for the images_categories to update in case it exists.
+     */
+    where: images_categoriesWhereUniqueInput
+    /**
+     * In case the images_categories found by the `where` argument doesn't exist, create a new images_categories with this data.
+     */
+    create: XOR<images_categoriesCreateInput, images_categoriesUncheckedCreateInput>
+    /**
+     * In case the images_categories was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<images_categoriesUpdateInput, images_categoriesUncheckedUpdateInput>
+  }
+
+  /**
+   * images_categories delete
+   */
+  export type images_categoriesDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the images_categories
+     */
+    select?: images_categoriesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the images_categories
+     */
+    omit?: images_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: images_categoriesInclude<ExtArgs> | null
+    /**
+     * Filter which images_categories to delete.
+     */
+    where: images_categoriesWhereUniqueInput
+  }
+
+  /**
+   * images_categories deleteMany
+   */
+  export type images_categoriesDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which images_categories to delete
+     */
+    where?: images_categoriesWhereInput
+    /**
+     * Limit how many images_categories to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * images_categories without action
+   */
+  export type images_categoriesDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the images_categories
+     */
+    select?: images_categoriesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the images_categories
+     */
+    omit?: images_categoriesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: images_categoriesInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model config_setting
+   */
+
+  export type AggregateConfig_setting = {
+    _count: Config_settingCountAggregateOutputType | null
+    _avg: Config_settingAvgAggregateOutputType | null
+    _sum: Config_settingSumAggregateOutputType | null
+    _min: Config_settingMinAggregateOutputType | null
+    _max: Config_settingMaxAggregateOutputType | null
+  }
+
+  export type Config_settingAvgAggregateOutputType = {
+    id: number | null
+  }
+
+  export type Config_settingSumAggregateOutputType = {
+    id: number | null
+  }
+
+  export type Config_settingMinAggregateOutputType = {
+    id: number | null
+    setting_key: string | null
+    setting_value: string | null
+    module_detail: string | null
+    description: string | null
+    updated_at: Date | null
+  }
+
+  export type Config_settingMaxAggregateOutputType = {
+    id: number | null
+    setting_key: string | null
+    setting_value: string | null
+    module_detail: string | null
+    description: string | null
+    updated_at: Date | null
+  }
+
+  export type Config_settingCountAggregateOutputType = {
+    id: number
+    setting_key: number
+    setting_value: number
+    module_detail: number
+    description: number
+    updated_at: number
+    _all: number
+  }
+
+
+  export type Config_settingAvgAggregateInputType = {
+    id?: true
+  }
+
+  export type Config_settingSumAggregateInputType = {
+    id?: true
+  }
+
+  export type Config_settingMinAggregateInputType = {
+    id?: true
+    setting_key?: true
+    setting_value?: true
+    module_detail?: true
+    description?: true
+    updated_at?: true
+  }
+
+  export type Config_settingMaxAggregateInputType = {
+    id?: true
+    setting_key?: true
+    setting_value?: true
+    module_detail?: true
+    description?: true
+    updated_at?: true
+  }
+
+  export type Config_settingCountAggregateInputType = {
+    id?: true
+    setting_key?: true
+    setting_value?: true
+    module_detail?: true
+    description?: true
+    updated_at?: true
+    _all?: true
+  }
+
+  export type Config_settingAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which config_setting to aggregate.
+     */
+    where?: config_settingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of config_settings to fetch.
+     */
+    orderBy?: config_settingOrderByWithRelationInput | config_settingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: config_settingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` config_settings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` config_settings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned config_settings
+    **/
+    _count?: true | Config_settingCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Config_settingAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Config_settingSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Config_settingMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Config_settingMaxAggregateInputType
+  }
+
+  export type GetConfig_settingAggregateType<T extends Config_settingAggregateArgs> = {
+        [P in keyof T & keyof AggregateConfig_setting]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateConfig_setting[P]>
+      : GetScalarType<T[P], AggregateConfig_setting[P]>
+  }
+
+
+
+
+  export type config_settingGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: config_settingWhereInput
+    orderBy?: config_settingOrderByWithAggregationInput | config_settingOrderByWithAggregationInput[]
+    by: Config_settingScalarFieldEnum[] | Config_settingScalarFieldEnum
+    having?: config_settingScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Config_settingCountAggregateInputType | true
+    _avg?: Config_settingAvgAggregateInputType
+    _sum?: Config_settingSumAggregateInputType
+    _min?: Config_settingMinAggregateInputType
+    _max?: Config_settingMaxAggregateInputType
+  }
+
+  export type Config_settingGroupByOutputType = {
+    id: number
+    setting_key: string
+    setting_value: string | null
+    module_detail: string | null
+    description: string | null
+    updated_at: Date
+    _count: Config_settingCountAggregateOutputType | null
+    _avg: Config_settingAvgAggregateOutputType | null
+    _sum: Config_settingSumAggregateOutputType | null
+    _min: Config_settingMinAggregateOutputType | null
+    _max: Config_settingMaxAggregateOutputType | null
+  }
+
+  type GetConfig_settingGroupByPayload<T extends config_settingGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Config_settingGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Config_settingGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Config_settingGroupByOutputType[P]>
+            : GetScalarType<T[P], Config_settingGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type config_settingSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    setting_key?: boolean
+    setting_value?: boolean
+    module_detail?: boolean
+    description?: boolean
+    updated_at?: boolean
+  }, ExtArgs["result"]["config_setting"]>
+
+
+
+  export type config_settingSelectScalar = {
+    id?: boolean
+    setting_key?: boolean
+    setting_value?: boolean
+    module_detail?: boolean
+    description?: boolean
+    updated_at?: boolean
+  }
+
+  export type config_settingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "setting_key" | "setting_value" | "module_detail" | "description" | "updated_at", ExtArgs["result"]["config_setting"]>
+
+  export type $config_settingPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "config_setting"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      setting_key: string
+      setting_value: string | null
+      module_detail: string | null
+      description: string | null
+      updated_at: Date
+    }, ExtArgs["result"]["config_setting"]>
+    composites: {}
+  }
+
+  type config_settingGetPayload<S extends boolean | null | undefined | config_settingDefaultArgs> = $Result.GetResult<Prisma.$config_settingPayload, S>
+
+  type config_settingCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<config_settingFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Config_settingCountAggregateInputType | true
+    }
+
+  export interface config_settingDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['config_setting'], meta: { name: 'config_setting' } }
+    /**
+     * Find zero or one Config_setting that matches the filter.
+     * @param {config_settingFindUniqueArgs} args - Arguments to find a Config_setting
+     * @example
+     * // Get one Config_setting
+     * const config_setting = await prisma.config_setting.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends config_settingFindUniqueArgs>(args: SelectSubset<T, config_settingFindUniqueArgs<ExtArgs>>): Prisma__config_settingClient<$Result.GetResult<Prisma.$config_settingPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Config_setting that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {config_settingFindUniqueOrThrowArgs} args - Arguments to find a Config_setting
+     * @example
+     * // Get one Config_setting
+     * const config_setting = await prisma.config_setting.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends config_settingFindUniqueOrThrowArgs>(args: SelectSubset<T, config_settingFindUniqueOrThrowArgs<ExtArgs>>): Prisma__config_settingClient<$Result.GetResult<Prisma.$config_settingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Config_setting that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {config_settingFindFirstArgs} args - Arguments to find a Config_setting
+     * @example
+     * // Get one Config_setting
+     * const config_setting = await prisma.config_setting.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends config_settingFindFirstArgs>(args?: SelectSubset<T, config_settingFindFirstArgs<ExtArgs>>): Prisma__config_settingClient<$Result.GetResult<Prisma.$config_settingPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Config_setting that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {config_settingFindFirstOrThrowArgs} args - Arguments to find a Config_setting
+     * @example
+     * // Get one Config_setting
+     * const config_setting = await prisma.config_setting.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends config_settingFindFirstOrThrowArgs>(args?: SelectSubset<T, config_settingFindFirstOrThrowArgs<ExtArgs>>): Prisma__config_settingClient<$Result.GetResult<Prisma.$config_settingPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Config_settings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {config_settingFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Config_settings
+     * const config_settings = await prisma.config_setting.findMany()
+     * 
+     * // Get first 10 Config_settings
+     * const config_settings = await prisma.config_setting.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const config_settingWithIdOnly = await prisma.config_setting.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends config_settingFindManyArgs>(args?: SelectSubset<T, config_settingFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$config_settingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Config_setting.
+     * @param {config_settingCreateArgs} args - Arguments to create a Config_setting.
+     * @example
+     * // Create one Config_setting
+     * const Config_setting = await prisma.config_setting.create({
+     *   data: {
+     *     // ... data to create a Config_setting
+     *   }
+     * })
+     * 
+     */
+    create<T extends config_settingCreateArgs>(args: SelectSubset<T, config_settingCreateArgs<ExtArgs>>): Prisma__config_settingClient<$Result.GetResult<Prisma.$config_settingPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Config_settings.
+     * @param {config_settingCreateManyArgs} args - Arguments to create many Config_settings.
+     * @example
+     * // Create many Config_settings
+     * const config_setting = await prisma.config_setting.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends config_settingCreateManyArgs>(args?: SelectSubset<T, config_settingCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a Config_setting.
+     * @param {config_settingDeleteArgs} args - Arguments to delete one Config_setting.
+     * @example
+     * // Delete one Config_setting
+     * const Config_setting = await prisma.config_setting.delete({
+     *   where: {
+     *     // ... filter to delete one Config_setting
+     *   }
+     * })
+     * 
+     */
+    delete<T extends config_settingDeleteArgs>(args: SelectSubset<T, config_settingDeleteArgs<ExtArgs>>): Prisma__config_settingClient<$Result.GetResult<Prisma.$config_settingPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Config_setting.
+     * @param {config_settingUpdateArgs} args - Arguments to update one Config_setting.
+     * @example
+     * // Update one Config_setting
+     * const config_setting = await prisma.config_setting.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends config_settingUpdateArgs>(args: SelectSubset<T, config_settingUpdateArgs<ExtArgs>>): Prisma__config_settingClient<$Result.GetResult<Prisma.$config_settingPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Config_settings.
+     * @param {config_settingDeleteManyArgs} args - Arguments to filter Config_settings to delete.
+     * @example
+     * // Delete a few Config_settings
+     * const { count } = await prisma.config_setting.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends config_settingDeleteManyArgs>(args?: SelectSubset<T, config_settingDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Config_settings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {config_settingUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Config_settings
+     * const config_setting = await prisma.config_setting.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends config_settingUpdateManyArgs>(args: SelectSubset<T, config_settingUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Config_setting.
+     * @param {config_settingUpsertArgs} args - Arguments to update or create a Config_setting.
+     * @example
+     * // Update or create a Config_setting
+     * const config_setting = await prisma.config_setting.upsert({
+     *   create: {
+     *     // ... data to create a Config_setting
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Config_setting we want to update
+     *   }
+     * })
+     */
+    upsert<T extends config_settingUpsertArgs>(args: SelectSubset<T, config_settingUpsertArgs<ExtArgs>>): Prisma__config_settingClient<$Result.GetResult<Prisma.$config_settingPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Config_settings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {config_settingCountArgs} args - Arguments to filter Config_settings to count.
+     * @example
+     * // Count the number of Config_settings
+     * const count = await prisma.config_setting.count({
+     *   where: {
+     *     // ... the filter for the Config_settings we want to count
+     *   }
+     * })
+    **/
+    count<T extends config_settingCountArgs>(
+      args?: Subset<T, config_settingCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Config_settingCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Config_setting.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Config_settingAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Config_settingAggregateArgs>(args: Subset<T, Config_settingAggregateArgs>): Prisma.PrismaPromise<GetConfig_settingAggregateType<T>>
+
+    /**
+     * Group by Config_setting.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {config_settingGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends config_settingGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: config_settingGroupByArgs['orderBy'] }
+        : { orderBy?: config_settingGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, config_settingGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetConfig_settingGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the config_setting model
+   */
+  readonly fields: config_settingFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for config_setting.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__config_settingClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the config_setting model
+   */
+  interface config_settingFieldRefs {
+    readonly id: FieldRef<"config_setting", 'Int'>
+    readonly setting_key: FieldRef<"config_setting", 'String'>
+    readonly setting_value: FieldRef<"config_setting", 'String'>
+    readonly module_detail: FieldRef<"config_setting", 'String'>
+    readonly description: FieldRef<"config_setting", 'String'>
+    readonly updated_at: FieldRef<"config_setting", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * config_setting findUnique
+   */
+  export type config_settingFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the config_setting
+     */
+    select?: config_settingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the config_setting
+     */
+    omit?: config_settingOmit<ExtArgs> | null
+    /**
+     * Filter, which config_setting to fetch.
+     */
+    where: config_settingWhereUniqueInput
+  }
+
+  /**
+   * config_setting findUniqueOrThrow
+   */
+  export type config_settingFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the config_setting
+     */
+    select?: config_settingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the config_setting
+     */
+    omit?: config_settingOmit<ExtArgs> | null
+    /**
+     * Filter, which config_setting to fetch.
+     */
+    where: config_settingWhereUniqueInput
+  }
+
+  /**
+   * config_setting findFirst
+   */
+  export type config_settingFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the config_setting
+     */
+    select?: config_settingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the config_setting
+     */
+    omit?: config_settingOmit<ExtArgs> | null
+    /**
+     * Filter, which config_setting to fetch.
+     */
+    where?: config_settingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of config_settings to fetch.
+     */
+    orderBy?: config_settingOrderByWithRelationInput | config_settingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for config_settings.
+     */
+    cursor?: config_settingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` config_settings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` config_settings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of config_settings.
+     */
+    distinct?: Config_settingScalarFieldEnum | Config_settingScalarFieldEnum[]
+  }
+
+  /**
+   * config_setting findFirstOrThrow
+   */
+  export type config_settingFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the config_setting
+     */
+    select?: config_settingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the config_setting
+     */
+    omit?: config_settingOmit<ExtArgs> | null
+    /**
+     * Filter, which config_setting to fetch.
+     */
+    where?: config_settingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of config_settings to fetch.
+     */
+    orderBy?: config_settingOrderByWithRelationInput | config_settingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for config_settings.
+     */
+    cursor?: config_settingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` config_settings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` config_settings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of config_settings.
+     */
+    distinct?: Config_settingScalarFieldEnum | Config_settingScalarFieldEnum[]
+  }
+
+  /**
+   * config_setting findMany
+   */
+  export type config_settingFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the config_setting
+     */
+    select?: config_settingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the config_setting
+     */
+    omit?: config_settingOmit<ExtArgs> | null
+    /**
+     * Filter, which config_settings to fetch.
+     */
+    where?: config_settingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of config_settings to fetch.
+     */
+    orderBy?: config_settingOrderByWithRelationInput | config_settingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing config_settings.
+     */
+    cursor?: config_settingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` config_settings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` config_settings.
+     */
+    skip?: number
+    distinct?: Config_settingScalarFieldEnum | Config_settingScalarFieldEnum[]
+  }
+
+  /**
+   * config_setting create
+   */
+  export type config_settingCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the config_setting
+     */
+    select?: config_settingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the config_setting
+     */
+    omit?: config_settingOmit<ExtArgs> | null
+    /**
+     * The data needed to create a config_setting.
+     */
+    data: XOR<config_settingCreateInput, config_settingUncheckedCreateInput>
+  }
+
+  /**
+   * config_setting createMany
+   */
+  export type config_settingCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many config_settings.
+     */
+    data: config_settingCreateManyInput | config_settingCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * config_setting update
+   */
+  export type config_settingUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the config_setting
+     */
+    select?: config_settingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the config_setting
+     */
+    omit?: config_settingOmit<ExtArgs> | null
+    /**
+     * The data needed to update a config_setting.
+     */
+    data: XOR<config_settingUpdateInput, config_settingUncheckedUpdateInput>
+    /**
+     * Choose, which config_setting to update.
+     */
+    where: config_settingWhereUniqueInput
+  }
+
+  /**
+   * config_setting updateMany
+   */
+  export type config_settingUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update config_settings.
+     */
+    data: XOR<config_settingUpdateManyMutationInput, config_settingUncheckedUpdateManyInput>
+    /**
+     * Filter which config_settings to update
+     */
+    where?: config_settingWhereInput
+    /**
+     * Limit how many config_settings to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * config_setting upsert
+   */
+  export type config_settingUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the config_setting
+     */
+    select?: config_settingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the config_setting
+     */
+    omit?: config_settingOmit<ExtArgs> | null
+    /**
+     * The filter to search for the config_setting to update in case it exists.
+     */
+    where: config_settingWhereUniqueInput
+    /**
+     * In case the config_setting found by the `where` argument doesn't exist, create a new config_setting with this data.
+     */
+    create: XOR<config_settingCreateInput, config_settingUncheckedCreateInput>
+    /**
+     * In case the config_setting was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<config_settingUpdateInput, config_settingUncheckedUpdateInput>
+  }
+
+  /**
+   * config_setting delete
+   */
+  export type config_settingDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the config_setting
+     */
+    select?: config_settingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the config_setting
+     */
+    omit?: config_settingOmit<ExtArgs> | null
+    /**
+     * Filter which config_setting to delete.
+     */
+    where: config_settingWhereUniqueInput
+  }
+
+  /**
+   * config_setting deleteMany
+   */
+  export type config_settingDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which config_settings to delete
+     */
+    where?: config_settingWhereInput
+    /**
+     * Limit how many config_settings to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * config_setting without action
+   */
+  export type config_settingDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the config_setting
+     */
+    select?: config_settingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the config_setting
+     */
+    omit?: config_settingOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -27638,6 +29816,29 @@ export namespace Prisma {
   export type Ui_categories_metaScalarFieldEnum = (typeof Ui_categories_metaScalarFieldEnum)[keyof typeof Ui_categories_metaScalarFieldEnum]
 
 
+  export const Images_categoriesScalarFieldEnum: {
+    id: 'id',
+    category_id: 'category_id',
+    image_name: 'image_name',
+    display_order: 'display_order',
+    visible: 'visible'
+  };
+
+  export type Images_categoriesScalarFieldEnum = (typeof Images_categoriesScalarFieldEnum)[keyof typeof Images_categoriesScalarFieldEnum]
+
+
+  export const Config_settingScalarFieldEnum: {
+    id: 'id',
+    setting_key: 'setting_key',
+    setting_value: 'setting_value',
+    module_detail: 'module_detail',
+    description: 'description',
+    updated_at: 'updated_at'
+  };
+
+  export type Config_settingScalarFieldEnum = (typeof Config_settingScalarFieldEnum)[keyof typeof Config_settingScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -27916,6 +30117,23 @@ export namespace Prisma {
   };
 
   export type ui_categories_metaOrderByRelevanceFieldEnum = (typeof ui_categories_metaOrderByRelevanceFieldEnum)[keyof typeof ui_categories_metaOrderByRelevanceFieldEnum]
+
+
+  export const images_categoriesOrderByRelevanceFieldEnum: {
+    image_name: 'image_name'
+  };
+
+  export type images_categoriesOrderByRelevanceFieldEnum = (typeof images_categoriesOrderByRelevanceFieldEnum)[keyof typeof images_categoriesOrderByRelevanceFieldEnum]
+
+
+  export const config_settingOrderByRelevanceFieldEnum: {
+    setting_key: 'setting_key',
+    setting_value: 'setting_value',
+    module_detail: 'module_detail',
+    description: 'description'
+  };
+
+  export type config_settingOrderByRelevanceFieldEnum = (typeof config_settingOrderByRelevanceFieldEnum)[keyof typeof config_settingOrderByRelevanceFieldEnum]
 
 
   /**
@@ -30023,6 +32241,7 @@ export namespace Prisma {
     display_order?: IntFilter<"ui_categories"> | number
     created_at?: DateTimeFilter<"ui_categories"> | Date | string
     updated_at?: DateTimeNullableFilter<"ui_categories"> | Date | string | null
+    images_categories?: Images_categoriesListRelationFilter
   }
 
   export type ui_categoriesOrderByWithRelationInput = {
@@ -30034,6 +32253,7 @@ export namespace Prisma {
     display_order?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrderInput | SortOrder
+    images_categories?: images_categoriesOrderByRelationAggregateInput
     _relevance?: ui_categoriesOrderByRelevanceInput
   }
 
@@ -30049,6 +32269,7 @@ export namespace Prisma {
     display_order?: IntFilter<"ui_categories"> | number
     created_at?: DateTimeFilter<"ui_categories"> | Date | string
     updated_at?: DateTimeNullableFilter<"ui_categories"> | Date | string | null
+    images_categories?: Images_categoriesListRelationFilter
   }, "id" | "slug">
 
   export type ui_categoriesOrderByWithAggregationInput = {
@@ -30129,6 +32350,124 @@ export namespace Prisma {
     title?: StringWithAggregatesFilter<"ui_categories_meta"> | string
     subtitle?: StringWithAggregatesFilter<"ui_categories_meta"> | string
     updated_at?: DateTimeWithAggregatesFilter<"ui_categories_meta"> | Date | string
+  }
+
+  export type images_categoriesWhereInput = {
+    AND?: images_categoriesWhereInput | images_categoriesWhereInput[]
+    OR?: images_categoriesWhereInput[]
+    NOT?: images_categoriesWhereInput | images_categoriesWhereInput[]
+    id?: IntFilter<"images_categories"> | number
+    category_id?: IntFilter<"images_categories"> | number
+    image_name?: StringFilter<"images_categories"> | string
+    display_order?: IntFilter<"images_categories"> | number
+    visible?: BoolFilter<"images_categories"> | boolean
+    ui_categories?: XOR<Ui_categoriesScalarRelationFilter, ui_categoriesWhereInput>
+  }
+
+  export type images_categoriesOrderByWithRelationInput = {
+    id?: SortOrder
+    category_id?: SortOrder
+    image_name?: SortOrder
+    display_order?: SortOrder
+    visible?: SortOrder
+    ui_categories?: ui_categoriesOrderByWithRelationInput
+    _relevance?: images_categoriesOrderByRelevanceInput
+  }
+
+  export type images_categoriesWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: images_categoriesWhereInput | images_categoriesWhereInput[]
+    OR?: images_categoriesWhereInput[]
+    NOT?: images_categoriesWhereInput | images_categoriesWhereInput[]
+    category_id?: IntFilter<"images_categories"> | number
+    image_name?: StringFilter<"images_categories"> | string
+    display_order?: IntFilter<"images_categories"> | number
+    visible?: BoolFilter<"images_categories"> | boolean
+    ui_categories?: XOR<Ui_categoriesScalarRelationFilter, ui_categoriesWhereInput>
+  }, "id">
+
+  export type images_categoriesOrderByWithAggregationInput = {
+    id?: SortOrder
+    category_id?: SortOrder
+    image_name?: SortOrder
+    display_order?: SortOrder
+    visible?: SortOrder
+    _count?: images_categoriesCountOrderByAggregateInput
+    _avg?: images_categoriesAvgOrderByAggregateInput
+    _max?: images_categoriesMaxOrderByAggregateInput
+    _min?: images_categoriesMinOrderByAggregateInput
+    _sum?: images_categoriesSumOrderByAggregateInput
+  }
+
+  export type images_categoriesScalarWhereWithAggregatesInput = {
+    AND?: images_categoriesScalarWhereWithAggregatesInput | images_categoriesScalarWhereWithAggregatesInput[]
+    OR?: images_categoriesScalarWhereWithAggregatesInput[]
+    NOT?: images_categoriesScalarWhereWithAggregatesInput | images_categoriesScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"images_categories"> | number
+    category_id?: IntWithAggregatesFilter<"images_categories"> | number
+    image_name?: StringWithAggregatesFilter<"images_categories"> | string
+    display_order?: IntWithAggregatesFilter<"images_categories"> | number
+    visible?: BoolWithAggregatesFilter<"images_categories"> | boolean
+  }
+
+  export type config_settingWhereInput = {
+    AND?: config_settingWhereInput | config_settingWhereInput[]
+    OR?: config_settingWhereInput[]
+    NOT?: config_settingWhereInput | config_settingWhereInput[]
+    id?: IntFilter<"config_setting"> | number
+    setting_key?: StringFilter<"config_setting"> | string
+    setting_value?: StringNullableFilter<"config_setting"> | string | null
+    module_detail?: StringNullableFilter<"config_setting"> | string | null
+    description?: StringNullableFilter<"config_setting"> | string | null
+    updated_at?: DateTimeFilter<"config_setting"> | Date | string
+  }
+
+  export type config_settingOrderByWithRelationInput = {
+    id?: SortOrder
+    setting_key?: SortOrder
+    setting_value?: SortOrderInput | SortOrder
+    module_detail?: SortOrderInput | SortOrder
+    description?: SortOrderInput | SortOrder
+    updated_at?: SortOrder
+    _relevance?: config_settingOrderByRelevanceInput
+  }
+
+  export type config_settingWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    setting_key?: string
+    AND?: config_settingWhereInput | config_settingWhereInput[]
+    OR?: config_settingWhereInput[]
+    NOT?: config_settingWhereInput | config_settingWhereInput[]
+    setting_value?: StringNullableFilter<"config_setting"> | string | null
+    module_detail?: StringNullableFilter<"config_setting"> | string | null
+    description?: StringNullableFilter<"config_setting"> | string | null
+    updated_at?: DateTimeFilter<"config_setting"> | Date | string
+  }, "id" | "setting_key">
+
+  export type config_settingOrderByWithAggregationInput = {
+    id?: SortOrder
+    setting_key?: SortOrder
+    setting_value?: SortOrderInput | SortOrder
+    module_detail?: SortOrderInput | SortOrder
+    description?: SortOrderInput | SortOrder
+    updated_at?: SortOrder
+    _count?: config_settingCountOrderByAggregateInput
+    _avg?: config_settingAvgOrderByAggregateInput
+    _max?: config_settingMaxOrderByAggregateInput
+    _min?: config_settingMinOrderByAggregateInput
+    _sum?: config_settingSumOrderByAggregateInput
+  }
+
+  export type config_settingScalarWhereWithAggregatesInput = {
+    AND?: config_settingScalarWhereWithAggregatesInput | config_settingScalarWhereWithAggregatesInput[]
+    OR?: config_settingScalarWhereWithAggregatesInput[]
+    NOT?: config_settingScalarWhereWithAggregatesInput | config_settingScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"config_setting"> | number
+    setting_key?: StringWithAggregatesFilter<"config_setting"> | string
+    setting_value?: StringNullableWithAggregatesFilter<"config_setting"> | string | null
+    module_detail?: StringNullableWithAggregatesFilter<"config_setting"> | string | null
+    description?: StringNullableWithAggregatesFilter<"config_setting"> | string | null
+    updated_at?: DateTimeWithAggregatesFilter<"config_setting"> | Date | string
   }
 
   export type categoryCreateInput = {
@@ -32437,6 +34776,7 @@ export namespace Prisma {
     display_order?: number
     created_at?: Date | string
     updated_at?: Date | string | null
+    images_categories?: images_categoriesCreateNestedManyWithoutUi_categoriesInput
   }
 
   export type ui_categoriesUncheckedCreateInput = {
@@ -32448,6 +34788,7 @@ export namespace Prisma {
     display_order?: number
     created_at?: Date | string
     updated_at?: Date | string | null
+    images_categories?: images_categoriesUncheckedCreateNestedManyWithoutUi_categoriesInput
   }
 
   export type ui_categoriesUpdateInput = {
@@ -32458,6 +34799,7 @@ export namespace Prisma {
     display_order?: IntFieldUpdateOperationsInput | number
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    images_categories?: images_categoriesUpdateManyWithoutUi_categoriesNestedInput
   }
 
   export type ui_categoriesUncheckedUpdateInput = {
@@ -32469,6 +34811,7 @@ export namespace Prisma {
     display_order?: IntFieldUpdateOperationsInput | number
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    images_categories?: images_categoriesUncheckedUpdateManyWithoutUi_categoriesNestedInput
   }
 
   export type ui_categoriesCreateManyInput = {
@@ -32549,6 +34892,118 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     title?: StringFieldUpdateOperationsInput | string
     subtitle?: StringFieldUpdateOperationsInput | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type images_categoriesCreateInput = {
+    image_name: string
+    display_order?: number
+    visible?: boolean
+    ui_categories: ui_categoriesCreateNestedOneWithoutImages_categoriesInput
+  }
+
+  export type images_categoriesUncheckedCreateInput = {
+    id?: number
+    category_id: number
+    image_name: string
+    display_order?: number
+    visible?: boolean
+  }
+
+  export type images_categoriesUpdateInput = {
+    image_name?: StringFieldUpdateOperationsInput | string
+    display_order?: IntFieldUpdateOperationsInput | number
+    visible?: BoolFieldUpdateOperationsInput | boolean
+    ui_categories?: ui_categoriesUpdateOneRequiredWithoutImages_categoriesNestedInput
+  }
+
+  export type images_categoriesUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    category_id?: IntFieldUpdateOperationsInput | number
+    image_name?: StringFieldUpdateOperationsInput | string
+    display_order?: IntFieldUpdateOperationsInput | number
+    visible?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type images_categoriesCreateManyInput = {
+    id?: number
+    category_id: number
+    image_name: string
+    display_order?: number
+    visible?: boolean
+  }
+
+  export type images_categoriesUpdateManyMutationInput = {
+    image_name?: StringFieldUpdateOperationsInput | string
+    display_order?: IntFieldUpdateOperationsInput | number
+    visible?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type images_categoriesUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    category_id?: IntFieldUpdateOperationsInput | number
+    image_name?: StringFieldUpdateOperationsInput | string
+    display_order?: IntFieldUpdateOperationsInput | number
+    visible?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type config_settingCreateInput = {
+    setting_key: string
+    setting_value?: string | null
+    module_detail?: string | null
+    description?: string | null
+    updated_at?: Date | string
+  }
+
+  export type config_settingUncheckedCreateInput = {
+    id?: number
+    setting_key: string
+    setting_value?: string | null
+    module_detail?: string | null
+    description?: string | null
+    updated_at?: Date | string
+  }
+
+  export type config_settingUpdateInput = {
+    setting_key?: StringFieldUpdateOperationsInput | string
+    setting_value?: NullableStringFieldUpdateOperationsInput | string | null
+    module_detail?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type config_settingUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    setting_key?: StringFieldUpdateOperationsInput | string
+    setting_value?: NullableStringFieldUpdateOperationsInput | string | null
+    module_detail?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type config_settingCreateManyInput = {
+    id?: number
+    setting_key: string
+    setting_value?: string | null
+    module_detail?: string | null
+    description?: string | null
+    updated_at?: Date | string
+  }
+
+  export type config_settingUpdateManyMutationInput = {
+    setting_key?: StringFieldUpdateOperationsInput | string
+    setting_value?: NullableStringFieldUpdateOperationsInput | string | null
+    module_detail?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type config_settingUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    setting_key?: StringFieldUpdateOperationsInput | string
+    setting_value?: NullableStringFieldUpdateOperationsInput | string | null
+    module_detail?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -34446,6 +36901,16 @@ export namespace Prisma {
     _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
+  export type Images_categoriesListRelationFilter = {
+    every?: images_categoriesWhereInput
+    some?: images_categoriesWhereInput
+    none?: images_categoriesWhereInput
+  }
+
+  export type images_categoriesOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type ui_categoriesOrderByRelevanceInput = {
     fields: ui_categoriesOrderByRelevanceFieldEnum | ui_categoriesOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -34527,6 +36992,94 @@ export namespace Prisma {
   }
 
   export type ui_categories_metaSumOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
+  export type Ui_categoriesScalarRelationFilter = {
+    is?: ui_categoriesWhereInput
+    isNot?: ui_categoriesWhereInput
+  }
+
+  export type images_categoriesOrderByRelevanceInput = {
+    fields: images_categoriesOrderByRelevanceFieldEnum | images_categoriesOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type images_categoriesCountOrderByAggregateInput = {
+    id?: SortOrder
+    category_id?: SortOrder
+    image_name?: SortOrder
+    display_order?: SortOrder
+    visible?: SortOrder
+  }
+
+  export type images_categoriesAvgOrderByAggregateInput = {
+    id?: SortOrder
+    category_id?: SortOrder
+    display_order?: SortOrder
+  }
+
+  export type images_categoriesMaxOrderByAggregateInput = {
+    id?: SortOrder
+    category_id?: SortOrder
+    image_name?: SortOrder
+    display_order?: SortOrder
+    visible?: SortOrder
+  }
+
+  export type images_categoriesMinOrderByAggregateInput = {
+    id?: SortOrder
+    category_id?: SortOrder
+    image_name?: SortOrder
+    display_order?: SortOrder
+    visible?: SortOrder
+  }
+
+  export type images_categoriesSumOrderByAggregateInput = {
+    id?: SortOrder
+    category_id?: SortOrder
+    display_order?: SortOrder
+  }
+
+  export type config_settingOrderByRelevanceInput = {
+    fields: config_settingOrderByRelevanceFieldEnum | config_settingOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type config_settingCountOrderByAggregateInput = {
+    id?: SortOrder
+    setting_key?: SortOrder
+    setting_value?: SortOrder
+    module_detail?: SortOrder
+    description?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type config_settingAvgOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
+  export type config_settingMaxOrderByAggregateInput = {
+    id?: SortOrder
+    setting_key?: SortOrder
+    setting_value?: SortOrder
+    module_detail?: SortOrder
+    description?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type config_settingMinOrderByAggregateInput = {
+    id?: SortOrder
+    setting_key?: SortOrder
+    setting_value?: SortOrder
+    module_detail?: SortOrder
+    description?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type config_settingSumOrderByAggregateInput = {
     id?: SortOrder
   }
 
@@ -34712,6 +37265,62 @@ export namespace Prisma {
     update?: featured_list_itemsUpdateWithWhereUniqueWithoutProducts_clearanceInput | featured_list_itemsUpdateWithWhereUniqueWithoutProducts_clearanceInput[]
     updateMany?: featured_list_itemsUpdateManyWithWhereWithoutProducts_clearanceInput | featured_list_itemsUpdateManyWithWhereWithoutProducts_clearanceInput[]
     deleteMany?: featured_list_itemsScalarWhereInput | featured_list_itemsScalarWhereInput[]
+  }
+
+  export type images_categoriesCreateNestedManyWithoutUi_categoriesInput = {
+    create?: XOR<images_categoriesCreateWithoutUi_categoriesInput, images_categoriesUncheckedCreateWithoutUi_categoriesInput> | images_categoriesCreateWithoutUi_categoriesInput[] | images_categoriesUncheckedCreateWithoutUi_categoriesInput[]
+    connectOrCreate?: images_categoriesCreateOrConnectWithoutUi_categoriesInput | images_categoriesCreateOrConnectWithoutUi_categoriesInput[]
+    createMany?: images_categoriesCreateManyUi_categoriesInputEnvelope
+    connect?: images_categoriesWhereUniqueInput | images_categoriesWhereUniqueInput[]
+  }
+
+  export type images_categoriesUncheckedCreateNestedManyWithoutUi_categoriesInput = {
+    create?: XOR<images_categoriesCreateWithoutUi_categoriesInput, images_categoriesUncheckedCreateWithoutUi_categoriesInput> | images_categoriesCreateWithoutUi_categoriesInput[] | images_categoriesUncheckedCreateWithoutUi_categoriesInput[]
+    connectOrCreate?: images_categoriesCreateOrConnectWithoutUi_categoriesInput | images_categoriesCreateOrConnectWithoutUi_categoriesInput[]
+    createMany?: images_categoriesCreateManyUi_categoriesInputEnvelope
+    connect?: images_categoriesWhereUniqueInput | images_categoriesWhereUniqueInput[]
+  }
+
+  export type images_categoriesUpdateManyWithoutUi_categoriesNestedInput = {
+    create?: XOR<images_categoriesCreateWithoutUi_categoriesInput, images_categoriesUncheckedCreateWithoutUi_categoriesInput> | images_categoriesCreateWithoutUi_categoriesInput[] | images_categoriesUncheckedCreateWithoutUi_categoriesInput[]
+    connectOrCreate?: images_categoriesCreateOrConnectWithoutUi_categoriesInput | images_categoriesCreateOrConnectWithoutUi_categoriesInput[]
+    upsert?: images_categoriesUpsertWithWhereUniqueWithoutUi_categoriesInput | images_categoriesUpsertWithWhereUniqueWithoutUi_categoriesInput[]
+    createMany?: images_categoriesCreateManyUi_categoriesInputEnvelope
+    set?: images_categoriesWhereUniqueInput | images_categoriesWhereUniqueInput[]
+    disconnect?: images_categoriesWhereUniqueInput | images_categoriesWhereUniqueInput[]
+    delete?: images_categoriesWhereUniqueInput | images_categoriesWhereUniqueInput[]
+    connect?: images_categoriesWhereUniqueInput | images_categoriesWhereUniqueInput[]
+    update?: images_categoriesUpdateWithWhereUniqueWithoutUi_categoriesInput | images_categoriesUpdateWithWhereUniqueWithoutUi_categoriesInput[]
+    updateMany?: images_categoriesUpdateManyWithWhereWithoutUi_categoriesInput | images_categoriesUpdateManyWithWhereWithoutUi_categoriesInput[]
+    deleteMany?: images_categoriesScalarWhereInput | images_categoriesScalarWhereInput[]
+  }
+
+  export type images_categoriesUncheckedUpdateManyWithoutUi_categoriesNestedInput = {
+    create?: XOR<images_categoriesCreateWithoutUi_categoriesInput, images_categoriesUncheckedCreateWithoutUi_categoriesInput> | images_categoriesCreateWithoutUi_categoriesInput[] | images_categoriesUncheckedCreateWithoutUi_categoriesInput[]
+    connectOrCreate?: images_categoriesCreateOrConnectWithoutUi_categoriesInput | images_categoriesCreateOrConnectWithoutUi_categoriesInput[]
+    upsert?: images_categoriesUpsertWithWhereUniqueWithoutUi_categoriesInput | images_categoriesUpsertWithWhereUniqueWithoutUi_categoriesInput[]
+    createMany?: images_categoriesCreateManyUi_categoriesInputEnvelope
+    set?: images_categoriesWhereUniqueInput | images_categoriesWhereUniqueInput[]
+    disconnect?: images_categoriesWhereUniqueInput | images_categoriesWhereUniqueInput[]
+    delete?: images_categoriesWhereUniqueInput | images_categoriesWhereUniqueInput[]
+    connect?: images_categoriesWhereUniqueInput | images_categoriesWhereUniqueInput[]
+    update?: images_categoriesUpdateWithWhereUniqueWithoutUi_categoriesInput | images_categoriesUpdateWithWhereUniqueWithoutUi_categoriesInput[]
+    updateMany?: images_categoriesUpdateManyWithWhereWithoutUi_categoriesInput | images_categoriesUpdateManyWithWhereWithoutUi_categoriesInput[]
+    deleteMany?: images_categoriesScalarWhereInput | images_categoriesScalarWhereInput[]
+  }
+
+  export type ui_categoriesCreateNestedOneWithoutImages_categoriesInput = {
+    create?: XOR<ui_categoriesCreateWithoutImages_categoriesInput, ui_categoriesUncheckedCreateWithoutImages_categoriesInput>
+    connectOrCreate?: ui_categoriesCreateOrConnectWithoutImages_categoriesInput
+    connect?: ui_categoriesWhereUniqueInput
+  }
+
+  export type ui_categoriesUpdateOneRequiredWithoutImages_categoriesNestedInput = {
+    create?: XOR<ui_categoriesCreateWithoutImages_categoriesInput, ui_categoriesUncheckedCreateWithoutImages_categoriesInput>
+    connectOrCreate?: ui_categoriesCreateOrConnectWithoutImages_categoriesInput
+    upsert?: ui_categoriesUpsertWithoutImages_categoriesInput
+    connect?: ui_categoriesWhereUniqueInput
+    update?: XOR<XOR<ui_categoriesUpdateToOneWithWhereWithoutImages_categoriesInput, ui_categoriesUpdateWithoutImages_categoriesInput>, ui_categoriesUncheckedUpdateWithoutImages_categoriesInput>
   }
 
   export type NestedIntFilter<$PrismaModel = never> = {
@@ -35366,6 +37975,114 @@ export namespace Prisma {
     data: XOR<featured_list_itemsUpdateManyMutationInput, featured_list_itemsUncheckedUpdateManyWithoutProducts_clearanceInput>
   }
 
+  export type images_categoriesCreateWithoutUi_categoriesInput = {
+    image_name: string
+    display_order?: number
+    visible?: boolean
+  }
+
+  export type images_categoriesUncheckedCreateWithoutUi_categoriesInput = {
+    id?: number
+    image_name: string
+    display_order?: number
+    visible?: boolean
+  }
+
+  export type images_categoriesCreateOrConnectWithoutUi_categoriesInput = {
+    where: images_categoriesWhereUniqueInput
+    create: XOR<images_categoriesCreateWithoutUi_categoriesInput, images_categoriesUncheckedCreateWithoutUi_categoriesInput>
+  }
+
+  export type images_categoriesCreateManyUi_categoriesInputEnvelope = {
+    data: images_categoriesCreateManyUi_categoriesInput | images_categoriesCreateManyUi_categoriesInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type images_categoriesUpsertWithWhereUniqueWithoutUi_categoriesInput = {
+    where: images_categoriesWhereUniqueInput
+    update: XOR<images_categoriesUpdateWithoutUi_categoriesInput, images_categoriesUncheckedUpdateWithoutUi_categoriesInput>
+    create: XOR<images_categoriesCreateWithoutUi_categoriesInput, images_categoriesUncheckedCreateWithoutUi_categoriesInput>
+  }
+
+  export type images_categoriesUpdateWithWhereUniqueWithoutUi_categoriesInput = {
+    where: images_categoriesWhereUniqueInput
+    data: XOR<images_categoriesUpdateWithoutUi_categoriesInput, images_categoriesUncheckedUpdateWithoutUi_categoriesInput>
+  }
+
+  export type images_categoriesUpdateManyWithWhereWithoutUi_categoriesInput = {
+    where: images_categoriesScalarWhereInput
+    data: XOR<images_categoriesUpdateManyMutationInput, images_categoriesUncheckedUpdateManyWithoutUi_categoriesInput>
+  }
+
+  export type images_categoriesScalarWhereInput = {
+    AND?: images_categoriesScalarWhereInput | images_categoriesScalarWhereInput[]
+    OR?: images_categoriesScalarWhereInput[]
+    NOT?: images_categoriesScalarWhereInput | images_categoriesScalarWhereInput[]
+    id?: IntFilter<"images_categories"> | number
+    category_id?: IntFilter<"images_categories"> | number
+    image_name?: StringFilter<"images_categories"> | string
+    display_order?: IntFilter<"images_categories"> | number
+    visible?: BoolFilter<"images_categories"> | boolean
+  }
+
+  export type ui_categoriesCreateWithoutImages_categoriesInput = {
+    slug: string
+    name: string
+    image_url?: string | null
+    visible?: boolean
+    display_order?: number
+    created_at?: Date | string
+    updated_at?: Date | string | null
+  }
+
+  export type ui_categoriesUncheckedCreateWithoutImages_categoriesInput = {
+    id?: number
+    slug: string
+    name: string
+    image_url?: string | null
+    visible?: boolean
+    display_order?: number
+    created_at?: Date | string
+    updated_at?: Date | string | null
+  }
+
+  export type ui_categoriesCreateOrConnectWithoutImages_categoriesInput = {
+    where: ui_categoriesWhereUniqueInput
+    create: XOR<ui_categoriesCreateWithoutImages_categoriesInput, ui_categoriesUncheckedCreateWithoutImages_categoriesInput>
+  }
+
+  export type ui_categoriesUpsertWithoutImages_categoriesInput = {
+    update: XOR<ui_categoriesUpdateWithoutImages_categoriesInput, ui_categoriesUncheckedUpdateWithoutImages_categoriesInput>
+    create: XOR<ui_categoriesCreateWithoutImages_categoriesInput, ui_categoriesUncheckedCreateWithoutImages_categoriesInput>
+    where?: ui_categoriesWhereInput
+  }
+
+  export type ui_categoriesUpdateToOneWithWhereWithoutImages_categoriesInput = {
+    where?: ui_categoriesWhereInput
+    data: XOR<ui_categoriesUpdateWithoutImages_categoriesInput, ui_categoriesUncheckedUpdateWithoutImages_categoriesInput>
+  }
+
+  export type ui_categoriesUpdateWithoutImages_categoriesInput = {
+    slug?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    image_url?: NullableStringFieldUpdateOperationsInput | string | null
+    visible?: BoolFieldUpdateOperationsInput | boolean
+    display_order?: IntFieldUpdateOperationsInput | number
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ui_categoriesUncheckedUpdateWithoutImages_categoriesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    slug?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    image_url?: NullableStringFieldUpdateOperationsInput | string | null
+    visible?: BoolFieldUpdateOperationsInput | boolean
+    display_order?: IntFieldUpdateOperationsInput | number
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type featured_list_itemsCreateManyFeatured_listsInput = {
     id?: number
     product_id: number
@@ -35410,6 +38127,33 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     list_id?: IntFieldUpdateOperationsInput | number
     display_order?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type images_categoriesCreateManyUi_categoriesInput = {
+    id?: number
+    image_name: string
+    display_order?: number
+    visible?: boolean
+  }
+
+  export type images_categoriesUpdateWithoutUi_categoriesInput = {
+    image_name?: StringFieldUpdateOperationsInput | string
+    display_order?: IntFieldUpdateOperationsInput | number
+    visible?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type images_categoriesUncheckedUpdateWithoutUi_categoriesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    image_name?: StringFieldUpdateOperationsInput | string
+    display_order?: IntFieldUpdateOperationsInput | number
+    visible?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type images_categoriesUncheckedUpdateManyWithoutUi_categoriesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    image_name?: StringFieldUpdateOperationsInput | string
+    display_order?: IntFieldUpdateOperationsInput | number
+    visible?: BoolFieldUpdateOperationsInput | boolean
   }
 
 
