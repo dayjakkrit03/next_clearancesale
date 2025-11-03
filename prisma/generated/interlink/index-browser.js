@@ -488,6 +488,17 @@ exports.Prisma.Config_settingScalarFieldEnum = {
   updated_at: 'updated_at'
 };
 
+exports.Prisma.Import_category_batchesScalarFieldEnum = {
+  id: 'id',
+  category_data: 'category_data',
+  source_filename: 'source_filename',
+  total_records: 'total_records',
+  status: 'status',
+  created_at: 'created_at',
+  processed_at: 'processed_at',
+  error_details: 'error_details'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -495,6 +506,10 @@ exports.Prisma.SortOrder = {
 
 exports.Prisma.NullableJsonNullValueInput = {
   DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.JsonNullValueInput = {
   JsonNull: Prisma.JsonNull
 };
 
@@ -694,6 +709,11 @@ exports.Prisma.config_settingOrderByRelevanceFieldEnum = {
   module_detail: 'module_detail',
   description: 'description'
 };
+
+exports.Prisma.import_category_batchesOrderByRelevanceFieldEnum = {
+  source_filename: 'source_filename',
+  error_details: 'error_details'
+};
 exports.discount_rules_frame_mode = exports.$Enums.discount_rules_frame_mode = {
   draw: 'draw',
   image: 'image'
@@ -703,6 +723,12 @@ exports.discount_rules_frame_object_fit = exports.$Enums.discount_rules_frame_ob
   contain: 'contain',
   cover: 'cover',
   stretch: 'stretch'
+};
+
+exports.import_category_batches_status = exports.$Enums.import_category_batches_status = {
+  PENDING: 'PENDING',
+  PROCESSED: 'PROCESSED',
+  ERROR: 'ERROR'
 };
 
 exports.Prisma.ModelName = {
@@ -731,7 +757,8 @@ exports.Prisma.ModelName = {
   ui_categories: 'ui_categories',
   ui_categories_meta: 'ui_categories_meta',
   images_categories: 'images_categories',
-  config_setting: 'config_setting'
+  config_setting: 'config_setting',
+  import_category_batches: 'import_category_batches'
 };
 
 /**

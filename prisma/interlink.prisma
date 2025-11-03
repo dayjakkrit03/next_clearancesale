@@ -77,6 +77,7 @@ model product {
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   clearanceSales      Boolean? @default(false)
   clearanceQuantity   Int?     @default(0)
   clearancePrice      Decimal? @db.Decimal(10, 2)
@@ -217,6 +218,7 @@ model product_clearance {
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   clearanceSales      Boolean? @default(false)
   clearanceQuantity   Int?     @default(0)
   clearancePrice      Decimal? @db.Decimal(10, 2)
@@ -252,6 +254,7 @@ model product_test_upload {
   product_uom         String?  @db.VarChar(10)
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 09 Boolean @default(true) @map("09")
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
@@ -366,6 +369,8 @@ model products_clearance {
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   clearanceSales      Boolean               @default(false)
   clearanceQuantity   Int                   @default(0)
   clearancePrice      Decimal?              @db.Decimal(10, 2)
@@ -440,6 +445,18 @@ model config_setting {
   updated_at    DateTime @default(now()) @db.Timestamp(0)
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model import_category_batches {
+  id              BigInt                         @id @default(autoincrement()) @db.UnsignedBigInt
+  category_data   Json
+  source_filename String?                        @db.VarChar(255)
+  total_records   Int                            @default(0) @db.UnsignedInt
+  status          import_category_batches_status @default(PENDING)
+  created_at      DateTime                       @default(now()) @db.Timestamp(0)
+  processed_at    DateTime?                      @db.Timestamp(0)
+  error_details   String?                        @db.Text
+}
+
 enum discount_rules_frame_mode {
   draw
   image
@@ -449,4 +466,10 @@ enum discount_rules_frame_object_fit {
   contain
   cover
   stretch
+}
+
+enum import_category_batches_status {
+  PENDING
+  PROCESSED
+  ERROR
 }
