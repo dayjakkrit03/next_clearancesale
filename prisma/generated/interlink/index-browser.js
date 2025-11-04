@@ -728,7 +728,11 @@ exports.discount_rules_frame_object_fit = exports.$Enums.discount_rules_frame_ob
 exports.import_category_batches_status = exports.$Enums.import_category_batches_status = {
   PENDING: 'PENDING',
   PROCESSED: 'PROCESSED',
-  ERROR: 'ERROR'
+  ERROR: 'ERROR',
+  FOLDERS_CREATING: 'FOLDERS_CREATING',
+  FOLDERS_CREATED: 'FOLDERS_CREATED',
+  IMAGES_COPYING: 'IMAGES_COPYING',
+  COMPLETED: 'COMPLETED'
 };
 
 exports.Prisma.ModelName = {

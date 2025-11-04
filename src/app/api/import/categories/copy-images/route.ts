@@ -1,64 +1,124 @@
-// v.1.1.4 =============================================
+// v.1.1.5 =============================================
 // src/app/api/import/categories/copy-images/route.ts
 
 import { NextResponse } from 'next/server';
-import { copyCategoryImages, ImageProcessRequest } from '@/services/file.service'; 
+// 💡 เปลี่ยนการ import: ไม่ต้องใช้ ImageProcessRequest อีกต่อไปเพราะไม่รับ Body
+import { copyCategoryImages } from '@/services/file.service'; 
 
 /**
  * 🎯 API Route: POST /api/import/categories/copy-images
- * ใช้สำหรับ SCAN ไฟล์รูปภาพจาก Shared Drive ตาม SLUG, แปลงเป็น WEBP และบันทึกข้อมูลลง DB
+ * 🎯 NEW LOGIC: ดึง Batch Log ล่าสุดที่สถานะ FOLDERS_CREATED มาประมวลผลการคัดลอกรูปภาพ
+ * @returns JSON Response ที่แสดงผลการคัดลอกรูปภาพและการเปลี่ยนสถานะ
  */
 export async function POST(request: Request) {
-  try {
-    // 1. รับ JSON Body
-    const requestData: ImageProcessRequest = await request.json(); 
+  try {
+    // 1. ตรวจสอบ Query Parameter สำหรับ Batch ID (เผื่อการรันซ้ำหรือระบุเฉพาะ)
+    const url = new URL(request.url);
+    const batchIdParam = url.searchParams.get('batchId');
+    const batchId = batchIdParam ? Number(batchIdParam) : undefined;
 
-    // 💡 การดำเนินการ: ลบเงื่อนไข if (!Array.isArray(requestData?.items) || requestData.items.length === 0) 
-    // ออกไปก่อน เพื่อให้โค้ดรัน Service Logic ที่ทำงานสำเร็จอยู่แล้ว
+    // 2. เรียกใช้ Service เพื่อหา Batch ล่าสุดที่เป็น FOLDERS_CREATED และดำเนินการคัดลอกรูปภาพ
+    // 💡 Service Function (copyCategoryImages) จะถูกปรับให้ดึงข้อมูลจาก DB เอง
+    const result = await copyCategoryImages(batchId); 
 
-    // 2. ตรวจสอบความถูกต้องของ Input อีกครั้งก่อนส่ง
-    if (!requestData || !Array.isArray(requestData.items) || requestData.items.length === 0) {
-        // หากโค้ดยังมาถึงจุดนี้ได้ นั่นหมายความว่า Next.js ไม่สามารถ Parse JSON ได้เลย
-        return NextResponse.json(
-            { success: false, message: 'CRITICAL: Failed to parse request JSON or items array is empty. Check Content-Type header or request body format.' },
-            { status: 400 } 
-        );
+    if (!result.success && !result.batchId) {
+        // กรณีไม่พบ Batch ที่มีสถานะ FOLDERS_CREATED
+        return NextResponse.json({ 
+          success: false, 
+          message: result.message || 'No FOLDERS_CREATED batch found to start image copying.' 
+        }, { status: 404 });
     }
+
+    // 3. ตอบกลับด้วยสถานะสำเร็จ/ล้มเหลวของการประมวลผล
+    return NextResponse.json({ 
+        success: result.success, 
+        batchId: result.batchId,
+        images_processed: result.count, // จำนวนรูปภาพที่ดำเนินการ
+        message: result.message,
+        error_details: result.error_details,
+    }, { status: result.success ? 200 : 500 });
+
+  } catch (error) {
+    console.error('Error in copy-images API:', error);
     
-    // 3. เรียกใช้ Service function (เมื่อ Input ถูกต้องแล้ว)
-    const result = await copyCategoryImages(requestData);
+    // จัดการ Error ทั่วไป
+    const errorDetails = (error as Error).message;
+    // 💡 ปรับปรุงข้อความ Error ให้เฉพาะเจาะจงตาม Service Logic ที่มี
+    const errorMessage = errorDetails.includes('Shared graphic path is not configured')
+        ? errorDetails
+        : 'Internal Server Error during image copying.';
 
-    // 4. ตอบกลับด้วยสถานะสำเร็จ (Status 200)
-    return NextResponse.json({ 
-        success: true, 
-        total_categories_requested: requestData.items.length,
-        images_processed: result.count,
-        message: `Successfully scanned ${requestData.items.length} folders. Total ${result.count} images found, converted to WEBP, and Upserted to DB.` 
-    }, { status: 200 });
-
-  } catch (error) {
-    console.error('Error in copy-images API (Parsing or Internal):', error);
-    
-    // 💡 ปรับปรุงตามคำแนะนำของคุณ: ใช้ข้อความ Error จริง
-    // จัดการ Error หาก Parsing JSON ล้มเหลวโดยสิ้นเชิง
-    if ((error as Error).message.includes('JSON')) {
-        return NextResponse.json(
-            { success: false, message: `Failed to parse JSON body: ${error}`, details: (error as Error).message },
-            { status: 400 }
-        );
-    }
-    
-    // จัดการ Error อื่นๆ ที่มาจาก Service Layer
-    const errorMessage = (error as Error).message.includes('Shared graphic path is not configured')
-        ? (error as Error).message
-        : 'Internal Server Error during file scanning, image processing, or DB update.';
-
-    return NextResponse.json(
-      { success: false, message: errorMessage, details: (error as Error).message },
-      { status: 500 }
-    );
-  }
+    return NextResponse.json(
+      { success: false, message: errorMessage, details: errorDetails },
+      { status: 500 }
+    );
+  }
 }
+
+// v.1.1.5 =============================================
+
+// v.1.1.4 ============================================= version work
+// // src/app/api/import/categories/copy-images/route.ts
+
+// import { NextResponse } from 'next/server';
+// import { copyCategoryImages, ImageProcessRequest } from '@/services/file.service'; 
+
+// /**
+//  * 🎯 API Route: POST /api/import/categories/copy-images
+//  * ใช้สำหรับ SCAN ไฟล์รูปภาพจาก Shared Drive ตาม SLUG, แปลงเป็น WEBP และบันทึกข้อมูลลง DB
+//  */
+// export async function POST(request: Request) {
+//   try {
+//     // 1. รับ JSON Body
+//     const requestData: ImageProcessRequest = await request.json(); 
+
+//     // 💡 การดำเนินการ: ลบเงื่อนไข if (!Array.isArray(requestData?.items) || requestData.items.length === 0) 
+//     // ออกไปก่อน เพื่อให้โค้ดรัน Service Logic ที่ทำงานสำเร็จอยู่แล้ว
+
+//     // 2. ตรวจสอบความถูกต้องของ Input อีกครั้งก่อนส่ง
+//     if (!requestData || !Array.isArray(requestData.items) || requestData.items.length === 0) {
+//         // หากโค้ดยังมาถึงจุดนี้ได้ นั่นหมายความว่า Next.js ไม่สามารถ Parse JSON ได้เลย
+//         return NextResponse.json(
+//             { success: false, message: 'CRITICAL: Failed to parse request JSON or items array is empty. Check Content-Type header or request body format.' },
+//             { status: 400 } 
+//         );
+//     }
+    
+//     // 3. เรียกใช้ Service function (เมื่อ Input ถูกต้องแล้ว)
+//     const result = await copyCategoryImages(requestData);
+
+//     // 4. ตอบกลับด้วยสถานะสำเร็จ (Status 200)
+//     return NextResponse.json({ 
+//         success: true, 
+//         total_categories_requested: requestData.items.length,
+//         images_processed: result.count,
+//         message: `Successfully scanned ${requestData.items.length} folders. Total ${result.count} images found, converted to WEBP, and Upserted to DB.` 
+//     }, { status: 200 });
+
+//   } catch (error) {
+//     console.error('Error in copy-images API (Parsing or Internal):', error);
+//     
+//     // 💡 ปรับปรุงตามคำแนะนำของคุณ: ใช้ข้อความ Error จริง
+//     // จัดการ Error หาก Parsing JSON ล้มเหลวโดยสิ้นเชิง
+//     if ((error as Error).message.includes('JSON')) {
+//         return NextResponse.json(
+//             { success: false, message: `Failed to parse JSON body: ${error}`, details: (error as Error).message },
+//             { status: 400 }
+//         );
+//     }
+    
+//     // จัดการ Error อื่นๆ ที่มาจาก Service Layer
+//     const errorMessage = (error as Error).message.includes('Shared graphic path is not configured')
+//         ? (error as Error).message
+//         : 'Internal Server Error during file scanning, image processing, or DB update.';
+
+//     return NextResponse.json(
+//       { success: false, message: errorMessage, details: (error as Error).message },
+//       { status: 500 }
+//     );
+//   }
+// }
+
 // v.1.1.4 =============================================
 
 // v.1.1.3 =============================================
