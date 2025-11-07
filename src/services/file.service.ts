@@ -259,53 +259,7 @@ async function readCategoryExcelFile(filePath: string): Promise<CategoryImportIt
 }
 
 
-/**
- * 🎯 ฟังก์ชันหลักสำหรับ API /api/import/categories/read-excel (UPDATED)
- * ดึง Path, หาไฟล์ล่าสุด, **COPY ไฟล์**, อ่านไฟล์, และบันทึกผลลัพธ์ลงตาราง Staging
- */
-// export async function readExcelAndSaveBatch(): Promise<BatchLogResult> {
-//     // 1. ดึง Path จาก config_setting
-//     const excelPath = await getConfigSetting('excel_category_path'); // นี่คือ UNC Path
 
-//     if (!excelPath) {
-//         throw new Error('Excel category path is not configured in config_setting table (key: excel_category_path).');
-//     }
-//     
-//     // 2. ค้นหาไฟล์ Excel ล่าสุด (จาก UNC Path)
-//     const latestFile = await findLatestCategoryExcelFile(excelPath);
-
-//     if (!latestFile) {
-//         throw new Error(`No Excel files matching 'category_YYYYMMDD.xlsx' found in path: ${excelPath}`);
-//     }
-//     
-//     // 3. 💡 NEW: สร้างโฟลเดอร์ Local Temp และ Copy ไฟล์
-//     await mkdir(LOCAL_TEMP_EXCEL_PATH, { recursive: true });
-//     
-//     const localDestinationFilePath = path.join(LOCAL_TEMP_EXCEL_PATH, latestFile.filename);
-//     
-//     console.log(`Attempting to copy file from Shared Drive (${latestFile.filePath}) to Local Temp (${localDestinationFilePath})`);
-//     
-//     try {
-//         // ใช้ copyFile เพื่อ Copy ไฟล์จาก Network Path ไปยัง Local Path
-//         await copyFile(latestFile.filePath, localDestinationFilePath);
-//         console.log(`Successfully copied file: ${latestFile.filename}`);
-//     } catch (copyError) {
-//         console.error(`Error copying Excel file from Shared Drive:`, copyError);
-//         throw new Error(`Failed to copy Excel file from Shared Drive to Local: ${latestFile.filePath}. This is often due to Network Permission issues (Read access).`);
-//     }
-
-//     // 4. อ่านและแปลงข้อมูลจากไฟล์ Excel (จาก Local Path ที่เพิ่ง Copy มา)
-//     const categoryData = await readCategoryExcelFile(localDestinationFilePath);
-//     
-//     if (categoryData.length === 0) {
-//         throw new Error(`Excel file ${latestFile.filename} was read but contains no valid category data. (It may be empty or header/data format is incorrect)`);
-//     }
-//     
-//     // 5. บันทึกข้อมูลที่อ่านได้ลงในตาราง Batch Staging
-//     const batchResult = await saveCategoryBatchLog(categoryData, latestFile.filename);
-
-//     return batchResult;
-// }
 
 export async function readExcelAndSaveBatch(): Promise<BatchLogResult> {
     // 1. ดึง Path จาก config_setting

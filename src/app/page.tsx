@@ -1,5 +1,6 @@
 // v.1.1.9 ================================================
 // src/app/page.tsx
+
 import { HeroSection } from "@/components/hero-section";
 import DiscountRuleStripServer from "@/components/discount-rule-strip.server"; // ⇐ เพิ่มบรรทัดนี้
 import { CategoryGrid } from "@/components/category-grid";

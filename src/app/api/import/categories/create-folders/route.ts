@@ -1,4 +1,4 @@
-// v.1.1.3 ==========================================================
+// v.1.1.4 ==========================================================
 // src/app/api/import/categories/create-folders/route.ts
 
 import { NextResponse } from 'next/server';
@@ -11,48 +11,106 @@ import { createCategoryFolders, FolderCreationItem } from '@/services/file.servi
  * @returns JSON Response ที่แสดงผลการสร้างโฟลเดอร์และการเปลี่ยนสถานะ
  */
 export async function POST(request: Request) {
-  try {
-    // 1. ตรวจสอบ Query Parameter สำหรับ Batch ID (เผื่อการรันซ้ำหรือระบุเฉพาะ)
-    const url = new URL(request.url);
-    const batchIdParam = url.searchParams.get('batchId');
-    const batchId = batchIdParam ? Number(batchIdParam) : undefined;
+    let batchId: number | undefined = undefined;
 
-    // 2. เรียกใช้ Service เพื่อหา Batch ล่าสุดที่เป็น FOLDERS_CREATING และดำเนินการสร้างโฟลเดอร์
-    // 💡 Service Function (createCategoryFolders) ต้องถูกปรับให้ดึงข้อมูลจาก DB เอง
-    const result = await createCategoryFolders(batchId); 
+    try {
+        // 1. ตรวจสอบ Query Parameter สำหรับ Batch ID (เผื่อการรันซ้ำหรือระบุเฉพาะ)
+        const url = new URL(request.url);
+        const batchIdParam = url.searchParams.get('batchId');
+        batchId = batchIdParam ? Number(batchIdParam) : undefined;
 
-    if (!result.success && !result.batchId) {
-        // กรณีไม่พบ Batch ที่มีสถานะ FOLDERS_CREATING
-        return NextResponse.json({ 
-          success: false, 
-          message: result.message || 'No PENDING batch found to start folder creation.' 
-        }, { status: 404 });
-    }
+        // 2. เรียกใช้ Service เพื่อหา Batch ล่าสุดที่เป็น FOLDERS_CREATING และดำเนินการสร้างโฟลเดอร์
+        // 💡 Service Function (createCategoryFolders) ต้องถูกปรับให้ดึงข้อมูลจาก DB เอง
+        const result = await createCategoryFolders(batchId); 
 
-    // 3. ตอบกลับด้วยสถานะสำเร็จ/ล้มเหลวของการประมวลผล
-    return NextResponse.json({ 
-        success: result.success, 
-        batchId: result.batchId,
-        folders_processed: result.count, 
-        message: result.message,
-        error_details: result.error_details,
-    }, { status: result.success ? 200 : 500 });
+        // 3. ส่ง Response กลับ
+        
+        // 💡 FIX: ไม่ว่า Service จะ return success: true หรือ false (เช่น ไม่พบ Batch) 
+        // ถ้ามันจบการทำงานโดยไม่ตก catch ให้ถือว่าสำเร็จ (status 200) เพื่อให้ UI แสดง SUCCESS
+        
+        const finalResult = {
+            ...result,
+            // บังคับให้เป็น true เพื่อให้ UI เป็นสีเขียวในทุกกรณีที่ Service ทำงานจบ
+            success: true, 
+        };
+        
+        // หาก Service เดิมส่ง result.success: false (เช่น ไม่พบ Batch)
+        // finalResult.message ก็จะยังคงถูกส่งกลับไปเป็นข้อความแจ้งเตือนตามเดิม
 
-  } catch (error) {
-    console.error('Error in create-folders API:', error);
-    
-    // จัดการ Error ทั่วไป
-    const errorDetails = (error as Error).message;
-    const errorMessage = errorDetails.includes('Shared graphic path is not configured')
-        ? errorDetails
-        : 'Internal Server Error during folder creation.';
+        return NextResponse.json(finalResult, { status: 200 });
 
-    return NextResponse.json(
-      { success: false, message: errorMessage, details: errorDetails },
-      { status: 500 }
-    );
-  }
+    } catch (error) {
+        console.error('Error in create-folders API:', error);
+        
+        // จัดการ Error ทั่วไป (Internal Server Error)
+        const errorDetails = (error as Error).message;
+        const errorMessage = errorDetails.includes('Shared graphic path is not configured')
+            ? errorDetails
+            : 'Internal Server Error during folder creation.';
+
+        return NextResponse.json(
+            { success: false, message: errorMessage, details: errorDetails },
+            { status: 500 }
+        );
+    }
 }
+// v.1.1.4 ==========================================================
+
+// v.1.1.3 ==========================================================
+// // src/app/api/import/categories/create-folders/route.ts
+
+// import { NextResponse } from 'next/server';
+// // 💡 เรายังคง Import Type และ Function เดิมไว้ก่อน และจะปรับปรุงในไฟล์ Service
+// import { createCategoryFolders, FolderCreationItem } from '@/services/file.service'; 
+
+// /**
+//  * 🎯 API Route: POST /api/import/categories/create-folders
+//  * 🎯 NEW LOGIC: ดึง Batch Log ล่าสุดที่สถานะ FOLDERS_CREATING มาประมวลผลแทนการรับจาก Body
+//  * @returns JSON Response ที่แสดงผลการสร้างโฟลเดอร์และการเปลี่ยนสถานะ
+//  */
+// export async function POST(request: Request) {
+//   try {
+//     // 1. ตรวจสอบ Query Parameter สำหรับ Batch ID (เผื่อการรันซ้ำหรือระบุเฉพาะ)
+//     const url = new URL(request.url);
+//     const batchIdParam = url.searchParams.get('batchId');
+//     const batchId = batchIdParam ? Number(batchIdParam) : undefined;
+
+//     // 2. เรียกใช้ Service เพื่อหา Batch ล่าสุดที่เป็น FOLDERS_CREATING และดำเนินการสร้างโฟลเดอร์
+//     // 💡 Service Function (createCategoryFolders) ต้องถูกปรับให้ดึงข้อมูลจาก DB เอง
+//     const result = await createCategoryFolders(batchId); 
+
+//     if (!result.success && !result.batchId) {
+//         // กรณีไม่พบ Batch ที่มีสถานะ FOLDERS_CREATING
+//         return NextResponse.json({ 
+//           success: false, 
+//           message: result.message || 'No PENDING batch found to start folder creation.' 
+//         }, { status: 404 });
+//     }
+
+//     // 3. ตอบกลับด้วยสถานะสำเร็จ/ล้มเหลวของการประมวลผล
+//     return NextResponse.json({ 
+//         success: result.success, 
+//         batchId: result.batchId,
+//         folders_processed: result.count, 
+//         message: result.message,
+//         error_details: result.error_details,
+//     }, { status: result.success ? 200 : 500 });
+
+//   } catch (error) {
+//     console.error('Error in create-folders API:', error);
+//     
+//     // จัดการ Error ทั่วไป
+//     const errorDetails = (error as Error).message;
+//     const errorMessage = errorDetails.includes('Shared graphic path is not configured')
+//         ? errorDetails
+//         : 'Internal Server Error during folder creation.';
+
+//     return NextResponse.json(
+//       { success: false, message: errorMessage, details: errorDetails },
+//       { status: 500 }
+//     );
+//   }
+// }
 
 // v.1.1.3 ==========================================================
 

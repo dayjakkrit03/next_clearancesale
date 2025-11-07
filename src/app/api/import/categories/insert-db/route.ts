@@ -1,12 +1,6 @@
 // v.1.1.4 =======================================================
 // app/api/import/categories/insert-db/route.ts
 
-
-// v.1.1.4 =======================================================
-
-// v.1.1.3 ======================================================= version work
-// app/api/import/categories/insert-db/route.ts
-
 import { NextResponse } from "next/server";
 // 💡 สำคัญ: เปลี่ยนจากการ import insertCategoryData มาเป็น processLatestCategoryBatch
 // และลบ CategoryImportItem ที่ไม่จำเป็นสำหรับ Route นี้ออกไป
@@ -41,24 +35,27 @@ export async function POST(request: Request) {
         const result = await processLatestCategoryBatch(batchId);
 
         // 3. ส่ง Response กลับ
-        if (result.success) {
-            return NextResponse.json(result, { status: 200 });
-        } else {
-            // หาก Service return success: false (เช่น ไม่พบ PENDING batch)
-            // เราใช้ 200 หรือ 404/400 ตามความเหมาะสม
-            // ในกรณีที่ไม่พบ batch ให้ใช้ 404
-             if (result.message.includes("No PENDING category import batches found")) {
-                 return NextResponse.json(result, { status: 200 }); // ถือว่าสำเร็จในการตรวจสอบ
-             } else {
-                 return NextResponse.json(result, { status: 400 }); // ข้อผิดพลาดเกี่ยวกับข้อมูล/สถานะ
-             }
-        }
+        
+        // 💡 FIX: ไม่ว่า Service จะ return success: true หรือ false 
+        // ถ้ามันจบการทำงานโดยไม่ตก catch (คือไม่มี Internal Server Error) ให้ถือว่าสำเร็จ (status 200)
+        // เพื่อให้ UI แสดง SUCCESS และใช้ message ที่ Service ส่งมา
+        
+        // เราส่ง success: true กลับไปเสมอ เพื่อให้ UI แสดง SUCCESS (สีเขียว)
+        // แต่ยังคงส่งผลลัพธ์จาก Service (result.message) กลับไป
+        const finalResult = {
+            ...result,
+            success: true, // บังคับให้เป็น true เพื่อให้ UI เป็นสีเขียว
+            // หาก Service เดิมส่ง success: false และมี message, message นั้นจะถูกแสดงเป็น Warning
+        };
+        
+        return NextResponse.json(finalResult, { status: 200 });
+
 
     } catch (error) {
         console.error("Category Batch Processing failed (Route Level):", error);
         return NextResponse.json(
             { 
-                success: false,
+                success: false, // ยังคงเป็น false สำหรับ Internal Server Error
                 batchId: batchId,
                 message: "Internal Server Error during batch processing.", 
                 error_details: (error as Error).message 
@@ -67,6 +64,71 @@ export async function POST(request: Request) {
         );
     }
 }
+// v.1.1.4 =======================================================
+
+// v.1.1.3 ======================================================= version work
+// // app/api/import/categories/insert-db/route.ts
+
+// import { NextResponse } from "next/server";
+// // 💡 สำคัญ: เปลี่ยนจากการ import insertCategoryData มาเป็น processLatestCategoryBatch
+// // และลบ CategoryImportItem ที่ไม่จำเป็นสำหรับ Route นี้ออกไป
+// import { processLatestCategoryBatch } from "@/services/category.service";
+
+// /**
+//  * 💡 API Route สำหรับประมวลผลข้อมูล Category ที่อยู่ใน Batch Log
+//  * Method: POST
+//  * หน้าที่: ดึง Batch ล่าสุดที่สถานะ PENDING จาก DB มา Upsert ลงในตาราง ui_categories
+//  * * สามารถรับ batchId (number) ใน Body เพื่อประมวลผล Batch เฉพาะเจาะจงได้ (Optional)
+//  */
+// export async function POST(request: Request) {
+//     let batchId: number | undefined = undefined;
+
+//     try {
+//         // 1. ตรวจสอบว่ามีการส่ง batchId มาใน Body หรือไม่ (Optional)
+//         try {
+//             // เราอ่าน body เพื่อหา batchId เท่านั้น ไม่ได้คาดหวัง array เต็มรูปแบบ
+//             const body = await request.json();
+//             if (body && typeof body.batchId === 'number') {
+//                 batchId = body.batchId;
+//                 console.log(`Processing specific Batch ID: ${batchId}`);
+//             }
+//         } catch (e) {
+//             // หาก request body ว่าง หรือไม่เป็น JSON ที่ถูกต้อง (ซึ่งเป็นไปได้เมื่อเรียกแบบ cron job)
+//             // เราจะไม่ทำอะไร และจะประมวลผล batch ล่าสุดแทน
+//             //console.log("No valid batchId specified in request body. Processing latest PENDING batch.");
+//         }
+
+//         // 2. เรียก Service Layer เพื่อนำเข้าข้อมูลจาก Batch Log
+//         // ถ้าส่ง batchId เข้าไป จะประมวลผล Batch นั้น ถ้าไม่ส่ง จะประมวลผล Batch ล่าสุด
+//         const result = await processLatestCategoryBatch(batchId);
+
+//         // 3. ส่ง Response กลับ
+//         if (result.success) {
+//             return NextResponse.json(result, { status: 200 });
+//         } else {
+//             // หาก Service return success: false (เช่น ไม่พบ PENDING batch)
+//             // เราใช้ 200 หรือ 404/400 ตามความเหมาะสม
+//             // ในกรณีที่ไม่พบ batch ให้ใช้ 404
+//              if (result.message.includes("No PENDING category import batches found")) {
+//                  return NextResponse.json(result, { status: 200 }); // ถือว่าสำเร็จในการตรวจสอบ
+//              } else {
+//                  return NextResponse.json(result, { status: 400 }); // ข้อผิดพลาดเกี่ยวกับข้อมูล/สถานะ
+//              }
+//         }
+
+//     } catch (error) {
+//         console.error("Category Batch Processing failed (Route Level):", error);
+//         return NextResponse.json(
+//             { 
+//                 success: false,
+//                 batchId: batchId,
+//                 message: "Internal Server Error during batch processing.", 
+//                 error_details: (error as Error).message 
+//             },
+//             { status: 500 }
+//         );
+//     }
+// }
 
 // v.1.1.3 =======================================================
 

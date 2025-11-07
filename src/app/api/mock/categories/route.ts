@@ -1,12 +1,42 @@
-// v.1.1.6 ================================================
+// v.1.1.7 ================================================
 // src/app/api/mock/categories/route.ts
 
 import { NextResponse } from "next/server";
 import { getAll, getMeta, upsert } from "./_store";
 import { validateCategoryCreate } from "@/lib/validation/category";
+import { MainImage } from "@/components/category-grid"; // 💡 Import type ใหม่ที่ Frontend คาดหวัง
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+// 💡 สร้างฟังก์ชันสำหรับการ Map ข้อมูล Category เก่า ไปเป็นโครงสร้างใหม่
+// 💡 โดยการสมมติว่าถ้ามี image_url (Path โฟลเดอร์) จะต้องมีชื่อไฟล์ .webp ที่ match กันด้วย
+// 💡 ในโลกจริง ฟังก์ชันนี้คือการ JOIN ใน Query
+const mapCategoryToNewStructure = (item: any): Omit<typeof item, 'image_url'> & { main_image: MainImage | null } => {
+  // item.image_url คือ Path โฟลเดอร์ เช่น /uploads/categories/lan-utp
+  const imagePath = item.image_url; 
+  
+  let mainImage: MainImage | null = null;
+
+  if (imagePath && item.slug) {
+    // 💡 Logic การสร้างชื่อไฟล์ที่ Backend ควรทำหลังจาก JOIN
+    // 💡 ชื่อไฟล์ = [slug] + ".webp" (ตามตรรกะที่คุณใช้ในการประมวลผลรูปภาพ)
+    const imageName = `${item.slug}.webp`;
+    
+    mainImage = {
+        image_path: imagePath,
+        image_name: imageName,
+    };
+  }
+
+  // 🗑️ ลบ image_url เดิมออกเพื่อบังคับให้ Frontend ใช้ main_image เท่านั้น
+  const { image_url, image, ...rest } = item; 
+
+  return { 
+    ...rest, 
+    main_image: mainImage 
+  };
+};
 
 export async function GET() {
   const [items, meta] = await Promise.all([
@@ -14,8 +44,12 @@ export async function GET() {
     getMeta(),
   ]);
 
+  // 💡 ปรับปรุง: Mapping ข้อมูลเพื่อสร้างฟิลด์ main_image ตามที่ Frontend ต้องการ
+  // 💡 โดยอ้างอิงจาก slug (ชื่อไฟล์) และ image_url (Path) เดิม
+  const mappedItems = items.map(mapCategoryToNewStructure);
+
   return NextResponse.json(
-    { items, meta },
+    { items: mappedItems, meta }, // 💡 ส่ง mappedItems แทน items เดิม
     { headers: { "Cache-Control": "no-store" } }
   );
 }
@@ -44,6 +78,55 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
   }
 }
+
+// v.1.1.7 ================================================
+
+// v.1.1.6 ================================================
+// // src/app/api/mock/categories/route.ts
+
+// import { NextResponse } from "next/server";
+// import { getAll, getMeta, upsert } from "./_store";
+// import { validateCategoryCreate } from "@/lib/validation/category";
+
+// export const dynamic = "force-dynamic";
+// export const revalidate = 0;
+
+// export async function GET() {
+//   const [items, meta] = await Promise.all([
+//     getAll({ includeHidden: true }),
+//     getMeta(),
+//   ]);
+
+//   return NextResponse.json(
+//     { items, meta },
+//     { headers: { "Cache-Control": "no-store" } }
+//   );
+// }
+
+// export async function POST(req: Request) {
+//   try {
+//     const body = await req.json().catch(() => null);
+//     if (!body || typeof body !== "object") {
+//       return NextResponse.json({ error: "Bad payload" }, { status: 400 });
+//     }
+
+//     const result = validateCategoryCreate(body);
+//     if (!result.ok) {
+//       return NextResponse.json({ error: "Validation failed", errors: result.errors }, { status: 400 });
+//     }
+
+//     const payload = {
+//       ...body,
+//       ...result.data,
+//       visible: typeof body.visible === "boolean" ? body.visible : false,
+//     };
+
+//     const item = await upsert(payload); // ✅ await
+//     return NextResponse.json({ item }, { status: 201 });
+//   } catch {
+//     return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
+//   }
+// }
 
 // v.1.1.6 ================================================
 

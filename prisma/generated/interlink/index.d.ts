@@ -148,6 +148,16 @@ export type config_setting = $Result.DefaultSelection<Prisma.$config_settingPayl
  * This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
  */
 export type import_category_batches = $Result.DefaultSelection<Prisma.$import_category_batchesPayload>
+/**
+ * Model images_products
+ * This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+ */
+export type images_products = $Result.DefaultSelection<Prisma.$images_productsPayload>
+/**
+ * Model import_product_batches
+ * This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+ */
+export type import_product_batches = $Result.DefaultSelection<Prisma.$import_product_batchesPayload>
 
 /**
  * Enums
@@ -182,6 +192,18 @@ export const import_category_batches_status: {
 
 export type import_category_batches_status = (typeof import_category_batches_status)[keyof typeof import_category_batches_status]
 
+
+export const import_product_batches_status: {
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  COMPLETED: 'COMPLETED',
+  FOLDERS_CREATING: 'FOLDERS_CREATING',
+  IMAGES_COPYING: 'IMAGES_COPYING',
+  ERROR: 'ERROR'
+};
+
+export type import_product_batches_status = (typeof import_product_batches_status)[keyof typeof import_product_batches_status]
+
 }
 
 export type discount_rules_frame_mode = $Enums.discount_rules_frame_mode
@@ -195,6 +217,10 @@ export const discount_rules_frame_object_fit: typeof $Enums.discount_rules_frame
 export type import_category_batches_status = $Enums.import_category_batches_status
 
 export const import_category_batches_status: typeof $Enums.import_category_batches_status
+
+export type import_product_batches_status = $Enums.import_product_batches_status
+
+export const import_product_batches_status: typeof $Enums.import_product_batches_status
 
 /**
  * ##  Prisma Client ʲˢ
@@ -583,6 +609,26 @@ export class PrismaClient<
     * ```
     */
   get import_category_batches(): Prisma.import_category_batchesDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.images_products`: Exposes CRUD operations for the **images_products** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Images_products
+    * const images_products = await prisma.images_products.findMany()
+    * ```
+    */
+  get images_products(): Prisma.images_productsDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.import_product_batches`: Exposes CRUD operations for the **import_product_batches** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Import_product_batches
+    * const import_product_batches = await prisma.import_product_batches.findMany()
+    * ```
+    */
+  get import_product_batches(): Prisma.import_product_batchesDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1049,7 +1095,9 @@ export namespace Prisma {
     ui_categories_meta: 'ui_categories_meta',
     images_categories: 'images_categories',
     config_setting: 'config_setting',
-    import_category_batches: 'import_category_batches'
+    import_category_batches: 'import_category_batches',
+    images_products: 'images_products',
+    import_product_batches: 'import_product_batches'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1068,7 +1116,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "category" | "more_pictures" | "part" | "product" | "sub" | "category_clearance" | "discountpercentage_clearance_tb" | "discountpercentage_tb" | "more_pictures_clearance" | "more_pictures_test" | "part_clearance" | "producoptions_clearance_tb" | "producoptions_tb" | "product_clearance" | "product_test_upload" | "sub_clearance" | "discount_rules" | "discount_rules_meta" | "featured_list_items" | "featured_lists" | "products_clearance" | "products_meta" | "ui_categories" | "ui_categories_meta" | "images_categories" | "config_setting" | "import_category_batches"
+      modelProps: "category" | "more_pictures" | "part" | "product" | "sub" | "category_clearance" | "discountpercentage_clearance_tb" | "discountpercentage_tb" | "more_pictures_clearance" | "more_pictures_test" | "part_clearance" | "producoptions_clearance_tb" | "producoptions_tb" | "product_clearance" | "product_test_upload" | "sub_clearance" | "discount_rules" | "discount_rules_meta" | "featured_list_items" | "featured_lists" | "products_clearance" | "products_meta" | "ui_categories" | "ui_categories_meta" | "images_categories" | "config_setting" | "import_category_batches" | "images_products" | "import_product_batches"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2854,6 +2902,138 @@ export namespace Prisma {
           }
         }
       }
+      images_products: {
+        payload: Prisma.$images_productsPayload<ExtArgs>
+        fields: Prisma.images_productsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.images_productsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$images_productsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.images_productsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$images_productsPayload>
+          }
+          findFirst: {
+            args: Prisma.images_productsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$images_productsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.images_productsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$images_productsPayload>
+          }
+          findMany: {
+            args: Prisma.images_productsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$images_productsPayload>[]
+          }
+          create: {
+            args: Prisma.images_productsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$images_productsPayload>
+          }
+          createMany: {
+            args: Prisma.images_productsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.images_productsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$images_productsPayload>
+          }
+          update: {
+            args: Prisma.images_productsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$images_productsPayload>
+          }
+          deleteMany: {
+            args: Prisma.images_productsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.images_productsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.images_productsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$images_productsPayload>
+          }
+          aggregate: {
+            args: Prisma.Images_productsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateImages_products>
+          }
+          groupBy: {
+            args: Prisma.images_productsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Images_productsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.images_productsCountArgs<ExtArgs>
+            result: $Utils.Optional<Images_productsCountAggregateOutputType> | number
+          }
+        }
+      }
+      import_product_batches: {
+        payload: Prisma.$import_product_batchesPayload<ExtArgs>
+        fields: Prisma.import_product_batchesFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.import_product_batchesFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$import_product_batchesPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.import_product_batchesFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$import_product_batchesPayload>
+          }
+          findFirst: {
+            args: Prisma.import_product_batchesFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$import_product_batchesPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.import_product_batchesFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$import_product_batchesPayload>
+          }
+          findMany: {
+            args: Prisma.import_product_batchesFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$import_product_batchesPayload>[]
+          }
+          create: {
+            args: Prisma.import_product_batchesCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$import_product_batchesPayload>
+          }
+          createMany: {
+            args: Prisma.import_product_batchesCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.import_product_batchesDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$import_product_batchesPayload>
+          }
+          update: {
+            args: Prisma.import_product_batchesUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$import_product_batchesPayload>
+          }
+          deleteMany: {
+            args: Prisma.import_product_batchesDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.import_product_batchesUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.import_product_batchesUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$import_product_batchesPayload>
+          }
+          aggregate: {
+            args: Prisma.Import_product_batchesAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateImport_product_batches>
+          }
+          groupBy: {
+            args: Prisma.import_product_batchesGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Import_product_batchesGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.import_product_batchesCountArgs<ExtArgs>
+            result: $Utils.Optional<Import_product_batchesCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -2977,6 +3157,8 @@ export namespace Prisma {
     images_categories?: images_categoriesOmit
     config_setting?: config_settingOmit
     import_category_batches?: import_category_batchesOmit
+    images_products?: images_productsOmit
+    import_product_batches?: import_product_batchesOmit
   }
 
   /* Types for Logging */
@@ -6577,6 +6759,7 @@ export namespace Prisma {
       updated_at: Date
       product_uom: string | null
       /**
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
@@ -16463,6 +16646,7 @@ export namespace Prisma {
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        */
       clearanceSales: boolean | null
       clearanceQuantity: number | null
@@ -17683,6 +17867,7 @@ export namespace Prisma {
       updated_at: Date
       product_uom: string | null
       /**
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
@@ -23940,6 +24125,8 @@ export namespace Prisma {
       visible: boolean
       display_order: number
       /**
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
@@ -30444,6 +30631,1883 @@ export namespace Prisma {
 
 
   /**
+   * Model images_products
+   */
+
+  export type AggregateImages_products = {
+    _count: Images_productsCountAggregateOutputType | null
+    _avg: Images_productsAvgAggregateOutputType | null
+    _sum: Images_productsSumAggregateOutputType | null
+    _min: Images_productsMinAggregateOutputType | null
+    _max: Images_productsMaxAggregateOutputType | null
+  }
+
+  export type Images_productsAvgAggregateOutputType = {
+    id: number | null
+    product_id: number | null
+    display_order: number | null
+  }
+
+  export type Images_productsSumAggregateOutputType = {
+    id: bigint | null
+    product_id: bigint | null
+    display_order: number | null
+  }
+
+  export type Images_productsMinAggregateOutputType = {
+    id: bigint | null
+    product_id: bigint | null
+    image_name: string | null
+    display_order: number | null
+    visible: boolean | null
+  }
+
+  export type Images_productsMaxAggregateOutputType = {
+    id: bigint | null
+    product_id: bigint | null
+    image_name: string | null
+    display_order: number | null
+    visible: boolean | null
+  }
+
+  export type Images_productsCountAggregateOutputType = {
+    id: number
+    product_id: number
+    image_name: number
+    display_order: number
+    visible: number
+    _all: number
+  }
+
+
+  export type Images_productsAvgAggregateInputType = {
+    id?: true
+    product_id?: true
+    display_order?: true
+  }
+
+  export type Images_productsSumAggregateInputType = {
+    id?: true
+    product_id?: true
+    display_order?: true
+  }
+
+  export type Images_productsMinAggregateInputType = {
+    id?: true
+    product_id?: true
+    image_name?: true
+    display_order?: true
+    visible?: true
+  }
+
+  export type Images_productsMaxAggregateInputType = {
+    id?: true
+    product_id?: true
+    image_name?: true
+    display_order?: true
+    visible?: true
+  }
+
+  export type Images_productsCountAggregateInputType = {
+    id?: true
+    product_id?: true
+    image_name?: true
+    display_order?: true
+    visible?: true
+    _all?: true
+  }
+
+  export type Images_productsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which images_products to aggregate.
+     */
+    where?: images_productsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of images_products to fetch.
+     */
+    orderBy?: images_productsOrderByWithRelationInput | images_productsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: images_productsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` images_products from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` images_products.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned images_products
+    **/
+    _count?: true | Images_productsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Images_productsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Images_productsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Images_productsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Images_productsMaxAggregateInputType
+  }
+
+  export type GetImages_productsAggregateType<T extends Images_productsAggregateArgs> = {
+        [P in keyof T & keyof AggregateImages_products]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateImages_products[P]>
+      : GetScalarType<T[P], AggregateImages_products[P]>
+  }
+
+
+
+
+  export type images_productsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: images_productsWhereInput
+    orderBy?: images_productsOrderByWithAggregationInput | images_productsOrderByWithAggregationInput[]
+    by: Images_productsScalarFieldEnum[] | Images_productsScalarFieldEnum
+    having?: images_productsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Images_productsCountAggregateInputType | true
+    _avg?: Images_productsAvgAggregateInputType
+    _sum?: Images_productsSumAggregateInputType
+    _min?: Images_productsMinAggregateInputType
+    _max?: Images_productsMaxAggregateInputType
+  }
+
+  export type Images_productsGroupByOutputType = {
+    id: bigint
+    product_id: bigint
+    image_name: string
+    display_order: number
+    visible: boolean
+    _count: Images_productsCountAggregateOutputType | null
+    _avg: Images_productsAvgAggregateOutputType | null
+    _sum: Images_productsSumAggregateOutputType | null
+    _min: Images_productsMinAggregateOutputType | null
+    _max: Images_productsMaxAggregateOutputType | null
+  }
+
+  type GetImages_productsGroupByPayload<T extends images_productsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Images_productsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Images_productsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Images_productsGroupByOutputType[P]>
+            : GetScalarType<T[P], Images_productsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type images_productsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    product_id?: boolean
+    image_name?: boolean
+    display_order?: boolean
+    visible?: boolean
+  }, ExtArgs["result"]["images_products"]>
+
+
+
+  export type images_productsSelectScalar = {
+    id?: boolean
+    product_id?: boolean
+    image_name?: boolean
+    display_order?: boolean
+    visible?: boolean
+  }
+
+  export type images_productsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "product_id" | "image_name" | "display_order" | "visible", ExtArgs["result"]["images_products"]>
+
+  export type $images_productsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "images_products"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: bigint
+      product_id: bigint
+      image_name: string
+      display_order: number
+      visible: boolean
+    }, ExtArgs["result"]["images_products"]>
+    composites: {}
+  }
+
+  type images_productsGetPayload<S extends boolean | null | undefined | images_productsDefaultArgs> = $Result.GetResult<Prisma.$images_productsPayload, S>
+
+  type images_productsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<images_productsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Images_productsCountAggregateInputType | true
+    }
+
+  export interface images_productsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['images_products'], meta: { name: 'images_products' } }
+    /**
+     * Find zero or one Images_products that matches the filter.
+     * @param {images_productsFindUniqueArgs} args - Arguments to find a Images_products
+     * @example
+     * // Get one Images_products
+     * const images_products = await prisma.images_products.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends images_productsFindUniqueArgs>(args: SelectSubset<T, images_productsFindUniqueArgs<ExtArgs>>): Prisma__images_productsClient<$Result.GetResult<Prisma.$images_productsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Images_products that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {images_productsFindUniqueOrThrowArgs} args - Arguments to find a Images_products
+     * @example
+     * // Get one Images_products
+     * const images_products = await prisma.images_products.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends images_productsFindUniqueOrThrowArgs>(args: SelectSubset<T, images_productsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__images_productsClient<$Result.GetResult<Prisma.$images_productsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Images_products that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {images_productsFindFirstArgs} args - Arguments to find a Images_products
+     * @example
+     * // Get one Images_products
+     * const images_products = await prisma.images_products.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends images_productsFindFirstArgs>(args?: SelectSubset<T, images_productsFindFirstArgs<ExtArgs>>): Prisma__images_productsClient<$Result.GetResult<Prisma.$images_productsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Images_products that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {images_productsFindFirstOrThrowArgs} args - Arguments to find a Images_products
+     * @example
+     * // Get one Images_products
+     * const images_products = await prisma.images_products.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends images_productsFindFirstOrThrowArgs>(args?: SelectSubset<T, images_productsFindFirstOrThrowArgs<ExtArgs>>): Prisma__images_productsClient<$Result.GetResult<Prisma.$images_productsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Images_products that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {images_productsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Images_products
+     * const images_products = await prisma.images_products.findMany()
+     * 
+     * // Get first 10 Images_products
+     * const images_products = await prisma.images_products.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const images_productsWithIdOnly = await prisma.images_products.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends images_productsFindManyArgs>(args?: SelectSubset<T, images_productsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$images_productsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Images_products.
+     * @param {images_productsCreateArgs} args - Arguments to create a Images_products.
+     * @example
+     * // Create one Images_products
+     * const Images_products = await prisma.images_products.create({
+     *   data: {
+     *     // ... data to create a Images_products
+     *   }
+     * })
+     * 
+     */
+    create<T extends images_productsCreateArgs>(args: SelectSubset<T, images_productsCreateArgs<ExtArgs>>): Prisma__images_productsClient<$Result.GetResult<Prisma.$images_productsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Images_products.
+     * @param {images_productsCreateManyArgs} args - Arguments to create many Images_products.
+     * @example
+     * // Create many Images_products
+     * const images_products = await prisma.images_products.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends images_productsCreateManyArgs>(args?: SelectSubset<T, images_productsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a Images_products.
+     * @param {images_productsDeleteArgs} args - Arguments to delete one Images_products.
+     * @example
+     * // Delete one Images_products
+     * const Images_products = await prisma.images_products.delete({
+     *   where: {
+     *     // ... filter to delete one Images_products
+     *   }
+     * })
+     * 
+     */
+    delete<T extends images_productsDeleteArgs>(args: SelectSubset<T, images_productsDeleteArgs<ExtArgs>>): Prisma__images_productsClient<$Result.GetResult<Prisma.$images_productsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Images_products.
+     * @param {images_productsUpdateArgs} args - Arguments to update one Images_products.
+     * @example
+     * // Update one Images_products
+     * const images_products = await prisma.images_products.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends images_productsUpdateArgs>(args: SelectSubset<T, images_productsUpdateArgs<ExtArgs>>): Prisma__images_productsClient<$Result.GetResult<Prisma.$images_productsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Images_products.
+     * @param {images_productsDeleteManyArgs} args - Arguments to filter Images_products to delete.
+     * @example
+     * // Delete a few Images_products
+     * const { count } = await prisma.images_products.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends images_productsDeleteManyArgs>(args?: SelectSubset<T, images_productsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Images_products.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {images_productsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Images_products
+     * const images_products = await prisma.images_products.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends images_productsUpdateManyArgs>(args: SelectSubset<T, images_productsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Images_products.
+     * @param {images_productsUpsertArgs} args - Arguments to update or create a Images_products.
+     * @example
+     * // Update or create a Images_products
+     * const images_products = await prisma.images_products.upsert({
+     *   create: {
+     *     // ... data to create a Images_products
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Images_products we want to update
+     *   }
+     * })
+     */
+    upsert<T extends images_productsUpsertArgs>(args: SelectSubset<T, images_productsUpsertArgs<ExtArgs>>): Prisma__images_productsClient<$Result.GetResult<Prisma.$images_productsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Images_products.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {images_productsCountArgs} args - Arguments to filter Images_products to count.
+     * @example
+     * // Count the number of Images_products
+     * const count = await prisma.images_products.count({
+     *   where: {
+     *     // ... the filter for the Images_products we want to count
+     *   }
+     * })
+    **/
+    count<T extends images_productsCountArgs>(
+      args?: Subset<T, images_productsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Images_productsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Images_products.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Images_productsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Images_productsAggregateArgs>(args: Subset<T, Images_productsAggregateArgs>): Prisma.PrismaPromise<GetImages_productsAggregateType<T>>
+
+    /**
+     * Group by Images_products.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {images_productsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends images_productsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: images_productsGroupByArgs['orderBy'] }
+        : { orderBy?: images_productsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, images_productsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetImages_productsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the images_products model
+   */
+  readonly fields: images_productsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for images_products.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__images_productsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the images_products model
+   */
+  interface images_productsFieldRefs {
+    readonly id: FieldRef<"images_products", 'BigInt'>
+    readonly product_id: FieldRef<"images_products", 'BigInt'>
+    readonly image_name: FieldRef<"images_products", 'String'>
+    readonly display_order: FieldRef<"images_products", 'Int'>
+    readonly visible: FieldRef<"images_products", 'Boolean'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * images_products findUnique
+   */
+  export type images_productsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the images_products
+     */
+    select?: images_productsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the images_products
+     */
+    omit?: images_productsOmit<ExtArgs> | null
+    /**
+     * Filter, which images_products to fetch.
+     */
+    where: images_productsWhereUniqueInput
+  }
+
+  /**
+   * images_products findUniqueOrThrow
+   */
+  export type images_productsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the images_products
+     */
+    select?: images_productsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the images_products
+     */
+    omit?: images_productsOmit<ExtArgs> | null
+    /**
+     * Filter, which images_products to fetch.
+     */
+    where: images_productsWhereUniqueInput
+  }
+
+  /**
+   * images_products findFirst
+   */
+  export type images_productsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the images_products
+     */
+    select?: images_productsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the images_products
+     */
+    omit?: images_productsOmit<ExtArgs> | null
+    /**
+     * Filter, which images_products to fetch.
+     */
+    where?: images_productsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of images_products to fetch.
+     */
+    orderBy?: images_productsOrderByWithRelationInput | images_productsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for images_products.
+     */
+    cursor?: images_productsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` images_products from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` images_products.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of images_products.
+     */
+    distinct?: Images_productsScalarFieldEnum | Images_productsScalarFieldEnum[]
+  }
+
+  /**
+   * images_products findFirstOrThrow
+   */
+  export type images_productsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the images_products
+     */
+    select?: images_productsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the images_products
+     */
+    omit?: images_productsOmit<ExtArgs> | null
+    /**
+     * Filter, which images_products to fetch.
+     */
+    where?: images_productsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of images_products to fetch.
+     */
+    orderBy?: images_productsOrderByWithRelationInput | images_productsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for images_products.
+     */
+    cursor?: images_productsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` images_products from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` images_products.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of images_products.
+     */
+    distinct?: Images_productsScalarFieldEnum | Images_productsScalarFieldEnum[]
+  }
+
+  /**
+   * images_products findMany
+   */
+  export type images_productsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the images_products
+     */
+    select?: images_productsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the images_products
+     */
+    omit?: images_productsOmit<ExtArgs> | null
+    /**
+     * Filter, which images_products to fetch.
+     */
+    where?: images_productsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of images_products to fetch.
+     */
+    orderBy?: images_productsOrderByWithRelationInput | images_productsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing images_products.
+     */
+    cursor?: images_productsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` images_products from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` images_products.
+     */
+    skip?: number
+    distinct?: Images_productsScalarFieldEnum | Images_productsScalarFieldEnum[]
+  }
+
+  /**
+   * images_products create
+   */
+  export type images_productsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the images_products
+     */
+    select?: images_productsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the images_products
+     */
+    omit?: images_productsOmit<ExtArgs> | null
+    /**
+     * The data needed to create a images_products.
+     */
+    data: XOR<images_productsCreateInput, images_productsUncheckedCreateInput>
+  }
+
+  /**
+   * images_products createMany
+   */
+  export type images_productsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many images_products.
+     */
+    data: images_productsCreateManyInput | images_productsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * images_products update
+   */
+  export type images_productsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the images_products
+     */
+    select?: images_productsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the images_products
+     */
+    omit?: images_productsOmit<ExtArgs> | null
+    /**
+     * The data needed to update a images_products.
+     */
+    data: XOR<images_productsUpdateInput, images_productsUncheckedUpdateInput>
+    /**
+     * Choose, which images_products to update.
+     */
+    where: images_productsWhereUniqueInput
+  }
+
+  /**
+   * images_products updateMany
+   */
+  export type images_productsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update images_products.
+     */
+    data: XOR<images_productsUpdateManyMutationInput, images_productsUncheckedUpdateManyInput>
+    /**
+     * Filter which images_products to update
+     */
+    where?: images_productsWhereInput
+    /**
+     * Limit how many images_products to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * images_products upsert
+   */
+  export type images_productsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the images_products
+     */
+    select?: images_productsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the images_products
+     */
+    omit?: images_productsOmit<ExtArgs> | null
+    /**
+     * The filter to search for the images_products to update in case it exists.
+     */
+    where: images_productsWhereUniqueInput
+    /**
+     * In case the images_products found by the `where` argument doesn't exist, create a new images_products with this data.
+     */
+    create: XOR<images_productsCreateInput, images_productsUncheckedCreateInput>
+    /**
+     * In case the images_products was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<images_productsUpdateInput, images_productsUncheckedUpdateInput>
+  }
+
+  /**
+   * images_products delete
+   */
+  export type images_productsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the images_products
+     */
+    select?: images_productsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the images_products
+     */
+    omit?: images_productsOmit<ExtArgs> | null
+    /**
+     * Filter which images_products to delete.
+     */
+    where: images_productsWhereUniqueInput
+  }
+
+  /**
+   * images_products deleteMany
+   */
+  export type images_productsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which images_products to delete
+     */
+    where?: images_productsWhereInput
+    /**
+     * Limit how many images_products to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * images_products without action
+   */
+  export type images_productsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the images_products
+     */
+    select?: images_productsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the images_products
+     */
+    omit?: images_productsOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model import_product_batches
+   */
+
+  export type AggregateImport_product_batches = {
+    _count: Import_product_batchesCountAggregateOutputType | null
+    _avg: Import_product_batchesAvgAggregateOutputType | null
+    _sum: Import_product_batchesSumAggregateOutputType | null
+    _min: Import_product_batchesMinAggregateOutputType | null
+    _max: Import_product_batchesMaxAggregateOutputType | null
+  }
+
+  export type Import_product_batchesAvgAggregateOutputType = {
+    id: number | null
+    total_records: number | null
+  }
+
+  export type Import_product_batchesSumAggregateOutputType = {
+    id: bigint | null
+    total_records: number | null
+  }
+
+  export type Import_product_batchesMinAggregateOutputType = {
+    id: bigint | null
+    product_data: string | null
+    source_filename: string | null
+    total_records: number | null
+    status: $Enums.import_product_batches_status | null
+    created_at: Date | null
+    processed_at: Date | null
+    error_details: string | null
+  }
+
+  export type Import_product_batchesMaxAggregateOutputType = {
+    id: bigint | null
+    product_data: string | null
+    source_filename: string | null
+    total_records: number | null
+    status: $Enums.import_product_batches_status | null
+    created_at: Date | null
+    processed_at: Date | null
+    error_details: string | null
+  }
+
+  export type Import_product_batchesCountAggregateOutputType = {
+    id: number
+    product_data: number
+    source_filename: number
+    total_records: number
+    status: number
+    created_at: number
+    processed_at: number
+    error_details: number
+    _all: number
+  }
+
+
+  export type Import_product_batchesAvgAggregateInputType = {
+    id?: true
+    total_records?: true
+  }
+
+  export type Import_product_batchesSumAggregateInputType = {
+    id?: true
+    total_records?: true
+  }
+
+  export type Import_product_batchesMinAggregateInputType = {
+    id?: true
+    product_data?: true
+    source_filename?: true
+    total_records?: true
+    status?: true
+    created_at?: true
+    processed_at?: true
+    error_details?: true
+  }
+
+  export type Import_product_batchesMaxAggregateInputType = {
+    id?: true
+    product_data?: true
+    source_filename?: true
+    total_records?: true
+    status?: true
+    created_at?: true
+    processed_at?: true
+    error_details?: true
+  }
+
+  export type Import_product_batchesCountAggregateInputType = {
+    id?: true
+    product_data?: true
+    source_filename?: true
+    total_records?: true
+    status?: true
+    created_at?: true
+    processed_at?: true
+    error_details?: true
+    _all?: true
+  }
+
+  export type Import_product_batchesAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which import_product_batches to aggregate.
+     */
+    where?: import_product_batchesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of import_product_batches to fetch.
+     */
+    orderBy?: import_product_batchesOrderByWithRelationInput | import_product_batchesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: import_product_batchesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` import_product_batches from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` import_product_batches.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned import_product_batches
+    **/
+    _count?: true | Import_product_batchesCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Import_product_batchesAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Import_product_batchesSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Import_product_batchesMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Import_product_batchesMaxAggregateInputType
+  }
+
+  export type GetImport_product_batchesAggregateType<T extends Import_product_batchesAggregateArgs> = {
+        [P in keyof T & keyof AggregateImport_product_batches]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateImport_product_batches[P]>
+      : GetScalarType<T[P], AggregateImport_product_batches[P]>
+  }
+
+
+
+
+  export type import_product_batchesGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: import_product_batchesWhereInput
+    orderBy?: import_product_batchesOrderByWithAggregationInput | import_product_batchesOrderByWithAggregationInput[]
+    by: Import_product_batchesScalarFieldEnum[] | Import_product_batchesScalarFieldEnum
+    having?: import_product_batchesScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Import_product_batchesCountAggregateInputType | true
+    _avg?: Import_product_batchesAvgAggregateInputType
+    _sum?: Import_product_batchesSumAggregateInputType
+    _min?: Import_product_batchesMinAggregateInputType
+    _max?: Import_product_batchesMaxAggregateInputType
+  }
+
+  export type Import_product_batchesGroupByOutputType = {
+    id: bigint
+    product_data: string | null
+    source_filename: string
+    total_records: number
+    status: $Enums.import_product_batches_status
+    created_at: Date
+    processed_at: Date | null
+    error_details: string | null
+    _count: Import_product_batchesCountAggregateOutputType | null
+    _avg: Import_product_batchesAvgAggregateOutputType | null
+    _sum: Import_product_batchesSumAggregateOutputType | null
+    _min: Import_product_batchesMinAggregateOutputType | null
+    _max: Import_product_batchesMaxAggregateOutputType | null
+  }
+
+  type GetImport_product_batchesGroupByPayload<T extends import_product_batchesGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Import_product_batchesGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Import_product_batchesGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Import_product_batchesGroupByOutputType[P]>
+            : GetScalarType<T[P], Import_product_batchesGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type import_product_batchesSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    product_data?: boolean
+    source_filename?: boolean
+    total_records?: boolean
+    status?: boolean
+    created_at?: boolean
+    processed_at?: boolean
+    error_details?: boolean
+  }, ExtArgs["result"]["import_product_batches"]>
+
+
+
+  export type import_product_batchesSelectScalar = {
+    id?: boolean
+    product_data?: boolean
+    source_filename?: boolean
+    total_records?: boolean
+    status?: boolean
+    created_at?: boolean
+    processed_at?: boolean
+    error_details?: boolean
+  }
+
+  export type import_product_batchesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "product_data" | "source_filename" | "total_records" | "status" | "created_at" | "processed_at" | "error_details", ExtArgs["result"]["import_product_batches"]>
+
+  export type $import_product_batchesPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "import_product_batches"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: bigint
+      product_data: string | null
+      source_filename: string
+      total_records: number
+      status: $Enums.import_product_batches_status
+      created_at: Date
+      processed_at: Date | null
+      error_details: string | null
+    }, ExtArgs["result"]["import_product_batches"]>
+    composites: {}
+  }
+
+  type import_product_batchesGetPayload<S extends boolean | null | undefined | import_product_batchesDefaultArgs> = $Result.GetResult<Prisma.$import_product_batchesPayload, S>
+
+  type import_product_batchesCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<import_product_batchesFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Import_product_batchesCountAggregateInputType | true
+    }
+
+  export interface import_product_batchesDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['import_product_batches'], meta: { name: 'import_product_batches' } }
+    /**
+     * Find zero or one Import_product_batches that matches the filter.
+     * @param {import_product_batchesFindUniqueArgs} args - Arguments to find a Import_product_batches
+     * @example
+     * // Get one Import_product_batches
+     * const import_product_batches = await prisma.import_product_batches.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends import_product_batchesFindUniqueArgs>(args: SelectSubset<T, import_product_batchesFindUniqueArgs<ExtArgs>>): Prisma__import_product_batchesClient<$Result.GetResult<Prisma.$import_product_batchesPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Import_product_batches that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {import_product_batchesFindUniqueOrThrowArgs} args - Arguments to find a Import_product_batches
+     * @example
+     * // Get one Import_product_batches
+     * const import_product_batches = await prisma.import_product_batches.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends import_product_batchesFindUniqueOrThrowArgs>(args: SelectSubset<T, import_product_batchesFindUniqueOrThrowArgs<ExtArgs>>): Prisma__import_product_batchesClient<$Result.GetResult<Prisma.$import_product_batchesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Import_product_batches that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {import_product_batchesFindFirstArgs} args - Arguments to find a Import_product_batches
+     * @example
+     * // Get one Import_product_batches
+     * const import_product_batches = await prisma.import_product_batches.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends import_product_batchesFindFirstArgs>(args?: SelectSubset<T, import_product_batchesFindFirstArgs<ExtArgs>>): Prisma__import_product_batchesClient<$Result.GetResult<Prisma.$import_product_batchesPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Import_product_batches that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {import_product_batchesFindFirstOrThrowArgs} args - Arguments to find a Import_product_batches
+     * @example
+     * // Get one Import_product_batches
+     * const import_product_batches = await prisma.import_product_batches.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends import_product_batchesFindFirstOrThrowArgs>(args?: SelectSubset<T, import_product_batchesFindFirstOrThrowArgs<ExtArgs>>): Prisma__import_product_batchesClient<$Result.GetResult<Prisma.$import_product_batchesPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Import_product_batches that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {import_product_batchesFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Import_product_batches
+     * const import_product_batches = await prisma.import_product_batches.findMany()
+     * 
+     * // Get first 10 Import_product_batches
+     * const import_product_batches = await prisma.import_product_batches.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const import_product_batchesWithIdOnly = await prisma.import_product_batches.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends import_product_batchesFindManyArgs>(args?: SelectSubset<T, import_product_batchesFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$import_product_batchesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Import_product_batches.
+     * @param {import_product_batchesCreateArgs} args - Arguments to create a Import_product_batches.
+     * @example
+     * // Create one Import_product_batches
+     * const Import_product_batches = await prisma.import_product_batches.create({
+     *   data: {
+     *     // ... data to create a Import_product_batches
+     *   }
+     * })
+     * 
+     */
+    create<T extends import_product_batchesCreateArgs>(args: SelectSubset<T, import_product_batchesCreateArgs<ExtArgs>>): Prisma__import_product_batchesClient<$Result.GetResult<Prisma.$import_product_batchesPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Import_product_batches.
+     * @param {import_product_batchesCreateManyArgs} args - Arguments to create many Import_product_batches.
+     * @example
+     * // Create many Import_product_batches
+     * const import_product_batches = await prisma.import_product_batches.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends import_product_batchesCreateManyArgs>(args?: SelectSubset<T, import_product_batchesCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a Import_product_batches.
+     * @param {import_product_batchesDeleteArgs} args - Arguments to delete one Import_product_batches.
+     * @example
+     * // Delete one Import_product_batches
+     * const Import_product_batches = await prisma.import_product_batches.delete({
+     *   where: {
+     *     // ... filter to delete one Import_product_batches
+     *   }
+     * })
+     * 
+     */
+    delete<T extends import_product_batchesDeleteArgs>(args: SelectSubset<T, import_product_batchesDeleteArgs<ExtArgs>>): Prisma__import_product_batchesClient<$Result.GetResult<Prisma.$import_product_batchesPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Import_product_batches.
+     * @param {import_product_batchesUpdateArgs} args - Arguments to update one Import_product_batches.
+     * @example
+     * // Update one Import_product_batches
+     * const import_product_batches = await prisma.import_product_batches.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends import_product_batchesUpdateArgs>(args: SelectSubset<T, import_product_batchesUpdateArgs<ExtArgs>>): Prisma__import_product_batchesClient<$Result.GetResult<Prisma.$import_product_batchesPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Import_product_batches.
+     * @param {import_product_batchesDeleteManyArgs} args - Arguments to filter Import_product_batches to delete.
+     * @example
+     * // Delete a few Import_product_batches
+     * const { count } = await prisma.import_product_batches.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends import_product_batchesDeleteManyArgs>(args?: SelectSubset<T, import_product_batchesDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Import_product_batches.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {import_product_batchesUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Import_product_batches
+     * const import_product_batches = await prisma.import_product_batches.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends import_product_batchesUpdateManyArgs>(args: SelectSubset<T, import_product_batchesUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Import_product_batches.
+     * @param {import_product_batchesUpsertArgs} args - Arguments to update or create a Import_product_batches.
+     * @example
+     * // Update or create a Import_product_batches
+     * const import_product_batches = await prisma.import_product_batches.upsert({
+     *   create: {
+     *     // ... data to create a Import_product_batches
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Import_product_batches we want to update
+     *   }
+     * })
+     */
+    upsert<T extends import_product_batchesUpsertArgs>(args: SelectSubset<T, import_product_batchesUpsertArgs<ExtArgs>>): Prisma__import_product_batchesClient<$Result.GetResult<Prisma.$import_product_batchesPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Import_product_batches.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {import_product_batchesCountArgs} args - Arguments to filter Import_product_batches to count.
+     * @example
+     * // Count the number of Import_product_batches
+     * const count = await prisma.import_product_batches.count({
+     *   where: {
+     *     // ... the filter for the Import_product_batches we want to count
+     *   }
+     * })
+    **/
+    count<T extends import_product_batchesCountArgs>(
+      args?: Subset<T, import_product_batchesCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Import_product_batchesCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Import_product_batches.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Import_product_batchesAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Import_product_batchesAggregateArgs>(args: Subset<T, Import_product_batchesAggregateArgs>): Prisma.PrismaPromise<GetImport_product_batchesAggregateType<T>>
+
+    /**
+     * Group by Import_product_batches.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {import_product_batchesGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends import_product_batchesGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: import_product_batchesGroupByArgs['orderBy'] }
+        : { orderBy?: import_product_batchesGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, import_product_batchesGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetImport_product_batchesGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the import_product_batches model
+   */
+  readonly fields: import_product_batchesFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for import_product_batches.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__import_product_batchesClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the import_product_batches model
+   */
+  interface import_product_batchesFieldRefs {
+    readonly id: FieldRef<"import_product_batches", 'BigInt'>
+    readonly product_data: FieldRef<"import_product_batches", 'String'>
+    readonly source_filename: FieldRef<"import_product_batches", 'String'>
+    readonly total_records: FieldRef<"import_product_batches", 'Int'>
+    readonly status: FieldRef<"import_product_batches", 'import_product_batches_status'>
+    readonly created_at: FieldRef<"import_product_batches", 'DateTime'>
+    readonly processed_at: FieldRef<"import_product_batches", 'DateTime'>
+    readonly error_details: FieldRef<"import_product_batches", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * import_product_batches findUnique
+   */
+  export type import_product_batchesFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the import_product_batches
+     */
+    select?: import_product_batchesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the import_product_batches
+     */
+    omit?: import_product_batchesOmit<ExtArgs> | null
+    /**
+     * Filter, which import_product_batches to fetch.
+     */
+    where: import_product_batchesWhereUniqueInput
+  }
+
+  /**
+   * import_product_batches findUniqueOrThrow
+   */
+  export type import_product_batchesFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the import_product_batches
+     */
+    select?: import_product_batchesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the import_product_batches
+     */
+    omit?: import_product_batchesOmit<ExtArgs> | null
+    /**
+     * Filter, which import_product_batches to fetch.
+     */
+    where: import_product_batchesWhereUniqueInput
+  }
+
+  /**
+   * import_product_batches findFirst
+   */
+  export type import_product_batchesFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the import_product_batches
+     */
+    select?: import_product_batchesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the import_product_batches
+     */
+    omit?: import_product_batchesOmit<ExtArgs> | null
+    /**
+     * Filter, which import_product_batches to fetch.
+     */
+    where?: import_product_batchesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of import_product_batches to fetch.
+     */
+    orderBy?: import_product_batchesOrderByWithRelationInput | import_product_batchesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for import_product_batches.
+     */
+    cursor?: import_product_batchesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` import_product_batches from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` import_product_batches.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of import_product_batches.
+     */
+    distinct?: Import_product_batchesScalarFieldEnum | Import_product_batchesScalarFieldEnum[]
+  }
+
+  /**
+   * import_product_batches findFirstOrThrow
+   */
+  export type import_product_batchesFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the import_product_batches
+     */
+    select?: import_product_batchesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the import_product_batches
+     */
+    omit?: import_product_batchesOmit<ExtArgs> | null
+    /**
+     * Filter, which import_product_batches to fetch.
+     */
+    where?: import_product_batchesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of import_product_batches to fetch.
+     */
+    orderBy?: import_product_batchesOrderByWithRelationInput | import_product_batchesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for import_product_batches.
+     */
+    cursor?: import_product_batchesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` import_product_batches from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` import_product_batches.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of import_product_batches.
+     */
+    distinct?: Import_product_batchesScalarFieldEnum | Import_product_batchesScalarFieldEnum[]
+  }
+
+  /**
+   * import_product_batches findMany
+   */
+  export type import_product_batchesFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the import_product_batches
+     */
+    select?: import_product_batchesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the import_product_batches
+     */
+    omit?: import_product_batchesOmit<ExtArgs> | null
+    /**
+     * Filter, which import_product_batches to fetch.
+     */
+    where?: import_product_batchesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of import_product_batches to fetch.
+     */
+    orderBy?: import_product_batchesOrderByWithRelationInput | import_product_batchesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing import_product_batches.
+     */
+    cursor?: import_product_batchesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` import_product_batches from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` import_product_batches.
+     */
+    skip?: number
+    distinct?: Import_product_batchesScalarFieldEnum | Import_product_batchesScalarFieldEnum[]
+  }
+
+  /**
+   * import_product_batches create
+   */
+  export type import_product_batchesCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the import_product_batches
+     */
+    select?: import_product_batchesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the import_product_batches
+     */
+    omit?: import_product_batchesOmit<ExtArgs> | null
+    /**
+     * The data needed to create a import_product_batches.
+     */
+    data: XOR<import_product_batchesCreateInput, import_product_batchesUncheckedCreateInput>
+  }
+
+  /**
+   * import_product_batches createMany
+   */
+  export type import_product_batchesCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many import_product_batches.
+     */
+    data: import_product_batchesCreateManyInput | import_product_batchesCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * import_product_batches update
+   */
+  export type import_product_batchesUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the import_product_batches
+     */
+    select?: import_product_batchesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the import_product_batches
+     */
+    omit?: import_product_batchesOmit<ExtArgs> | null
+    /**
+     * The data needed to update a import_product_batches.
+     */
+    data: XOR<import_product_batchesUpdateInput, import_product_batchesUncheckedUpdateInput>
+    /**
+     * Choose, which import_product_batches to update.
+     */
+    where: import_product_batchesWhereUniqueInput
+  }
+
+  /**
+   * import_product_batches updateMany
+   */
+  export type import_product_batchesUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update import_product_batches.
+     */
+    data: XOR<import_product_batchesUpdateManyMutationInput, import_product_batchesUncheckedUpdateManyInput>
+    /**
+     * Filter which import_product_batches to update
+     */
+    where?: import_product_batchesWhereInput
+    /**
+     * Limit how many import_product_batches to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * import_product_batches upsert
+   */
+  export type import_product_batchesUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the import_product_batches
+     */
+    select?: import_product_batchesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the import_product_batches
+     */
+    omit?: import_product_batchesOmit<ExtArgs> | null
+    /**
+     * The filter to search for the import_product_batches to update in case it exists.
+     */
+    where: import_product_batchesWhereUniqueInput
+    /**
+     * In case the import_product_batches found by the `where` argument doesn't exist, create a new import_product_batches with this data.
+     */
+    create: XOR<import_product_batchesCreateInput, import_product_batchesUncheckedCreateInput>
+    /**
+     * In case the import_product_batches was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<import_product_batchesUpdateInput, import_product_batchesUncheckedUpdateInput>
+  }
+
+  /**
+   * import_product_batches delete
+   */
+  export type import_product_batchesDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the import_product_batches
+     */
+    select?: import_product_batchesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the import_product_batches
+     */
+    omit?: import_product_batchesOmit<ExtArgs> | null
+    /**
+     * Filter which import_product_batches to delete.
+     */
+    where: import_product_batchesWhereUniqueInput
+  }
+
+  /**
+   * import_product_batches deleteMany
+   */
+  export type import_product_batchesDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which import_product_batches to delete
+     */
+    where?: import_product_batchesWhereInput
+    /**
+     * Limit how many import_product_batches to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * import_product_batches without action
+   */
+  export type import_product_batchesDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the import_product_batches
+     */
+    select?: import_product_batchesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the import_product_batches
+     */
+    omit?: import_product_batchesOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -30917,6 +32981,31 @@ export namespace Prisma {
   export type Import_category_batchesScalarFieldEnum = (typeof Import_category_batchesScalarFieldEnum)[keyof typeof Import_category_batchesScalarFieldEnum]
 
 
+  export const Images_productsScalarFieldEnum: {
+    id: 'id',
+    product_id: 'product_id',
+    image_name: 'image_name',
+    display_order: 'display_order',
+    visible: 'visible'
+  };
+
+  export type Images_productsScalarFieldEnum = (typeof Images_productsScalarFieldEnum)[keyof typeof Images_productsScalarFieldEnum]
+
+
+  export const Import_product_batchesScalarFieldEnum: {
+    id: 'id',
+    product_data: 'product_data',
+    source_filename: 'source_filename',
+    total_records: 'total_records',
+    status: 'status',
+    created_at: 'created_at',
+    processed_at: 'processed_at',
+    error_details: 'error_details'
+  };
+
+  export type Import_product_batchesScalarFieldEnum = (typeof Import_product_batchesScalarFieldEnum)[keyof typeof Import_product_batchesScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -31229,6 +33318,22 @@ export namespace Prisma {
   export type import_category_batchesOrderByRelevanceFieldEnum = (typeof import_category_batchesOrderByRelevanceFieldEnum)[keyof typeof import_category_batchesOrderByRelevanceFieldEnum]
 
 
+  export const images_productsOrderByRelevanceFieldEnum: {
+    image_name: 'image_name'
+  };
+
+  export type images_productsOrderByRelevanceFieldEnum = (typeof images_productsOrderByRelevanceFieldEnum)[keyof typeof images_productsOrderByRelevanceFieldEnum]
+
+
+  export const import_product_batchesOrderByRelevanceFieldEnum: {
+    product_data: 'product_data',
+    source_filename: 'source_filename',
+    error_details: 'error_details'
+  };
+
+  export type import_product_batchesOrderByRelevanceFieldEnum = (typeof import_product_batchesOrderByRelevanceFieldEnum)[keyof typeof import_product_batchesOrderByRelevanceFieldEnum]
+
+
   /**
    * Field references
    */
@@ -31308,6 +33413,13 @@ export namespace Prisma {
    * Reference to a field of type 'import_category_batches_status'
    */
   export type Enumimport_category_batches_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'import_category_batches_status'>
+    
+
+
+  /**
+   * Reference to a field of type 'import_product_batches_status'
+   */
+  export type Enumimport_product_batches_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'import_product_batches_status'>
     
 
 
@@ -33638,6 +35750,131 @@ export namespace Prisma {
     created_at?: DateTimeWithAggregatesFilter<"import_category_batches"> | Date | string
     processed_at?: DateTimeNullableWithAggregatesFilter<"import_category_batches"> | Date | string | null
     error_details?: StringNullableWithAggregatesFilter<"import_category_batches"> | string | null
+  }
+
+  export type images_productsWhereInput = {
+    AND?: images_productsWhereInput | images_productsWhereInput[]
+    OR?: images_productsWhereInput[]
+    NOT?: images_productsWhereInput | images_productsWhereInput[]
+    id?: BigIntFilter<"images_products"> | bigint | number
+    product_id?: BigIntFilter<"images_products"> | bigint | number
+    image_name?: StringFilter<"images_products"> | string
+    display_order?: IntFilter<"images_products"> | number
+    visible?: BoolFilter<"images_products"> | boolean
+  }
+
+  export type images_productsOrderByWithRelationInput = {
+    id?: SortOrder
+    product_id?: SortOrder
+    image_name?: SortOrder
+    display_order?: SortOrder
+    visible?: SortOrder
+    _relevance?: images_productsOrderByRelevanceInput
+  }
+
+  export type images_productsWhereUniqueInput = Prisma.AtLeast<{
+    id?: bigint | number
+    AND?: images_productsWhereInput | images_productsWhereInput[]
+    OR?: images_productsWhereInput[]
+    NOT?: images_productsWhereInput | images_productsWhereInput[]
+    product_id?: BigIntFilter<"images_products"> | bigint | number
+    image_name?: StringFilter<"images_products"> | string
+    display_order?: IntFilter<"images_products"> | number
+    visible?: BoolFilter<"images_products"> | boolean
+  }, "id">
+
+  export type images_productsOrderByWithAggregationInput = {
+    id?: SortOrder
+    product_id?: SortOrder
+    image_name?: SortOrder
+    display_order?: SortOrder
+    visible?: SortOrder
+    _count?: images_productsCountOrderByAggregateInput
+    _avg?: images_productsAvgOrderByAggregateInput
+    _max?: images_productsMaxOrderByAggregateInput
+    _min?: images_productsMinOrderByAggregateInput
+    _sum?: images_productsSumOrderByAggregateInput
+  }
+
+  export type images_productsScalarWhereWithAggregatesInput = {
+    AND?: images_productsScalarWhereWithAggregatesInput | images_productsScalarWhereWithAggregatesInput[]
+    OR?: images_productsScalarWhereWithAggregatesInput[]
+    NOT?: images_productsScalarWhereWithAggregatesInput | images_productsScalarWhereWithAggregatesInput[]
+    id?: BigIntWithAggregatesFilter<"images_products"> | bigint | number
+    product_id?: BigIntWithAggregatesFilter<"images_products"> | bigint | number
+    image_name?: StringWithAggregatesFilter<"images_products"> | string
+    display_order?: IntWithAggregatesFilter<"images_products"> | number
+    visible?: BoolWithAggregatesFilter<"images_products"> | boolean
+  }
+
+  export type import_product_batchesWhereInput = {
+    AND?: import_product_batchesWhereInput | import_product_batchesWhereInput[]
+    OR?: import_product_batchesWhereInput[]
+    NOT?: import_product_batchesWhereInput | import_product_batchesWhereInput[]
+    id?: BigIntFilter<"import_product_batches"> | bigint | number
+    product_data?: StringNullableFilter<"import_product_batches"> | string | null
+    source_filename?: StringFilter<"import_product_batches"> | string
+    total_records?: IntFilter<"import_product_batches"> | number
+    status?: Enumimport_product_batches_statusFilter<"import_product_batches"> | $Enums.import_product_batches_status
+    created_at?: DateTimeFilter<"import_product_batches"> | Date | string
+    processed_at?: DateTimeNullableFilter<"import_product_batches"> | Date | string | null
+    error_details?: StringNullableFilter<"import_product_batches"> | string | null
+  }
+
+  export type import_product_batchesOrderByWithRelationInput = {
+    id?: SortOrder
+    product_data?: SortOrderInput | SortOrder
+    source_filename?: SortOrder
+    total_records?: SortOrder
+    status?: SortOrder
+    created_at?: SortOrder
+    processed_at?: SortOrderInput | SortOrder
+    error_details?: SortOrderInput | SortOrder
+    _relevance?: import_product_batchesOrderByRelevanceInput
+  }
+
+  export type import_product_batchesWhereUniqueInput = Prisma.AtLeast<{
+    id?: bigint | number
+    AND?: import_product_batchesWhereInput | import_product_batchesWhereInput[]
+    OR?: import_product_batchesWhereInput[]
+    NOT?: import_product_batchesWhereInput | import_product_batchesWhereInput[]
+    product_data?: StringNullableFilter<"import_product_batches"> | string | null
+    source_filename?: StringFilter<"import_product_batches"> | string
+    total_records?: IntFilter<"import_product_batches"> | number
+    status?: Enumimport_product_batches_statusFilter<"import_product_batches"> | $Enums.import_product_batches_status
+    created_at?: DateTimeFilter<"import_product_batches"> | Date | string
+    processed_at?: DateTimeNullableFilter<"import_product_batches"> | Date | string | null
+    error_details?: StringNullableFilter<"import_product_batches"> | string | null
+  }, "id">
+
+  export type import_product_batchesOrderByWithAggregationInput = {
+    id?: SortOrder
+    product_data?: SortOrderInput | SortOrder
+    source_filename?: SortOrder
+    total_records?: SortOrder
+    status?: SortOrder
+    created_at?: SortOrder
+    processed_at?: SortOrderInput | SortOrder
+    error_details?: SortOrderInput | SortOrder
+    _count?: import_product_batchesCountOrderByAggregateInput
+    _avg?: import_product_batchesAvgOrderByAggregateInput
+    _max?: import_product_batchesMaxOrderByAggregateInput
+    _min?: import_product_batchesMinOrderByAggregateInput
+    _sum?: import_product_batchesSumOrderByAggregateInput
+  }
+
+  export type import_product_batchesScalarWhereWithAggregatesInput = {
+    AND?: import_product_batchesScalarWhereWithAggregatesInput | import_product_batchesScalarWhereWithAggregatesInput[]
+    OR?: import_product_batchesScalarWhereWithAggregatesInput[]
+    NOT?: import_product_batchesScalarWhereWithAggregatesInput | import_product_batchesScalarWhereWithAggregatesInput[]
+    id?: BigIntWithAggregatesFilter<"import_product_batches"> | bigint | number
+    product_data?: StringNullableWithAggregatesFilter<"import_product_batches"> | string | null
+    source_filename?: StringWithAggregatesFilter<"import_product_batches"> | string
+    total_records?: IntWithAggregatesFilter<"import_product_batches"> | number
+    status?: Enumimport_product_batches_statusWithAggregatesFilter<"import_product_batches"> | $Enums.import_product_batches_status
+    created_at?: DateTimeWithAggregatesFilter<"import_product_batches"> | Date | string
+    processed_at?: DateTimeNullableWithAggregatesFilter<"import_product_batches"> | Date | string | null
+    error_details?: StringNullableWithAggregatesFilter<"import_product_batches"> | string | null
   }
 
   export type categoryCreateInput = {
@@ -36254,6 +38491,139 @@ export namespace Prisma {
     error_details?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
+  export type images_productsCreateInput = {
+    id?: bigint | number
+    product_id: bigint | number
+    image_name: string
+    display_order?: number
+    visible?: boolean
+  }
+
+  export type images_productsUncheckedCreateInput = {
+    id?: bigint | number
+    product_id: bigint | number
+    image_name: string
+    display_order?: number
+    visible?: boolean
+  }
+
+  export type images_productsUpdateInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    product_id?: BigIntFieldUpdateOperationsInput | bigint | number
+    image_name?: StringFieldUpdateOperationsInput | string
+    display_order?: IntFieldUpdateOperationsInput | number
+    visible?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type images_productsUncheckedUpdateInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    product_id?: BigIntFieldUpdateOperationsInput | bigint | number
+    image_name?: StringFieldUpdateOperationsInput | string
+    display_order?: IntFieldUpdateOperationsInput | number
+    visible?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type images_productsCreateManyInput = {
+    id?: bigint | number
+    product_id: bigint | number
+    image_name: string
+    display_order?: number
+    visible?: boolean
+  }
+
+  export type images_productsUpdateManyMutationInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    product_id?: BigIntFieldUpdateOperationsInput | bigint | number
+    image_name?: StringFieldUpdateOperationsInput | string
+    display_order?: IntFieldUpdateOperationsInput | number
+    visible?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type images_productsUncheckedUpdateManyInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    product_id?: BigIntFieldUpdateOperationsInput | bigint | number
+    image_name?: StringFieldUpdateOperationsInput | string
+    display_order?: IntFieldUpdateOperationsInput | number
+    visible?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type import_product_batchesCreateInput = {
+    id?: bigint | number
+    product_data?: string | null
+    source_filename: string
+    total_records?: number
+    status?: $Enums.import_product_batches_status
+    created_at?: Date | string
+    processed_at?: Date | string | null
+    error_details?: string | null
+  }
+
+  export type import_product_batchesUncheckedCreateInput = {
+    id?: bigint | number
+    product_data?: string | null
+    source_filename: string
+    total_records?: number
+    status?: $Enums.import_product_batches_status
+    created_at?: Date | string
+    processed_at?: Date | string | null
+    error_details?: string | null
+  }
+
+  export type import_product_batchesUpdateInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    product_data?: NullableStringFieldUpdateOperationsInput | string | null
+    source_filename?: StringFieldUpdateOperationsInput | string
+    total_records?: IntFieldUpdateOperationsInput | number
+    status?: Enumimport_product_batches_statusFieldUpdateOperationsInput | $Enums.import_product_batches_status
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    processed_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    error_details?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type import_product_batchesUncheckedUpdateInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    product_data?: NullableStringFieldUpdateOperationsInput | string | null
+    source_filename?: StringFieldUpdateOperationsInput | string
+    total_records?: IntFieldUpdateOperationsInput | number
+    status?: Enumimport_product_batches_statusFieldUpdateOperationsInput | $Enums.import_product_batches_status
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    processed_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    error_details?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type import_product_batchesCreateManyInput = {
+    id?: bigint | number
+    product_data?: string | null
+    source_filename: string
+    total_records?: number
+    status?: $Enums.import_product_batches_status
+    created_at?: Date | string
+    processed_at?: Date | string | null
+    error_details?: string | null
+  }
+
+  export type import_product_batchesUpdateManyMutationInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    product_data?: NullableStringFieldUpdateOperationsInput | string | null
+    source_filename?: StringFieldUpdateOperationsInput | string
+    total_records?: IntFieldUpdateOperationsInput | number
+    status?: Enumimport_product_batches_statusFieldUpdateOperationsInput | $Enums.import_product_batches_status
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    processed_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    error_details?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type import_product_batchesUncheckedUpdateManyInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    product_data?: NullableStringFieldUpdateOperationsInput | string | null
+    source_filename?: StringFieldUpdateOperationsInput | string
+    total_records?: IntFieldUpdateOperationsInput | number
+    status?: Enumimport_product_batches_statusFieldUpdateOperationsInput | $Enums.import_product_batches_status
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    processed_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    error_details?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[]
@@ -38443,6 +40813,114 @@ export namespace Prisma {
     _max?: NestedEnumimport_category_batches_statusFilter<$PrismaModel>
   }
 
+  export type images_productsOrderByRelevanceInput = {
+    fields: images_productsOrderByRelevanceFieldEnum | images_productsOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type images_productsCountOrderByAggregateInput = {
+    id?: SortOrder
+    product_id?: SortOrder
+    image_name?: SortOrder
+    display_order?: SortOrder
+    visible?: SortOrder
+  }
+
+  export type images_productsAvgOrderByAggregateInput = {
+    id?: SortOrder
+    product_id?: SortOrder
+    display_order?: SortOrder
+  }
+
+  export type images_productsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    product_id?: SortOrder
+    image_name?: SortOrder
+    display_order?: SortOrder
+    visible?: SortOrder
+  }
+
+  export type images_productsMinOrderByAggregateInput = {
+    id?: SortOrder
+    product_id?: SortOrder
+    image_name?: SortOrder
+    display_order?: SortOrder
+    visible?: SortOrder
+  }
+
+  export type images_productsSumOrderByAggregateInput = {
+    id?: SortOrder
+    product_id?: SortOrder
+    display_order?: SortOrder
+  }
+
+  export type Enumimport_product_batches_statusFilter<$PrismaModel = never> = {
+    equals?: $Enums.import_product_batches_status | Enumimport_product_batches_statusFieldRefInput<$PrismaModel>
+    in?: $Enums.import_product_batches_status[]
+    notIn?: $Enums.import_product_batches_status[]
+    not?: NestedEnumimport_product_batches_statusFilter<$PrismaModel> | $Enums.import_product_batches_status
+  }
+
+  export type import_product_batchesOrderByRelevanceInput = {
+    fields: import_product_batchesOrderByRelevanceFieldEnum | import_product_batchesOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type import_product_batchesCountOrderByAggregateInput = {
+    id?: SortOrder
+    product_data?: SortOrder
+    source_filename?: SortOrder
+    total_records?: SortOrder
+    status?: SortOrder
+    created_at?: SortOrder
+    processed_at?: SortOrder
+    error_details?: SortOrder
+  }
+
+  export type import_product_batchesAvgOrderByAggregateInput = {
+    id?: SortOrder
+    total_records?: SortOrder
+  }
+
+  export type import_product_batchesMaxOrderByAggregateInput = {
+    id?: SortOrder
+    product_data?: SortOrder
+    source_filename?: SortOrder
+    total_records?: SortOrder
+    status?: SortOrder
+    created_at?: SortOrder
+    processed_at?: SortOrder
+    error_details?: SortOrder
+  }
+
+  export type import_product_batchesMinOrderByAggregateInput = {
+    id?: SortOrder
+    product_data?: SortOrder
+    source_filename?: SortOrder
+    total_records?: SortOrder
+    status?: SortOrder
+    created_at?: SortOrder
+    processed_at?: SortOrder
+    error_details?: SortOrder
+  }
+
+  export type import_product_batchesSumOrderByAggregateInput = {
+    id?: SortOrder
+    total_records?: SortOrder
+  }
+
+  export type Enumimport_product_batches_statusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.import_product_batches_status | Enumimport_product_batches_statusFieldRefInput<$PrismaModel>
+    in?: $Enums.import_product_batches_status[]
+    notIn?: $Enums.import_product_batches_status[]
+    not?: NestedEnumimport_product_batches_statusWithAggregatesFilter<$PrismaModel> | $Enums.import_product_batches_status
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumimport_product_batches_statusFilter<$PrismaModel>
+    _max?: NestedEnumimport_product_batches_statusFilter<$PrismaModel>
+  }
+
   export type StringFieldUpdateOperationsInput = {
     set?: string
   }
@@ -38685,6 +41163,10 @@ export namespace Prisma {
 
   export type Enumimport_category_batches_statusFieldUpdateOperationsInput = {
     set?: $Enums.import_category_batches_status
+  }
+
+  export type Enumimport_product_batches_statusFieldUpdateOperationsInput = {
+    set?: $Enums.import_product_batches_status
   }
 
   export type NestedIntFilter<$PrismaModel = never> = {
@@ -39081,6 +41563,23 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumimport_category_batches_statusFilter<$PrismaModel>
     _max?: NestedEnumimport_category_batches_statusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumimport_product_batches_statusFilter<$PrismaModel = never> = {
+    equals?: $Enums.import_product_batches_status | Enumimport_product_batches_statusFieldRefInput<$PrismaModel>
+    in?: $Enums.import_product_batches_status[]
+    notIn?: $Enums.import_product_batches_status[]
+    not?: NestedEnumimport_product_batches_statusFilter<$PrismaModel> | $Enums.import_product_batches_status
+  }
+
+  export type NestedEnumimport_product_batches_statusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.import_product_batches_status | Enumimport_product_batches_statusFieldRefInput<$PrismaModel>
+    in?: $Enums.import_product_batches_status[]
+    notIn?: $Enums.import_product_batches_status[]
+    not?: NestedEnumimport_product_batches_statusWithAggregatesFilter<$PrismaModel> | $Enums.import_product_batches_status
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumimport_product_batches_statusFilter<$PrismaModel>
+    _max?: NestedEnumimport_product_batches_statusFilter<$PrismaModel>
   }
 
   export type featured_listsCreateWithoutFeatured_list_itemsInput = {

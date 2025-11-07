@@ -499,6 +499,25 @@ exports.Prisma.Import_category_batchesScalarFieldEnum = {
   error_details: 'error_details'
 };
 
+exports.Prisma.Images_productsScalarFieldEnum = {
+  id: 'id',
+  product_id: 'product_id',
+  image_name: 'image_name',
+  display_order: 'display_order',
+  visible: 'visible'
+};
+
+exports.Prisma.Import_product_batchesScalarFieldEnum = {
+  id: 'id',
+  product_data: 'product_data',
+  source_filename: 'source_filename',
+  total_records: 'total_records',
+  status: 'status',
+  created_at: 'created_at',
+  processed_at: 'processed_at',
+  error_details: 'error_details'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -714,6 +733,16 @@ exports.Prisma.import_category_batchesOrderByRelevanceFieldEnum = {
   source_filename: 'source_filename',
   error_details: 'error_details'
 };
+
+exports.Prisma.images_productsOrderByRelevanceFieldEnum = {
+  image_name: 'image_name'
+};
+
+exports.Prisma.import_product_batchesOrderByRelevanceFieldEnum = {
+  product_data: 'product_data',
+  source_filename: 'source_filename',
+  error_details: 'error_details'
+};
 exports.discount_rules_frame_mode = exports.$Enums.discount_rules_frame_mode = {
   draw: 'draw',
   image: 'image'
@@ -733,6 +762,15 @@ exports.import_category_batches_status = exports.$Enums.import_category_batches_
   FOLDERS_CREATED: 'FOLDERS_CREATED',
   IMAGES_COPYING: 'IMAGES_COPYING',
   COMPLETED: 'COMPLETED'
+};
+
+exports.import_product_batches_status = exports.$Enums.import_product_batches_status = {
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  COMPLETED: 'COMPLETED',
+  FOLDERS_CREATING: 'FOLDERS_CREATING',
+  IMAGES_COPYING: 'IMAGES_COPYING',
+  ERROR: 'ERROR'
 };
 
 exports.Prisma.ModelName = {
@@ -762,7 +800,9 @@ exports.Prisma.ModelName = {
   ui_categories_meta: 'ui_categories_meta',
   images_categories: 'images_categories',
   config_setting: 'config_setting',
-  import_category_batches: 'import_category_batches'
+  import_category_batches: 'import_category_batches',
+  images_products: 'images_products',
+  import_product_batches: 'import_product_batches'
 };
 
 /**
