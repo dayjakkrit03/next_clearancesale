@@ -158,6 +158,11 @@ export type images_products = $Result.DefaultSelection<Prisma.$images_productsPa
  * This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
  */
 export type import_product_batches = $Result.DefaultSelection<Prisma.$import_product_batchesPayload>
+/**
+ * Model import_batch_logs
+ * This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+ */
+export type import_batch_logs = $Result.DefaultSelection<Prisma.$import_batch_logsPayload>
 
 /**
  * Enums
@@ -204,6 +209,17 @@ export const import_product_batches_status: {
 
 export type import_product_batches_status = (typeof import_product_batches_status)[keyof typeof import_product_batches_status]
 
+
+export const import_batch_logs_overall_status: {
+  PENDING: 'PENDING',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETE: 'COMPLETE',
+  FAILED: 'FAILED',
+  ABANDONED: 'ABANDONED'
+};
+
+export type import_batch_logs_overall_status = (typeof import_batch_logs_overall_status)[keyof typeof import_batch_logs_overall_status]
+
 }
 
 export type discount_rules_frame_mode = $Enums.discount_rules_frame_mode
@@ -221,6 +237,10 @@ export const import_category_batches_status: typeof $Enums.import_category_batch
 export type import_product_batches_status = $Enums.import_product_batches_status
 
 export const import_product_batches_status: typeof $Enums.import_product_batches_status
+
+export type import_batch_logs_overall_status = $Enums.import_batch_logs_overall_status
+
+export const import_batch_logs_overall_status: typeof $Enums.import_batch_logs_overall_status
 
 /**
  * ##  Prisma Client ʲˢ
@@ -629,6 +649,16 @@ export class PrismaClient<
     * ```
     */
   get import_product_batches(): Prisma.import_product_batchesDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.import_batch_logs`: Exposes CRUD operations for the **import_batch_logs** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Import_batch_logs
+    * const import_batch_logs = await prisma.import_batch_logs.findMany()
+    * ```
+    */
+  get import_batch_logs(): Prisma.import_batch_logsDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1097,7 +1127,8 @@ export namespace Prisma {
     config_setting: 'config_setting',
     import_category_batches: 'import_category_batches',
     images_products: 'images_products',
-    import_product_batches: 'import_product_batches'
+    import_product_batches: 'import_product_batches',
+    import_batch_logs: 'import_batch_logs'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1116,7 +1147,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "category" | "more_pictures" | "part" | "product" | "sub" | "category_clearance" | "discountpercentage_clearance_tb" | "discountpercentage_tb" | "more_pictures_clearance" | "more_pictures_test" | "part_clearance" | "producoptions_clearance_tb" | "producoptions_tb" | "product_clearance" | "product_test_upload" | "sub_clearance" | "discount_rules" | "discount_rules_meta" | "featured_list_items" | "featured_lists" | "products_clearance" | "products_meta" | "ui_categories" | "ui_categories_meta" | "images_categories" | "config_setting" | "import_category_batches" | "images_products" | "import_product_batches"
+      modelProps: "category" | "more_pictures" | "part" | "product" | "sub" | "category_clearance" | "discountpercentage_clearance_tb" | "discountpercentage_tb" | "more_pictures_clearance" | "more_pictures_test" | "part_clearance" | "producoptions_clearance_tb" | "producoptions_tb" | "product_clearance" | "product_test_upload" | "sub_clearance" | "discount_rules" | "discount_rules_meta" | "featured_list_items" | "featured_lists" | "products_clearance" | "products_meta" | "ui_categories" | "ui_categories_meta" | "images_categories" | "config_setting" | "import_category_batches" | "images_products" | "import_product_batches" | "import_batch_logs"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3034,6 +3065,72 @@ export namespace Prisma {
           }
         }
       }
+      import_batch_logs: {
+        payload: Prisma.$import_batch_logsPayload<ExtArgs>
+        fields: Prisma.import_batch_logsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.import_batch_logsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$import_batch_logsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.import_batch_logsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$import_batch_logsPayload>
+          }
+          findFirst: {
+            args: Prisma.import_batch_logsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$import_batch_logsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.import_batch_logsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$import_batch_logsPayload>
+          }
+          findMany: {
+            args: Prisma.import_batch_logsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$import_batch_logsPayload>[]
+          }
+          create: {
+            args: Prisma.import_batch_logsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$import_batch_logsPayload>
+          }
+          createMany: {
+            args: Prisma.import_batch_logsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.import_batch_logsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$import_batch_logsPayload>
+          }
+          update: {
+            args: Prisma.import_batch_logsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$import_batch_logsPayload>
+          }
+          deleteMany: {
+            args: Prisma.import_batch_logsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.import_batch_logsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.import_batch_logsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$import_batch_logsPayload>
+          }
+          aggregate: {
+            args: Prisma.Import_batch_logsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateImport_batch_logs>
+          }
+          groupBy: {
+            args: Prisma.import_batch_logsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Import_batch_logsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.import_batch_logsCountArgs<ExtArgs>
+            result: $Utils.Optional<Import_batch_logsCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -3159,6 +3256,7 @@ export namespace Prisma {
     import_category_batches?: import_category_batchesOmit
     images_products?: images_productsOmit
     import_product_batches?: import_product_batchesOmit
+    import_batch_logs?: import_batch_logsOmit
   }
 
   /* Types for Logging */
@@ -6759,6 +6857,7 @@ export namespace Prisma {
       updated_at: Date
       product_uom: string | null
       /**
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
@@ -16647,6 +16746,7 @@ export namespace Prisma {
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        */
       clearanceSales: boolean | null
       clearanceQuantity: number | null
@@ -17867,6 +17967,7 @@ export namespace Prisma {
       updated_at: Date
       product_uom: string | null
       /**
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
@@ -24125,6 +24226,8 @@ export namespace Prisma {
       visible: boolean
       display_order: number
       /**
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
@@ -32508,6 +32611,966 @@ export namespace Prisma {
 
 
   /**
+   * Model import_batch_logs
+   */
+
+  export type AggregateImport_batch_logs = {
+    _count: Import_batch_logsCountAggregateOutputType | null
+    _avg: Import_batch_logsAvgAggregateOutputType | null
+    _sum: Import_batch_logsSumAggregateOutputType | null
+    _min: Import_batch_logsMinAggregateOutputType | null
+    _max: Import_batch_logsMaxAggregateOutputType | null
+  }
+
+  export type Import_batch_logsAvgAggregateOutputType = {
+    batch_id: number | null
+  }
+
+  export type Import_batch_logsSumAggregateOutputType = {
+    batch_id: number | null
+  }
+
+  export type Import_batch_logsMinAggregateOutputType = {
+    batch_id: number | null
+    import_type: string | null
+    filename: string | null
+    uploaded_by_user_id: string | null
+    current_step_status: string | null
+    overall_status: $Enums.import_batch_logs_overall_status | null
+    start_timestamp: Date | null
+    end_timestamp: Date | null
+    last_log_message: string | null
+  }
+
+  export type Import_batch_logsMaxAggregateOutputType = {
+    batch_id: number | null
+    import_type: string | null
+    filename: string | null
+    uploaded_by_user_id: string | null
+    current_step_status: string | null
+    overall_status: $Enums.import_batch_logs_overall_status | null
+    start_timestamp: Date | null
+    end_timestamp: Date | null
+    last_log_message: string | null
+  }
+
+  export type Import_batch_logsCountAggregateOutputType = {
+    batch_id: number
+    import_type: number
+    filename: number
+    uploaded_by_user_id: number
+    current_step_status: number
+    overall_status: number
+    start_timestamp: number
+    end_timestamp: number
+    last_log_message: number
+    _all: number
+  }
+
+
+  export type Import_batch_logsAvgAggregateInputType = {
+    batch_id?: true
+  }
+
+  export type Import_batch_logsSumAggregateInputType = {
+    batch_id?: true
+  }
+
+  export type Import_batch_logsMinAggregateInputType = {
+    batch_id?: true
+    import_type?: true
+    filename?: true
+    uploaded_by_user_id?: true
+    current_step_status?: true
+    overall_status?: true
+    start_timestamp?: true
+    end_timestamp?: true
+    last_log_message?: true
+  }
+
+  export type Import_batch_logsMaxAggregateInputType = {
+    batch_id?: true
+    import_type?: true
+    filename?: true
+    uploaded_by_user_id?: true
+    current_step_status?: true
+    overall_status?: true
+    start_timestamp?: true
+    end_timestamp?: true
+    last_log_message?: true
+  }
+
+  export type Import_batch_logsCountAggregateInputType = {
+    batch_id?: true
+    import_type?: true
+    filename?: true
+    uploaded_by_user_id?: true
+    current_step_status?: true
+    overall_status?: true
+    start_timestamp?: true
+    end_timestamp?: true
+    last_log_message?: true
+    _all?: true
+  }
+
+  export type Import_batch_logsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which import_batch_logs to aggregate.
+     */
+    where?: import_batch_logsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of import_batch_logs to fetch.
+     */
+    orderBy?: import_batch_logsOrderByWithRelationInput | import_batch_logsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: import_batch_logsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` import_batch_logs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` import_batch_logs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned import_batch_logs
+    **/
+    _count?: true | Import_batch_logsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Import_batch_logsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Import_batch_logsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Import_batch_logsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Import_batch_logsMaxAggregateInputType
+  }
+
+  export type GetImport_batch_logsAggregateType<T extends Import_batch_logsAggregateArgs> = {
+        [P in keyof T & keyof AggregateImport_batch_logs]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateImport_batch_logs[P]>
+      : GetScalarType<T[P], AggregateImport_batch_logs[P]>
+  }
+
+
+
+
+  export type import_batch_logsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: import_batch_logsWhereInput
+    orderBy?: import_batch_logsOrderByWithAggregationInput | import_batch_logsOrderByWithAggregationInput[]
+    by: Import_batch_logsScalarFieldEnum[] | Import_batch_logsScalarFieldEnum
+    having?: import_batch_logsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Import_batch_logsCountAggregateInputType | true
+    _avg?: Import_batch_logsAvgAggregateInputType
+    _sum?: Import_batch_logsSumAggregateInputType
+    _min?: Import_batch_logsMinAggregateInputType
+    _max?: Import_batch_logsMaxAggregateInputType
+  }
+
+  export type Import_batch_logsGroupByOutputType = {
+    batch_id: number
+    import_type: string
+    filename: string
+    uploaded_by_user_id: string
+    current_step_status: string
+    overall_status: $Enums.import_batch_logs_overall_status
+    start_timestamp: Date
+    end_timestamp: Date | null
+    last_log_message: string | null
+    _count: Import_batch_logsCountAggregateOutputType | null
+    _avg: Import_batch_logsAvgAggregateOutputType | null
+    _sum: Import_batch_logsSumAggregateOutputType | null
+    _min: Import_batch_logsMinAggregateOutputType | null
+    _max: Import_batch_logsMaxAggregateOutputType | null
+  }
+
+  type GetImport_batch_logsGroupByPayload<T extends import_batch_logsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Import_batch_logsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Import_batch_logsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Import_batch_logsGroupByOutputType[P]>
+            : GetScalarType<T[P], Import_batch_logsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type import_batch_logsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    batch_id?: boolean
+    import_type?: boolean
+    filename?: boolean
+    uploaded_by_user_id?: boolean
+    current_step_status?: boolean
+    overall_status?: boolean
+    start_timestamp?: boolean
+    end_timestamp?: boolean
+    last_log_message?: boolean
+  }, ExtArgs["result"]["import_batch_logs"]>
+
+
+
+  export type import_batch_logsSelectScalar = {
+    batch_id?: boolean
+    import_type?: boolean
+    filename?: boolean
+    uploaded_by_user_id?: boolean
+    current_step_status?: boolean
+    overall_status?: boolean
+    start_timestamp?: boolean
+    end_timestamp?: boolean
+    last_log_message?: boolean
+  }
+
+  export type import_batch_logsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"batch_id" | "import_type" | "filename" | "uploaded_by_user_id" | "current_step_status" | "overall_status" | "start_timestamp" | "end_timestamp" | "last_log_message", ExtArgs["result"]["import_batch_logs"]>
+
+  export type $import_batch_logsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "import_batch_logs"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      batch_id: number
+      import_type: string
+      filename: string
+      uploaded_by_user_id: string
+      current_step_status: string
+      overall_status: $Enums.import_batch_logs_overall_status
+      start_timestamp: Date
+      end_timestamp: Date | null
+      last_log_message: string | null
+    }, ExtArgs["result"]["import_batch_logs"]>
+    composites: {}
+  }
+
+  type import_batch_logsGetPayload<S extends boolean | null | undefined | import_batch_logsDefaultArgs> = $Result.GetResult<Prisma.$import_batch_logsPayload, S>
+
+  type import_batch_logsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<import_batch_logsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Import_batch_logsCountAggregateInputType | true
+    }
+
+  export interface import_batch_logsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['import_batch_logs'], meta: { name: 'import_batch_logs' } }
+    /**
+     * Find zero or one Import_batch_logs that matches the filter.
+     * @param {import_batch_logsFindUniqueArgs} args - Arguments to find a Import_batch_logs
+     * @example
+     * // Get one Import_batch_logs
+     * const import_batch_logs = await prisma.import_batch_logs.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends import_batch_logsFindUniqueArgs>(args: SelectSubset<T, import_batch_logsFindUniqueArgs<ExtArgs>>): Prisma__import_batch_logsClient<$Result.GetResult<Prisma.$import_batch_logsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Import_batch_logs that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {import_batch_logsFindUniqueOrThrowArgs} args - Arguments to find a Import_batch_logs
+     * @example
+     * // Get one Import_batch_logs
+     * const import_batch_logs = await prisma.import_batch_logs.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends import_batch_logsFindUniqueOrThrowArgs>(args: SelectSubset<T, import_batch_logsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__import_batch_logsClient<$Result.GetResult<Prisma.$import_batch_logsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Import_batch_logs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {import_batch_logsFindFirstArgs} args - Arguments to find a Import_batch_logs
+     * @example
+     * // Get one Import_batch_logs
+     * const import_batch_logs = await prisma.import_batch_logs.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends import_batch_logsFindFirstArgs>(args?: SelectSubset<T, import_batch_logsFindFirstArgs<ExtArgs>>): Prisma__import_batch_logsClient<$Result.GetResult<Prisma.$import_batch_logsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Import_batch_logs that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {import_batch_logsFindFirstOrThrowArgs} args - Arguments to find a Import_batch_logs
+     * @example
+     * // Get one Import_batch_logs
+     * const import_batch_logs = await prisma.import_batch_logs.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends import_batch_logsFindFirstOrThrowArgs>(args?: SelectSubset<T, import_batch_logsFindFirstOrThrowArgs<ExtArgs>>): Prisma__import_batch_logsClient<$Result.GetResult<Prisma.$import_batch_logsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Import_batch_logs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {import_batch_logsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Import_batch_logs
+     * const import_batch_logs = await prisma.import_batch_logs.findMany()
+     * 
+     * // Get first 10 Import_batch_logs
+     * const import_batch_logs = await prisma.import_batch_logs.findMany({ take: 10 })
+     * 
+     * // Only select the `batch_id`
+     * const import_batch_logsWithBatch_idOnly = await prisma.import_batch_logs.findMany({ select: { batch_id: true } })
+     * 
+     */
+    findMany<T extends import_batch_logsFindManyArgs>(args?: SelectSubset<T, import_batch_logsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$import_batch_logsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Import_batch_logs.
+     * @param {import_batch_logsCreateArgs} args - Arguments to create a Import_batch_logs.
+     * @example
+     * // Create one Import_batch_logs
+     * const Import_batch_logs = await prisma.import_batch_logs.create({
+     *   data: {
+     *     // ... data to create a Import_batch_logs
+     *   }
+     * })
+     * 
+     */
+    create<T extends import_batch_logsCreateArgs>(args: SelectSubset<T, import_batch_logsCreateArgs<ExtArgs>>): Prisma__import_batch_logsClient<$Result.GetResult<Prisma.$import_batch_logsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Import_batch_logs.
+     * @param {import_batch_logsCreateManyArgs} args - Arguments to create many Import_batch_logs.
+     * @example
+     * // Create many Import_batch_logs
+     * const import_batch_logs = await prisma.import_batch_logs.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends import_batch_logsCreateManyArgs>(args?: SelectSubset<T, import_batch_logsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a Import_batch_logs.
+     * @param {import_batch_logsDeleteArgs} args - Arguments to delete one Import_batch_logs.
+     * @example
+     * // Delete one Import_batch_logs
+     * const Import_batch_logs = await prisma.import_batch_logs.delete({
+     *   where: {
+     *     // ... filter to delete one Import_batch_logs
+     *   }
+     * })
+     * 
+     */
+    delete<T extends import_batch_logsDeleteArgs>(args: SelectSubset<T, import_batch_logsDeleteArgs<ExtArgs>>): Prisma__import_batch_logsClient<$Result.GetResult<Prisma.$import_batch_logsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Import_batch_logs.
+     * @param {import_batch_logsUpdateArgs} args - Arguments to update one Import_batch_logs.
+     * @example
+     * // Update one Import_batch_logs
+     * const import_batch_logs = await prisma.import_batch_logs.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends import_batch_logsUpdateArgs>(args: SelectSubset<T, import_batch_logsUpdateArgs<ExtArgs>>): Prisma__import_batch_logsClient<$Result.GetResult<Prisma.$import_batch_logsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Import_batch_logs.
+     * @param {import_batch_logsDeleteManyArgs} args - Arguments to filter Import_batch_logs to delete.
+     * @example
+     * // Delete a few Import_batch_logs
+     * const { count } = await prisma.import_batch_logs.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends import_batch_logsDeleteManyArgs>(args?: SelectSubset<T, import_batch_logsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Import_batch_logs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {import_batch_logsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Import_batch_logs
+     * const import_batch_logs = await prisma.import_batch_logs.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends import_batch_logsUpdateManyArgs>(args: SelectSubset<T, import_batch_logsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Import_batch_logs.
+     * @param {import_batch_logsUpsertArgs} args - Arguments to update or create a Import_batch_logs.
+     * @example
+     * // Update or create a Import_batch_logs
+     * const import_batch_logs = await prisma.import_batch_logs.upsert({
+     *   create: {
+     *     // ... data to create a Import_batch_logs
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Import_batch_logs we want to update
+     *   }
+     * })
+     */
+    upsert<T extends import_batch_logsUpsertArgs>(args: SelectSubset<T, import_batch_logsUpsertArgs<ExtArgs>>): Prisma__import_batch_logsClient<$Result.GetResult<Prisma.$import_batch_logsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Import_batch_logs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {import_batch_logsCountArgs} args - Arguments to filter Import_batch_logs to count.
+     * @example
+     * // Count the number of Import_batch_logs
+     * const count = await prisma.import_batch_logs.count({
+     *   where: {
+     *     // ... the filter for the Import_batch_logs we want to count
+     *   }
+     * })
+    **/
+    count<T extends import_batch_logsCountArgs>(
+      args?: Subset<T, import_batch_logsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Import_batch_logsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Import_batch_logs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Import_batch_logsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Import_batch_logsAggregateArgs>(args: Subset<T, Import_batch_logsAggregateArgs>): Prisma.PrismaPromise<GetImport_batch_logsAggregateType<T>>
+
+    /**
+     * Group by Import_batch_logs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {import_batch_logsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends import_batch_logsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: import_batch_logsGroupByArgs['orderBy'] }
+        : { orderBy?: import_batch_logsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, import_batch_logsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetImport_batch_logsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the import_batch_logs model
+   */
+  readonly fields: import_batch_logsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for import_batch_logs.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__import_batch_logsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the import_batch_logs model
+   */
+  interface import_batch_logsFieldRefs {
+    readonly batch_id: FieldRef<"import_batch_logs", 'Int'>
+    readonly import_type: FieldRef<"import_batch_logs", 'String'>
+    readonly filename: FieldRef<"import_batch_logs", 'String'>
+    readonly uploaded_by_user_id: FieldRef<"import_batch_logs", 'String'>
+    readonly current_step_status: FieldRef<"import_batch_logs", 'String'>
+    readonly overall_status: FieldRef<"import_batch_logs", 'import_batch_logs_overall_status'>
+    readonly start_timestamp: FieldRef<"import_batch_logs", 'DateTime'>
+    readonly end_timestamp: FieldRef<"import_batch_logs", 'DateTime'>
+    readonly last_log_message: FieldRef<"import_batch_logs", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * import_batch_logs findUnique
+   */
+  export type import_batch_logsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the import_batch_logs
+     */
+    select?: import_batch_logsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the import_batch_logs
+     */
+    omit?: import_batch_logsOmit<ExtArgs> | null
+    /**
+     * Filter, which import_batch_logs to fetch.
+     */
+    where: import_batch_logsWhereUniqueInput
+  }
+
+  /**
+   * import_batch_logs findUniqueOrThrow
+   */
+  export type import_batch_logsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the import_batch_logs
+     */
+    select?: import_batch_logsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the import_batch_logs
+     */
+    omit?: import_batch_logsOmit<ExtArgs> | null
+    /**
+     * Filter, which import_batch_logs to fetch.
+     */
+    where: import_batch_logsWhereUniqueInput
+  }
+
+  /**
+   * import_batch_logs findFirst
+   */
+  export type import_batch_logsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the import_batch_logs
+     */
+    select?: import_batch_logsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the import_batch_logs
+     */
+    omit?: import_batch_logsOmit<ExtArgs> | null
+    /**
+     * Filter, which import_batch_logs to fetch.
+     */
+    where?: import_batch_logsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of import_batch_logs to fetch.
+     */
+    orderBy?: import_batch_logsOrderByWithRelationInput | import_batch_logsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for import_batch_logs.
+     */
+    cursor?: import_batch_logsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` import_batch_logs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` import_batch_logs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of import_batch_logs.
+     */
+    distinct?: Import_batch_logsScalarFieldEnum | Import_batch_logsScalarFieldEnum[]
+  }
+
+  /**
+   * import_batch_logs findFirstOrThrow
+   */
+  export type import_batch_logsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the import_batch_logs
+     */
+    select?: import_batch_logsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the import_batch_logs
+     */
+    omit?: import_batch_logsOmit<ExtArgs> | null
+    /**
+     * Filter, which import_batch_logs to fetch.
+     */
+    where?: import_batch_logsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of import_batch_logs to fetch.
+     */
+    orderBy?: import_batch_logsOrderByWithRelationInput | import_batch_logsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for import_batch_logs.
+     */
+    cursor?: import_batch_logsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` import_batch_logs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` import_batch_logs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of import_batch_logs.
+     */
+    distinct?: Import_batch_logsScalarFieldEnum | Import_batch_logsScalarFieldEnum[]
+  }
+
+  /**
+   * import_batch_logs findMany
+   */
+  export type import_batch_logsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the import_batch_logs
+     */
+    select?: import_batch_logsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the import_batch_logs
+     */
+    omit?: import_batch_logsOmit<ExtArgs> | null
+    /**
+     * Filter, which import_batch_logs to fetch.
+     */
+    where?: import_batch_logsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of import_batch_logs to fetch.
+     */
+    orderBy?: import_batch_logsOrderByWithRelationInput | import_batch_logsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing import_batch_logs.
+     */
+    cursor?: import_batch_logsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` import_batch_logs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` import_batch_logs.
+     */
+    skip?: number
+    distinct?: Import_batch_logsScalarFieldEnum | Import_batch_logsScalarFieldEnum[]
+  }
+
+  /**
+   * import_batch_logs create
+   */
+  export type import_batch_logsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the import_batch_logs
+     */
+    select?: import_batch_logsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the import_batch_logs
+     */
+    omit?: import_batch_logsOmit<ExtArgs> | null
+    /**
+     * The data needed to create a import_batch_logs.
+     */
+    data: XOR<import_batch_logsCreateInput, import_batch_logsUncheckedCreateInput>
+  }
+
+  /**
+   * import_batch_logs createMany
+   */
+  export type import_batch_logsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many import_batch_logs.
+     */
+    data: import_batch_logsCreateManyInput | import_batch_logsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * import_batch_logs update
+   */
+  export type import_batch_logsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the import_batch_logs
+     */
+    select?: import_batch_logsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the import_batch_logs
+     */
+    omit?: import_batch_logsOmit<ExtArgs> | null
+    /**
+     * The data needed to update a import_batch_logs.
+     */
+    data: XOR<import_batch_logsUpdateInput, import_batch_logsUncheckedUpdateInput>
+    /**
+     * Choose, which import_batch_logs to update.
+     */
+    where: import_batch_logsWhereUniqueInput
+  }
+
+  /**
+   * import_batch_logs updateMany
+   */
+  export type import_batch_logsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update import_batch_logs.
+     */
+    data: XOR<import_batch_logsUpdateManyMutationInput, import_batch_logsUncheckedUpdateManyInput>
+    /**
+     * Filter which import_batch_logs to update
+     */
+    where?: import_batch_logsWhereInput
+    /**
+     * Limit how many import_batch_logs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * import_batch_logs upsert
+   */
+  export type import_batch_logsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the import_batch_logs
+     */
+    select?: import_batch_logsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the import_batch_logs
+     */
+    omit?: import_batch_logsOmit<ExtArgs> | null
+    /**
+     * The filter to search for the import_batch_logs to update in case it exists.
+     */
+    where: import_batch_logsWhereUniqueInput
+    /**
+     * In case the import_batch_logs found by the `where` argument doesn't exist, create a new import_batch_logs with this data.
+     */
+    create: XOR<import_batch_logsCreateInput, import_batch_logsUncheckedCreateInput>
+    /**
+     * In case the import_batch_logs was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<import_batch_logsUpdateInput, import_batch_logsUncheckedUpdateInput>
+  }
+
+  /**
+   * import_batch_logs delete
+   */
+  export type import_batch_logsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the import_batch_logs
+     */
+    select?: import_batch_logsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the import_batch_logs
+     */
+    omit?: import_batch_logsOmit<ExtArgs> | null
+    /**
+     * Filter which import_batch_logs to delete.
+     */
+    where: import_batch_logsWhereUniqueInput
+  }
+
+  /**
+   * import_batch_logs deleteMany
+   */
+  export type import_batch_logsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which import_batch_logs to delete
+     */
+    where?: import_batch_logsWhereInput
+    /**
+     * Limit how many import_batch_logs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * import_batch_logs without action
+   */
+  export type import_batch_logsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the import_batch_logs
+     */
+    select?: import_batch_logsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the import_batch_logs
+     */
+    omit?: import_batch_logsOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -33006,6 +34069,21 @@ export namespace Prisma {
   export type Import_product_batchesScalarFieldEnum = (typeof Import_product_batchesScalarFieldEnum)[keyof typeof Import_product_batchesScalarFieldEnum]
 
 
+  export const Import_batch_logsScalarFieldEnum: {
+    batch_id: 'batch_id',
+    import_type: 'import_type',
+    filename: 'filename',
+    uploaded_by_user_id: 'uploaded_by_user_id',
+    current_step_status: 'current_step_status',
+    overall_status: 'overall_status',
+    start_timestamp: 'start_timestamp',
+    end_timestamp: 'end_timestamp',
+    last_log_message: 'last_log_message'
+  };
+
+  export type Import_batch_logsScalarFieldEnum = (typeof Import_batch_logsScalarFieldEnum)[keyof typeof Import_batch_logsScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -33334,6 +34412,17 @@ export namespace Prisma {
   export type import_product_batchesOrderByRelevanceFieldEnum = (typeof import_product_batchesOrderByRelevanceFieldEnum)[keyof typeof import_product_batchesOrderByRelevanceFieldEnum]
 
 
+  export const import_batch_logsOrderByRelevanceFieldEnum: {
+    import_type: 'import_type',
+    filename: 'filename',
+    uploaded_by_user_id: 'uploaded_by_user_id',
+    current_step_status: 'current_step_status',
+    last_log_message: 'last_log_message'
+  };
+
+  export type import_batch_logsOrderByRelevanceFieldEnum = (typeof import_batch_logsOrderByRelevanceFieldEnum)[keyof typeof import_batch_logsOrderByRelevanceFieldEnum]
+
+
   /**
    * Field references
    */
@@ -33420,6 +34509,13 @@ export namespace Prisma {
    * Reference to a field of type 'import_product_batches_status'
    */
   export type Enumimport_product_batches_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'import_product_batches_status'>
+    
+
+
+  /**
+   * Reference to a field of type 'import_batch_logs_overall_status'
+   */
+  export type Enumimport_batch_logs_overall_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'import_batch_logs_overall_status'>
     
 
 
@@ -35875,6 +36971,81 @@ export namespace Prisma {
     created_at?: DateTimeWithAggregatesFilter<"import_product_batches"> | Date | string
     processed_at?: DateTimeNullableWithAggregatesFilter<"import_product_batches"> | Date | string | null
     error_details?: StringNullableWithAggregatesFilter<"import_product_batches"> | string | null
+  }
+
+  export type import_batch_logsWhereInput = {
+    AND?: import_batch_logsWhereInput | import_batch_logsWhereInput[]
+    OR?: import_batch_logsWhereInput[]
+    NOT?: import_batch_logsWhereInput | import_batch_logsWhereInput[]
+    batch_id?: IntFilter<"import_batch_logs"> | number
+    import_type?: StringFilter<"import_batch_logs"> | string
+    filename?: StringFilter<"import_batch_logs"> | string
+    uploaded_by_user_id?: StringFilter<"import_batch_logs"> | string
+    current_step_status?: StringFilter<"import_batch_logs"> | string
+    overall_status?: Enumimport_batch_logs_overall_statusFilter<"import_batch_logs"> | $Enums.import_batch_logs_overall_status
+    start_timestamp?: DateTimeFilter<"import_batch_logs"> | Date | string
+    end_timestamp?: DateTimeNullableFilter<"import_batch_logs"> | Date | string | null
+    last_log_message?: StringNullableFilter<"import_batch_logs"> | string | null
+  }
+
+  export type import_batch_logsOrderByWithRelationInput = {
+    batch_id?: SortOrder
+    import_type?: SortOrder
+    filename?: SortOrder
+    uploaded_by_user_id?: SortOrder
+    current_step_status?: SortOrder
+    overall_status?: SortOrder
+    start_timestamp?: SortOrder
+    end_timestamp?: SortOrderInput | SortOrder
+    last_log_message?: SortOrderInput | SortOrder
+    _relevance?: import_batch_logsOrderByRelevanceInput
+  }
+
+  export type import_batch_logsWhereUniqueInput = Prisma.AtLeast<{
+    batch_id?: number
+    AND?: import_batch_logsWhereInput | import_batch_logsWhereInput[]
+    OR?: import_batch_logsWhereInput[]
+    NOT?: import_batch_logsWhereInput | import_batch_logsWhereInput[]
+    import_type?: StringFilter<"import_batch_logs"> | string
+    filename?: StringFilter<"import_batch_logs"> | string
+    uploaded_by_user_id?: StringFilter<"import_batch_logs"> | string
+    current_step_status?: StringFilter<"import_batch_logs"> | string
+    overall_status?: Enumimport_batch_logs_overall_statusFilter<"import_batch_logs"> | $Enums.import_batch_logs_overall_status
+    start_timestamp?: DateTimeFilter<"import_batch_logs"> | Date | string
+    end_timestamp?: DateTimeNullableFilter<"import_batch_logs"> | Date | string | null
+    last_log_message?: StringNullableFilter<"import_batch_logs"> | string | null
+  }, "batch_id">
+
+  export type import_batch_logsOrderByWithAggregationInput = {
+    batch_id?: SortOrder
+    import_type?: SortOrder
+    filename?: SortOrder
+    uploaded_by_user_id?: SortOrder
+    current_step_status?: SortOrder
+    overall_status?: SortOrder
+    start_timestamp?: SortOrder
+    end_timestamp?: SortOrderInput | SortOrder
+    last_log_message?: SortOrderInput | SortOrder
+    _count?: import_batch_logsCountOrderByAggregateInput
+    _avg?: import_batch_logsAvgOrderByAggregateInput
+    _max?: import_batch_logsMaxOrderByAggregateInput
+    _min?: import_batch_logsMinOrderByAggregateInput
+    _sum?: import_batch_logsSumOrderByAggregateInput
+  }
+
+  export type import_batch_logsScalarWhereWithAggregatesInput = {
+    AND?: import_batch_logsScalarWhereWithAggregatesInput | import_batch_logsScalarWhereWithAggregatesInput[]
+    OR?: import_batch_logsScalarWhereWithAggregatesInput[]
+    NOT?: import_batch_logsScalarWhereWithAggregatesInput | import_batch_logsScalarWhereWithAggregatesInput[]
+    batch_id?: IntWithAggregatesFilter<"import_batch_logs"> | number
+    import_type?: StringWithAggregatesFilter<"import_batch_logs"> | string
+    filename?: StringWithAggregatesFilter<"import_batch_logs"> | string
+    uploaded_by_user_id?: StringWithAggregatesFilter<"import_batch_logs"> | string
+    current_step_status?: StringWithAggregatesFilter<"import_batch_logs"> | string
+    overall_status?: Enumimport_batch_logs_overall_statusWithAggregatesFilter<"import_batch_logs"> | $Enums.import_batch_logs_overall_status
+    start_timestamp?: DateTimeWithAggregatesFilter<"import_batch_logs"> | Date | string
+    end_timestamp?: DateTimeNullableWithAggregatesFilter<"import_batch_logs"> | Date | string | null
+    last_log_message?: StringNullableWithAggregatesFilter<"import_batch_logs"> | string | null
   }
 
   export type categoryCreateInput = {
@@ -38624,6 +39795,87 @@ export namespace Prisma {
     error_details?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
+  export type import_batch_logsCreateInput = {
+    import_type: string
+    filename: string
+    uploaded_by_user_id: string
+    current_step_status: string
+    overall_status?: $Enums.import_batch_logs_overall_status
+    start_timestamp?: Date | string
+    end_timestamp?: Date | string | null
+    last_log_message?: string | null
+  }
+
+  export type import_batch_logsUncheckedCreateInput = {
+    batch_id?: number
+    import_type: string
+    filename: string
+    uploaded_by_user_id: string
+    current_step_status: string
+    overall_status?: $Enums.import_batch_logs_overall_status
+    start_timestamp?: Date | string
+    end_timestamp?: Date | string | null
+    last_log_message?: string | null
+  }
+
+  export type import_batch_logsUpdateInput = {
+    import_type?: StringFieldUpdateOperationsInput | string
+    filename?: StringFieldUpdateOperationsInput | string
+    uploaded_by_user_id?: StringFieldUpdateOperationsInput | string
+    current_step_status?: StringFieldUpdateOperationsInput | string
+    overall_status?: Enumimport_batch_logs_overall_statusFieldUpdateOperationsInput | $Enums.import_batch_logs_overall_status
+    start_timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+    end_timestamp?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    last_log_message?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type import_batch_logsUncheckedUpdateInput = {
+    batch_id?: IntFieldUpdateOperationsInput | number
+    import_type?: StringFieldUpdateOperationsInput | string
+    filename?: StringFieldUpdateOperationsInput | string
+    uploaded_by_user_id?: StringFieldUpdateOperationsInput | string
+    current_step_status?: StringFieldUpdateOperationsInput | string
+    overall_status?: Enumimport_batch_logs_overall_statusFieldUpdateOperationsInput | $Enums.import_batch_logs_overall_status
+    start_timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+    end_timestamp?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    last_log_message?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type import_batch_logsCreateManyInput = {
+    batch_id?: number
+    import_type: string
+    filename: string
+    uploaded_by_user_id: string
+    current_step_status: string
+    overall_status?: $Enums.import_batch_logs_overall_status
+    start_timestamp?: Date | string
+    end_timestamp?: Date | string | null
+    last_log_message?: string | null
+  }
+
+  export type import_batch_logsUpdateManyMutationInput = {
+    import_type?: StringFieldUpdateOperationsInput | string
+    filename?: StringFieldUpdateOperationsInput | string
+    uploaded_by_user_id?: StringFieldUpdateOperationsInput | string
+    current_step_status?: StringFieldUpdateOperationsInput | string
+    overall_status?: Enumimport_batch_logs_overall_statusFieldUpdateOperationsInput | $Enums.import_batch_logs_overall_status
+    start_timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+    end_timestamp?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    last_log_message?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type import_batch_logsUncheckedUpdateManyInput = {
+    batch_id?: IntFieldUpdateOperationsInput | number
+    import_type?: StringFieldUpdateOperationsInput | string
+    filename?: StringFieldUpdateOperationsInput | string
+    uploaded_by_user_id?: StringFieldUpdateOperationsInput | string
+    current_step_status?: StringFieldUpdateOperationsInput | string
+    overall_status?: Enumimport_batch_logs_overall_statusFieldUpdateOperationsInput | $Enums.import_batch_logs_overall_status
+    start_timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+    end_timestamp?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    last_log_message?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[]
@@ -40921,6 +42173,73 @@ export namespace Prisma {
     _max?: NestedEnumimport_product_batches_statusFilter<$PrismaModel>
   }
 
+  export type Enumimport_batch_logs_overall_statusFilter<$PrismaModel = never> = {
+    equals?: $Enums.import_batch_logs_overall_status | Enumimport_batch_logs_overall_statusFieldRefInput<$PrismaModel>
+    in?: $Enums.import_batch_logs_overall_status[]
+    notIn?: $Enums.import_batch_logs_overall_status[]
+    not?: NestedEnumimport_batch_logs_overall_statusFilter<$PrismaModel> | $Enums.import_batch_logs_overall_status
+  }
+
+  export type import_batch_logsOrderByRelevanceInput = {
+    fields: import_batch_logsOrderByRelevanceFieldEnum | import_batch_logsOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type import_batch_logsCountOrderByAggregateInput = {
+    batch_id?: SortOrder
+    import_type?: SortOrder
+    filename?: SortOrder
+    uploaded_by_user_id?: SortOrder
+    current_step_status?: SortOrder
+    overall_status?: SortOrder
+    start_timestamp?: SortOrder
+    end_timestamp?: SortOrder
+    last_log_message?: SortOrder
+  }
+
+  export type import_batch_logsAvgOrderByAggregateInput = {
+    batch_id?: SortOrder
+  }
+
+  export type import_batch_logsMaxOrderByAggregateInput = {
+    batch_id?: SortOrder
+    import_type?: SortOrder
+    filename?: SortOrder
+    uploaded_by_user_id?: SortOrder
+    current_step_status?: SortOrder
+    overall_status?: SortOrder
+    start_timestamp?: SortOrder
+    end_timestamp?: SortOrder
+    last_log_message?: SortOrder
+  }
+
+  export type import_batch_logsMinOrderByAggregateInput = {
+    batch_id?: SortOrder
+    import_type?: SortOrder
+    filename?: SortOrder
+    uploaded_by_user_id?: SortOrder
+    current_step_status?: SortOrder
+    overall_status?: SortOrder
+    start_timestamp?: SortOrder
+    end_timestamp?: SortOrder
+    last_log_message?: SortOrder
+  }
+
+  export type import_batch_logsSumOrderByAggregateInput = {
+    batch_id?: SortOrder
+  }
+
+  export type Enumimport_batch_logs_overall_statusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.import_batch_logs_overall_status | Enumimport_batch_logs_overall_statusFieldRefInput<$PrismaModel>
+    in?: $Enums.import_batch_logs_overall_status[]
+    notIn?: $Enums.import_batch_logs_overall_status[]
+    not?: NestedEnumimport_batch_logs_overall_statusWithAggregatesFilter<$PrismaModel> | $Enums.import_batch_logs_overall_status
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumimport_batch_logs_overall_statusFilter<$PrismaModel>
+    _max?: NestedEnumimport_batch_logs_overall_statusFilter<$PrismaModel>
+  }
+
   export type StringFieldUpdateOperationsInput = {
     set?: string
   }
@@ -41167,6 +42486,10 @@ export namespace Prisma {
 
   export type Enumimport_product_batches_statusFieldUpdateOperationsInput = {
     set?: $Enums.import_product_batches_status
+  }
+
+  export type Enumimport_batch_logs_overall_statusFieldUpdateOperationsInput = {
+    set?: $Enums.import_batch_logs_overall_status
   }
 
   export type NestedIntFilter<$PrismaModel = never> = {
@@ -41580,6 +42903,23 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumimport_product_batches_statusFilter<$PrismaModel>
     _max?: NestedEnumimport_product_batches_statusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumimport_batch_logs_overall_statusFilter<$PrismaModel = never> = {
+    equals?: $Enums.import_batch_logs_overall_status | Enumimport_batch_logs_overall_statusFieldRefInput<$PrismaModel>
+    in?: $Enums.import_batch_logs_overall_status[]
+    notIn?: $Enums.import_batch_logs_overall_status[]
+    not?: NestedEnumimport_batch_logs_overall_statusFilter<$PrismaModel> | $Enums.import_batch_logs_overall_status
+  }
+
+  export type NestedEnumimport_batch_logs_overall_statusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.import_batch_logs_overall_status | Enumimport_batch_logs_overall_statusFieldRefInput<$PrismaModel>
+    in?: $Enums.import_batch_logs_overall_status[]
+    notIn?: $Enums.import_batch_logs_overall_status[]
+    not?: NestedEnumimport_batch_logs_overall_statusWithAggregatesFilter<$PrismaModel> | $Enums.import_batch_logs_overall_status
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumimport_batch_logs_overall_statusFilter<$PrismaModel>
+    _max?: NestedEnumimport_batch_logs_overall_statusFilter<$PrismaModel>
   }
 
   export type featured_listsCreateWithoutFeatured_list_itemsInput = {

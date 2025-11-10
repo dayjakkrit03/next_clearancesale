@@ -518,6 +518,18 @@ exports.Prisma.Import_product_batchesScalarFieldEnum = {
   error_details: 'error_details'
 };
 
+exports.Prisma.Import_batch_logsScalarFieldEnum = {
+  batch_id: 'batch_id',
+  import_type: 'import_type',
+  filename: 'filename',
+  uploaded_by_user_id: 'uploaded_by_user_id',
+  current_step_status: 'current_step_status',
+  overall_status: 'overall_status',
+  start_timestamp: 'start_timestamp',
+  end_timestamp: 'end_timestamp',
+  last_log_message: 'last_log_message'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -743,6 +755,14 @@ exports.Prisma.import_product_batchesOrderByRelevanceFieldEnum = {
   source_filename: 'source_filename',
   error_details: 'error_details'
 };
+
+exports.Prisma.import_batch_logsOrderByRelevanceFieldEnum = {
+  import_type: 'import_type',
+  filename: 'filename',
+  uploaded_by_user_id: 'uploaded_by_user_id',
+  current_step_status: 'current_step_status',
+  last_log_message: 'last_log_message'
+};
 exports.discount_rules_frame_mode = exports.$Enums.discount_rules_frame_mode = {
   draw: 'draw',
   image: 'image'
@@ -771,6 +791,14 @@ exports.import_product_batches_status = exports.$Enums.import_product_batches_st
   FOLDERS_CREATING: 'FOLDERS_CREATING',
   IMAGES_COPYING: 'IMAGES_COPYING',
   ERROR: 'ERROR'
+};
+
+exports.import_batch_logs_overall_status = exports.$Enums.import_batch_logs_overall_status = {
+  PENDING: 'PENDING',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETE: 'COMPLETE',
+  FAILED: 'FAILED',
+  ABANDONED: 'ABANDONED'
 };
 
 exports.Prisma.ModelName = {
@@ -802,7 +830,8 @@ exports.Prisma.ModelName = {
   config_setting: 'config_setting',
   import_category_batches: 'import_category_batches',
   images_products: 'images_products',
-  import_product_batches: 'import_product_batches'
+  import_product_batches: 'import_product_batches',
+  import_batch_logs: 'import_batch_logs'
 };
 
 /**

@@ -1,4 +1,4 @@
-// v.1.1.8 ==============================================
+// v.1.1.9 ==============================================
 // src/components/product-grid.client.tsx
 
 "use client";
@@ -131,7 +131,8 @@ export function ProductGridClient({
                   discount={p.discountPercent}
                   rating={p.rating ?? 0}
                   reviews={p.reviews ?? 0}
-                  image={p.image_url ?? "/placeholder.png"}
+                  // ✅ รับจาก image_url (ปลอดภัย) และกันเคสอนาคตที่ server เผลอส่ง field image มา
+                  image={(p as any).image ?? p.image_url ?? "/placeholder.png"}
                   onAddToCart={onAddToCart}
                   viewMode={viewMode}
                   visibleParts={visibleParts}
@@ -160,6 +161,173 @@ export function ProductGridClient({
 }
 
 export default ProductGridClient;
+
+// v.1.1.9 ==============================================
+
+// v.1.1.8 ==============================================
+// // src/components/product-grid.client.tsx
+
+// "use client";
+
+// import { useMemo, useState, useMemo as useReactMemo } from "react";
+// import { ProductCard } from "./product-card";
+// import type { ProductCardProps } from "./product-card";
+// import { Button } from "@/components/ui/button";
+// import { ChevronRight } from "lucide-react";
+
+// /* ====== Types ====== */
+// type UIProductBase = {
+//   id: number | string;
+//   name: string;
+//   price: number;
+//   discountPercent?: number;
+//   image_url?: string;
+//   rating?: number;
+//   reviews?: number;
+//   brand?: string;
+//   sku?: string;
+//   uom?: string;
+//   category_id?: number | string;
+//   slug?: string;
+// };
+
+// type VisibleParts = Partial<{
+//   image: boolean;
+//   discountBadge: boolean;
+//   brandLogo: boolean;
+//   frame: boolean;
+
+//   brandName: boolean;
+//   sku: boolean;
+//   name: boolean;
+//   ratingReview: boolean;
+//   category: boolean;
+//   price: boolean;
+//   originalPrice: boolean;
+//   uom: boolean;
+// }>;
+
+// type UIProductReady = UIProductBase & {
+//   frameInfo?: ProductCardProps["frameInfo"] | null;
+//   categoryName?: string;
+// };
+
+// export interface ProductGridClientProps {
+//   items: UIProductReady[];
+//   visibleParts?: VisibleParts;
+//   viewMode?: "grid" | "list";
+//   onAddToCart?: () => void;
+
+//   title?: string;
+//   subtitle?: string;
+
+//   initialVisibleCount?: number;
+//   loadStep?: number;
+// }
+
+// export function ProductGridClient({
+//   items,
+//   visibleParts,
+//   viewMode = "grid",
+//   onAddToCart,
+//   title = "สินค้าแนะนำ",
+//   subtitle,
+//   initialVisibleCount = 6,
+//   loadStep = 6,
+// }: ProductGridClientProps) {
+//   if (!items || items.length === 0) return null;
+
+//   const gridCols = useMemo(
+//     () =>
+//       viewMode === "grid"
+//         ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6"
+//         : "flex flex-col gap-4",
+//     [viewMode]
+//   );
+
+//   const getOriginalPrice = (price: number, discountPercent?: number) => {
+//     if (!discountPercent || discountPercent <= 0) return undefined;
+//     const original = price / (1 - discountPercent / 100);
+//     return Math.round(original);
+//   };
+
+//   const [visibleCount, setVisibleCount] = useState<number>(
+//     Math.min(Math.max(1, initialVisibleCount), items.length)
+//   );
+
+//   const canLoadMore = visibleCount < items.length;
+//   const onLoadMore = () => {
+//     setVisibleCount((v) => Math.min(items.length, v + Math.max(1, loadStep)));
+//   };
+
+//   const visibleItems = useReactMemo(() => items.slice(0, visibleCount), [items, visibleCount]);
+
+
+
+//   return (
+//     <section className="py-12 bg-muted">
+//       <div className="container mx-auto px-4">
+//         {/* Header */}
+//         <div className="mb-6 flex items-start justify-between gap-4">
+//           <div>
+//             <h2 className="text-xl sm:text-2xl font-bold text-foreground">{title}</h2>
+//             {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
+//           </div>
+//           <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
+//             ดูทั้งหมด
+//             <ChevronRight className="h-4 w-4 ml-1" />
+//           </Button>
+//         </div>
+
+//         {/* Grid */}
+//         <div className={gridCols}>
+//           {visibleItems.map((p, index) => {
+//             const original = getOriginalPrice(p.price, p.discountPercent);
+
+//             return (
+//               <div
+//                 key={p.id}
+//                 className="opacity-0 animate-fade-in"
+//                 style={{ animationDelay: `${index * 0.08}s` }}
+//               >
+//                 <ProductCard
+//                   id={p.id}
+//                   slug={p.slug}
+//                   name={p.name}
+//                   price={p.price}
+//                   originalPrice={original}
+//                   discount={p.discountPercent}
+//                   rating={p.rating ?? 0}
+//                   reviews={p.reviews ?? 0}
+//                   image={p.image_url ?? "/placeholder.png"}
+//                   onAddToCart={onAddToCart}
+//                   viewMode={viewMode}
+//                   visibleParts={visibleParts}
+//                   brand={p.brand}
+//                   sku={p.sku}
+//                   uom={p.uom}
+//                   categoryName={p.categoryName}
+//                   frameInfo={p.frameInfo ?? null}
+//                 />
+//               </div>
+//             );
+//           })}
+//         </div>
+
+//         {/* Load More (ปุ่มหลักสีฟ้า) */}
+//         {canLoadMore && (
+//           <div className="mt-8 flex justify-center">
+//             <Button onClick={onLoadMore} variant="default">
+//               โหลดเพิ่ม
+//             </Button>
+//           </div>
+//         )}
+//       </div>
+//     </section>
+//   );
+// }
+
+// export default ProductGridClient;
 
 
 // v.1.1.8 =============================================

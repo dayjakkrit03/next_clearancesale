@@ -1,5 +1,10 @@
+// v.1.1.5 =============================================
+// src/components/product-card.tsx
+
+// v.1.1.5 =============================================
+
 // v.1.1.4 =============================================
-// File: src/components/product-card.tsx
+// src/components/product-card.tsx
 "use client";
 
 import { useState } from "react";
@@ -109,6 +114,8 @@ export const ProductCard = ({
 }: ProductCardProps) => {
   const router = useRouter();
   const [isLiked, setIsLiked] = useState(initialIsLiked);
+
+  console.log(`[Card] พาทรูปของสินค้า ${id}: ${image}`);
 
   // ✅ fallback handler: ถ้าไม่ส่ง onAddToCart จะเปิดตะกร้าจาก useCart()
   const cart = useCart();
