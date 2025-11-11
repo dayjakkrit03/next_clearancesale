@@ -49,7 +49,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {!isAdmin && (
           <>
             <ShoppingCart isOpen={isOpen} onClose={api.close} />
-            <MessageChat />
+            {/* <MessageChat /> */}
 
             {/* Popup เฉพาะหน้าแรก */}
             {/* {isHome && ( */}

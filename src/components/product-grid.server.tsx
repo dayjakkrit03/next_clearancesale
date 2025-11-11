@@ -1,4 +1,6 @@
 // v.1.1.11 ===========================================================================
+// src/components/product-grid.server.tsx
+
 /* Server Component: ดึง products(+meta/rules/categories) หรือดึงตาม featured list
    แล้วคำนวณ frameInfo ให้แต่ละสินค้า ส่งทั้งหมดให้ฝั่ง client render (พร้อมโหลดเพิ่มฝั่ง client) */
 import { ProductGridClient } from "./product-grid.client";

@@ -102,7 +102,7 @@ export default function ProductDetailPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header onCartClick={() => setIsCartOpen(true)} />
+      {/* <Header onCartClick={() => setIsCartOpen(true)} /> */}
       
       <div className="container mx-auto px-4 py-8 max-w-full overflow-hidden">
         {/* Breadcrumb */}
@@ -476,7 +476,7 @@ export default function ProductDetailPage() {
         </Tabs>
       </div>
 
-      <Footer />
+      {/* <Footer /> */}
       <ShoppingCart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
       <MessageChat />
     </div>
