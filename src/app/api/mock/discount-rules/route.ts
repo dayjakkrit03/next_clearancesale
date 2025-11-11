@@ -1,5 +1,6 @@
-// v.1.1.4 ==============================================
-// v.DB — ใช้ _store (DB) แต่คงรูปแบบ API เดิม
+// v.1.1.5 ==============================================================
+// src/app/api/mock/discount-rules/route.ts
+
 import { NextResponse } from "next/server";
 import {
   getAllRules,
@@ -10,11 +11,23 @@ import {
 
 export const dynamic = "force-dynamic";
 
+/**
+ * GET /api/mock/discount-rules
+ * ส่ง { items, meta } ไปให้ฝั่ง UI ใช้ขึ้นแถบ DiscountRuleStrip
+ * - no-store เพื่อไม่ให้ cache ขณะพัฒนา
+ */
 export async function GET() {
   const [items, meta] = await Promise.all([getAllRules(), getRulesMeta()]);
-  return NextResponse.json({ items, meta }, { headers: { "Cache-Control": "no-store" } });
+  return NextResponse.json(
+    { items, meta },
+    { headers: { "Cache-Control": "no-store" } }
+  );
 }
 
+/**
+ * POST /api/mock/discount-rules
+ * สำหรับสร้าง rule ใหม่จากฝั่งแอดมิน (เผื่อคุณใช้ในอนาคต)
+ */
 export async function POST(req: Request) {
   try {
     const raw = await req.json().catch(() => ({}));
@@ -24,6 +37,36 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Create failed" }, { status: 400 });
   }
 }
+
+// v.1.1.5 ==============================================================
+
+// v.1.1.4 ==============================================
+// // src/app/api/mock/discout-rules/route.ts
+
+// import { NextResponse } from "next/server";
+// import {
+//   getAllRules,
+//   getRulesMeta,
+//   createRule,
+//   sanitizePatch,
+// } from "./_store";
+
+// export const dynamic = "force-dynamic";
+
+// export async function GET() {
+//   const [items, meta] = await Promise.all([getAllRules(), getRulesMeta()]);
+//   return NextResponse.json({ items, meta }, { headers: { "Cache-Control": "no-store" } });
+// }
+
+// export async function POST(req: Request) {
+//   try {
+//     const raw = await req.json().catch(() => ({}));
+//     const item = await createRule(sanitizePatch(raw));
+//     return NextResponse.json({ item }, { status: 201 });
+//   } catch {
+//     return NextResponse.json({ error: "Create failed" }, { status: 400 });
+//   }
+// }
 
 // v.1.1.4 ==============================================
 

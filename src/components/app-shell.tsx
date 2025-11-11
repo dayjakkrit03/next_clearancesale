@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { ShoppingCart } from "@/components/shopping-cart";
-import { MessageChat } from "@/components/message-chat";
+// import { MessageChat } from "@/components/message-chat";
 // import HomePromoPopup from "@/components/home-promo-popup";
 
 type CartApi = { open: () => void; close: () => void; count: number };

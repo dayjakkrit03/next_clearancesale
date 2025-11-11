@@ -530,6 +530,19 @@ exports.Prisma.Import_batch_logsScalarFieldEnum = {
   last_log_message: 'last_log_message'
 };
 
+exports.Prisma.Product_conditionsScalarFieldEnum = {
+  id: 'id',
+  pro_id: 'pro_id',
+  pro_sku: 'pro_sku',
+  pro_brand: 'pro_brand',
+  pro_details: 'pro_details',
+  minimum_length: 'minimum_length',
+  sales_type: 'sales_type',
+  units_system: 'units_system',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -763,6 +776,15 @@ exports.Prisma.import_batch_logsOrderByRelevanceFieldEnum = {
   current_step_status: 'current_step_status',
   last_log_message: 'last_log_message'
 };
+
+exports.Prisma.product_conditionsOrderByRelevanceFieldEnum = {
+  pro_sku: 'pro_sku',
+  pro_brand: 'pro_brand',
+  pro_details: 'pro_details',
+  minimum_length: 'minimum_length',
+  sales_type: 'sales_type',
+  units_system: 'units_system'
+};
 exports.discount_rules_frame_mode = exports.$Enums.discount_rules_frame_mode = {
   draw: 'draw',
   image: 'image'
@@ -831,7 +853,8 @@ exports.Prisma.ModelName = {
   import_category_batches: 'import_category_batches',
   images_products: 'images_products',
   import_product_batches: 'import_product_batches',
-  import_batch_logs: 'import_batch_logs'
+  import_batch_logs: 'import_batch_logs',
+  product_conditions: 'product_conditions'
 };
 
 /**

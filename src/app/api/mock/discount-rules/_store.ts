@@ -1,5 +1,5 @@
 // v.1.1.4 ======================================================
-// DB-backed store for discount rules (drop-in replacement of the old in-memory store)
+// src/app/api/mock/discount-rules/_store.ts
 
 import { prismaInterlink, setInterlinkSessionTZ } from "@/lib/db";
 

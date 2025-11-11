@@ -163,6 +163,11 @@ export type import_product_batches = $Result.DefaultSelection<Prisma.$import_pro
  * This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
  */
 export type import_batch_logs = $Result.DefaultSelection<Prisma.$import_batch_logsPayload>
+/**
+ * Model product_conditions
+ * 
+ */
+export type product_conditions = $Result.DefaultSelection<Prisma.$product_conditionsPayload>
 
 /**
  * Enums
@@ -659,6 +664,16 @@ export class PrismaClient<
     * ```
     */
   get import_batch_logs(): Prisma.import_batch_logsDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.product_conditions`: Exposes CRUD operations for the **product_conditions** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Product_conditions
+    * const product_conditions = await prisma.product_conditions.findMany()
+    * ```
+    */
+  get product_conditions(): Prisma.product_conditionsDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1128,7 +1143,8 @@ export namespace Prisma {
     import_category_batches: 'import_category_batches',
     images_products: 'images_products',
     import_product_batches: 'import_product_batches',
-    import_batch_logs: 'import_batch_logs'
+    import_batch_logs: 'import_batch_logs',
+    product_conditions: 'product_conditions'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1147,7 +1163,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "category" | "more_pictures" | "part" | "product" | "sub" | "category_clearance" | "discountpercentage_clearance_tb" | "discountpercentage_tb" | "more_pictures_clearance" | "more_pictures_test" | "part_clearance" | "producoptions_clearance_tb" | "producoptions_tb" | "product_clearance" | "product_test_upload" | "sub_clearance" | "discount_rules" | "discount_rules_meta" | "featured_list_items" | "featured_lists" | "products_clearance" | "products_meta" | "ui_categories" | "ui_categories_meta" | "images_categories" | "config_setting" | "import_category_batches" | "images_products" | "import_product_batches" | "import_batch_logs"
+      modelProps: "category" | "more_pictures" | "part" | "product" | "sub" | "category_clearance" | "discountpercentage_clearance_tb" | "discountpercentage_tb" | "more_pictures_clearance" | "more_pictures_test" | "part_clearance" | "producoptions_clearance_tb" | "producoptions_tb" | "product_clearance" | "product_test_upload" | "sub_clearance" | "discount_rules" | "discount_rules_meta" | "featured_list_items" | "featured_lists" | "products_clearance" | "products_meta" | "ui_categories" | "ui_categories_meta" | "images_categories" | "config_setting" | "import_category_batches" | "images_products" | "import_product_batches" | "import_batch_logs" | "product_conditions"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3131,6 +3147,72 @@ export namespace Prisma {
           }
         }
       }
+      product_conditions: {
+        payload: Prisma.$product_conditionsPayload<ExtArgs>
+        fields: Prisma.product_conditionsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.product_conditionsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$product_conditionsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.product_conditionsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$product_conditionsPayload>
+          }
+          findFirst: {
+            args: Prisma.product_conditionsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$product_conditionsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.product_conditionsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$product_conditionsPayload>
+          }
+          findMany: {
+            args: Prisma.product_conditionsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$product_conditionsPayload>[]
+          }
+          create: {
+            args: Prisma.product_conditionsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$product_conditionsPayload>
+          }
+          createMany: {
+            args: Prisma.product_conditionsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.product_conditionsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$product_conditionsPayload>
+          }
+          update: {
+            args: Prisma.product_conditionsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$product_conditionsPayload>
+          }
+          deleteMany: {
+            args: Prisma.product_conditionsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.product_conditionsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.product_conditionsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$product_conditionsPayload>
+          }
+          aggregate: {
+            args: Prisma.Product_conditionsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateProduct_conditions>
+          }
+          groupBy: {
+            args: Prisma.product_conditionsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Product_conditionsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.product_conditionsCountArgs<ExtArgs>
+            result: $Utils.Optional<Product_conditionsCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -3257,6 +3339,7 @@ export namespace Prisma {
     images_products?: images_productsOmit
     import_product_batches?: import_product_batchesOmit
     import_batch_logs?: import_batch_logsOmit
+    product_conditions?: product_conditionsOmit
   }
 
   /* Types for Logging */
@@ -6857,6 +6940,7 @@ export namespace Prisma {
       updated_at: Date
       product_uom: string | null
       /**
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
@@ -16747,6 +16831,7 @@ export namespace Prisma {
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        */
       clearanceSales: boolean | null
       clearanceQuantity: number | null
@@ -17967,6 +18052,7 @@ export namespace Prisma {
       updated_at: Date
       product_uom: string | null
       /**
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
@@ -24226,6 +24312,8 @@ export namespace Prisma {
       visible: boolean
       display_order: number
       /**
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
@@ -33571,6 +33659,981 @@ export namespace Prisma {
 
 
   /**
+   * Model product_conditions
+   */
+
+  export type AggregateProduct_conditions = {
+    _count: Product_conditionsCountAggregateOutputType | null
+    _avg: Product_conditionsAvgAggregateOutputType | null
+    _sum: Product_conditionsSumAggregateOutputType | null
+    _min: Product_conditionsMinAggregateOutputType | null
+    _max: Product_conditionsMaxAggregateOutputType | null
+  }
+
+  export type Product_conditionsAvgAggregateOutputType = {
+    id: number | null
+    pro_id: number | null
+  }
+
+  export type Product_conditionsSumAggregateOutputType = {
+    id: number | null
+    pro_id: number | null
+  }
+
+  export type Product_conditionsMinAggregateOutputType = {
+    id: number | null
+    pro_id: number | null
+    pro_sku: string | null
+    pro_brand: string | null
+    pro_details: string | null
+    minimum_length: string | null
+    sales_type: string | null
+    units_system: string | null
+    created_at: Date | null
+    updated_at: Date | null
+  }
+
+  export type Product_conditionsMaxAggregateOutputType = {
+    id: number | null
+    pro_id: number | null
+    pro_sku: string | null
+    pro_brand: string | null
+    pro_details: string | null
+    minimum_length: string | null
+    sales_type: string | null
+    units_system: string | null
+    created_at: Date | null
+    updated_at: Date | null
+  }
+
+  export type Product_conditionsCountAggregateOutputType = {
+    id: number
+    pro_id: number
+    pro_sku: number
+    pro_brand: number
+    pro_details: number
+    minimum_length: number
+    sales_type: number
+    units_system: number
+    created_at: number
+    updated_at: number
+    _all: number
+  }
+
+
+  export type Product_conditionsAvgAggregateInputType = {
+    id?: true
+    pro_id?: true
+  }
+
+  export type Product_conditionsSumAggregateInputType = {
+    id?: true
+    pro_id?: true
+  }
+
+  export type Product_conditionsMinAggregateInputType = {
+    id?: true
+    pro_id?: true
+    pro_sku?: true
+    pro_brand?: true
+    pro_details?: true
+    minimum_length?: true
+    sales_type?: true
+    units_system?: true
+    created_at?: true
+    updated_at?: true
+  }
+
+  export type Product_conditionsMaxAggregateInputType = {
+    id?: true
+    pro_id?: true
+    pro_sku?: true
+    pro_brand?: true
+    pro_details?: true
+    minimum_length?: true
+    sales_type?: true
+    units_system?: true
+    created_at?: true
+    updated_at?: true
+  }
+
+  export type Product_conditionsCountAggregateInputType = {
+    id?: true
+    pro_id?: true
+    pro_sku?: true
+    pro_brand?: true
+    pro_details?: true
+    minimum_length?: true
+    sales_type?: true
+    units_system?: true
+    created_at?: true
+    updated_at?: true
+    _all?: true
+  }
+
+  export type Product_conditionsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which product_conditions to aggregate.
+     */
+    where?: product_conditionsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of product_conditions to fetch.
+     */
+    orderBy?: product_conditionsOrderByWithRelationInput | product_conditionsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: product_conditionsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` product_conditions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` product_conditions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned product_conditions
+    **/
+    _count?: true | Product_conditionsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Product_conditionsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Product_conditionsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Product_conditionsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Product_conditionsMaxAggregateInputType
+  }
+
+  export type GetProduct_conditionsAggregateType<T extends Product_conditionsAggregateArgs> = {
+        [P in keyof T & keyof AggregateProduct_conditions]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateProduct_conditions[P]>
+      : GetScalarType<T[P], AggregateProduct_conditions[P]>
+  }
+
+
+
+
+  export type product_conditionsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: product_conditionsWhereInput
+    orderBy?: product_conditionsOrderByWithAggregationInput | product_conditionsOrderByWithAggregationInput[]
+    by: Product_conditionsScalarFieldEnum[] | Product_conditionsScalarFieldEnum
+    having?: product_conditionsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Product_conditionsCountAggregateInputType | true
+    _avg?: Product_conditionsAvgAggregateInputType
+    _sum?: Product_conditionsSumAggregateInputType
+    _min?: Product_conditionsMinAggregateInputType
+    _max?: Product_conditionsMaxAggregateInputType
+  }
+
+  export type Product_conditionsGroupByOutputType = {
+    id: number
+    pro_id: number | null
+    pro_sku: string | null
+    pro_brand: string | null
+    pro_details: string | null
+    minimum_length: string | null
+    sales_type: string | null
+    units_system: string | null
+    created_at: Date
+    updated_at: Date
+    _count: Product_conditionsCountAggregateOutputType | null
+    _avg: Product_conditionsAvgAggregateOutputType | null
+    _sum: Product_conditionsSumAggregateOutputType | null
+    _min: Product_conditionsMinAggregateOutputType | null
+    _max: Product_conditionsMaxAggregateOutputType | null
+  }
+
+  type GetProduct_conditionsGroupByPayload<T extends product_conditionsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Product_conditionsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Product_conditionsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Product_conditionsGroupByOutputType[P]>
+            : GetScalarType<T[P], Product_conditionsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type product_conditionsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    pro_id?: boolean
+    pro_sku?: boolean
+    pro_brand?: boolean
+    pro_details?: boolean
+    minimum_length?: boolean
+    sales_type?: boolean
+    units_system?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+  }, ExtArgs["result"]["product_conditions"]>
+
+
+
+  export type product_conditionsSelectScalar = {
+    id?: boolean
+    pro_id?: boolean
+    pro_sku?: boolean
+    pro_brand?: boolean
+    pro_details?: boolean
+    minimum_length?: boolean
+    sales_type?: boolean
+    units_system?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+  }
+
+  export type product_conditionsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "pro_id" | "pro_sku" | "pro_brand" | "pro_details" | "minimum_length" | "sales_type" | "units_system" | "created_at" | "updated_at", ExtArgs["result"]["product_conditions"]>
+
+  export type $product_conditionsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "product_conditions"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      pro_id: number | null
+      pro_sku: string | null
+      pro_brand: string | null
+      pro_details: string | null
+      minimum_length: string | null
+      sales_type: string | null
+      units_system: string | null
+      created_at: Date
+      updated_at: Date
+    }, ExtArgs["result"]["product_conditions"]>
+    composites: {}
+  }
+
+  type product_conditionsGetPayload<S extends boolean | null | undefined | product_conditionsDefaultArgs> = $Result.GetResult<Prisma.$product_conditionsPayload, S>
+
+  type product_conditionsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<product_conditionsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Product_conditionsCountAggregateInputType | true
+    }
+
+  export interface product_conditionsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['product_conditions'], meta: { name: 'product_conditions' } }
+    /**
+     * Find zero or one Product_conditions that matches the filter.
+     * @param {product_conditionsFindUniqueArgs} args - Arguments to find a Product_conditions
+     * @example
+     * // Get one Product_conditions
+     * const product_conditions = await prisma.product_conditions.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends product_conditionsFindUniqueArgs>(args: SelectSubset<T, product_conditionsFindUniqueArgs<ExtArgs>>): Prisma__product_conditionsClient<$Result.GetResult<Prisma.$product_conditionsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Product_conditions that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {product_conditionsFindUniqueOrThrowArgs} args - Arguments to find a Product_conditions
+     * @example
+     * // Get one Product_conditions
+     * const product_conditions = await prisma.product_conditions.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends product_conditionsFindUniqueOrThrowArgs>(args: SelectSubset<T, product_conditionsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__product_conditionsClient<$Result.GetResult<Prisma.$product_conditionsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Product_conditions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {product_conditionsFindFirstArgs} args - Arguments to find a Product_conditions
+     * @example
+     * // Get one Product_conditions
+     * const product_conditions = await prisma.product_conditions.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends product_conditionsFindFirstArgs>(args?: SelectSubset<T, product_conditionsFindFirstArgs<ExtArgs>>): Prisma__product_conditionsClient<$Result.GetResult<Prisma.$product_conditionsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Product_conditions that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {product_conditionsFindFirstOrThrowArgs} args - Arguments to find a Product_conditions
+     * @example
+     * // Get one Product_conditions
+     * const product_conditions = await prisma.product_conditions.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends product_conditionsFindFirstOrThrowArgs>(args?: SelectSubset<T, product_conditionsFindFirstOrThrowArgs<ExtArgs>>): Prisma__product_conditionsClient<$Result.GetResult<Prisma.$product_conditionsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Product_conditions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {product_conditionsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Product_conditions
+     * const product_conditions = await prisma.product_conditions.findMany()
+     * 
+     * // Get first 10 Product_conditions
+     * const product_conditions = await prisma.product_conditions.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const product_conditionsWithIdOnly = await prisma.product_conditions.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends product_conditionsFindManyArgs>(args?: SelectSubset<T, product_conditionsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$product_conditionsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Product_conditions.
+     * @param {product_conditionsCreateArgs} args - Arguments to create a Product_conditions.
+     * @example
+     * // Create one Product_conditions
+     * const Product_conditions = await prisma.product_conditions.create({
+     *   data: {
+     *     // ... data to create a Product_conditions
+     *   }
+     * })
+     * 
+     */
+    create<T extends product_conditionsCreateArgs>(args: SelectSubset<T, product_conditionsCreateArgs<ExtArgs>>): Prisma__product_conditionsClient<$Result.GetResult<Prisma.$product_conditionsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Product_conditions.
+     * @param {product_conditionsCreateManyArgs} args - Arguments to create many Product_conditions.
+     * @example
+     * // Create many Product_conditions
+     * const product_conditions = await prisma.product_conditions.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends product_conditionsCreateManyArgs>(args?: SelectSubset<T, product_conditionsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a Product_conditions.
+     * @param {product_conditionsDeleteArgs} args - Arguments to delete one Product_conditions.
+     * @example
+     * // Delete one Product_conditions
+     * const Product_conditions = await prisma.product_conditions.delete({
+     *   where: {
+     *     // ... filter to delete one Product_conditions
+     *   }
+     * })
+     * 
+     */
+    delete<T extends product_conditionsDeleteArgs>(args: SelectSubset<T, product_conditionsDeleteArgs<ExtArgs>>): Prisma__product_conditionsClient<$Result.GetResult<Prisma.$product_conditionsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Product_conditions.
+     * @param {product_conditionsUpdateArgs} args - Arguments to update one Product_conditions.
+     * @example
+     * // Update one Product_conditions
+     * const product_conditions = await prisma.product_conditions.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends product_conditionsUpdateArgs>(args: SelectSubset<T, product_conditionsUpdateArgs<ExtArgs>>): Prisma__product_conditionsClient<$Result.GetResult<Prisma.$product_conditionsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Product_conditions.
+     * @param {product_conditionsDeleteManyArgs} args - Arguments to filter Product_conditions to delete.
+     * @example
+     * // Delete a few Product_conditions
+     * const { count } = await prisma.product_conditions.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends product_conditionsDeleteManyArgs>(args?: SelectSubset<T, product_conditionsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Product_conditions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {product_conditionsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Product_conditions
+     * const product_conditions = await prisma.product_conditions.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends product_conditionsUpdateManyArgs>(args: SelectSubset<T, product_conditionsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Product_conditions.
+     * @param {product_conditionsUpsertArgs} args - Arguments to update or create a Product_conditions.
+     * @example
+     * // Update or create a Product_conditions
+     * const product_conditions = await prisma.product_conditions.upsert({
+     *   create: {
+     *     // ... data to create a Product_conditions
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Product_conditions we want to update
+     *   }
+     * })
+     */
+    upsert<T extends product_conditionsUpsertArgs>(args: SelectSubset<T, product_conditionsUpsertArgs<ExtArgs>>): Prisma__product_conditionsClient<$Result.GetResult<Prisma.$product_conditionsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Product_conditions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {product_conditionsCountArgs} args - Arguments to filter Product_conditions to count.
+     * @example
+     * // Count the number of Product_conditions
+     * const count = await prisma.product_conditions.count({
+     *   where: {
+     *     // ... the filter for the Product_conditions we want to count
+     *   }
+     * })
+    **/
+    count<T extends product_conditionsCountArgs>(
+      args?: Subset<T, product_conditionsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Product_conditionsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Product_conditions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Product_conditionsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Product_conditionsAggregateArgs>(args: Subset<T, Product_conditionsAggregateArgs>): Prisma.PrismaPromise<GetProduct_conditionsAggregateType<T>>
+
+    /**
+     * Group by Product_conditions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {product_conditionsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends product_conditionsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: product_conditionsGroupByArgs['orderBy'] }
+        : { orderBy?: product_conditionsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, product_conditionsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetProduct_conditionsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the product_conditions model
+   */
+  readonly fields: product_conditionsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for product_conditions.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__product_conditionsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the product_conditions model
+   */
+  interface product_conditionsFieldRefs {
+    readonly id: FieldRef<"product_conditions", 'Int'>
+    readonly pro_id: FieldRef<"product_conditions", 'Int'>
+    readonly pro_sku: FieldRef<"product_conditions", 'String'>
+    readonly pro_brand: FieldRef<"product_conditions", 'String'>
+    readonly pro_details: FieldRef<"product_conditions", 'String'>
+    readonly minimum_length: FieldRef<"product_conditions", 'String'>
+    readonly sales_type: FieldRef<"product_conditions", 'String'>
+    readonly units_system: FieldRef<"product_conditions", 'String'>
+    readonly created_at: FieldRef<"product_conditions", 'DateTime'>
+    readonly updated_at: FieldRef<"product_conditions", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * product_conditions findUnique
+   */
+  export type product_conditionsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the product_conditions
+     */
+    select?: product_conditionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the product_conditions
+     */
+    omit?: product_conditionsOmit<ExtArgs> | null
+    /**
+     * Filter, which product_conditions to fetch.
+     */
+    where: product_conditionsWhereUniqueInput
+  }
+
+  /**
+   * product_conditions findUniqueOrThrow
+   */
+  export type product_conditionsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the product_conditions
+     */
+    select?: product_conditionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the product_conditions
+     */
+    omit?: product_conditionsOmit<ExtArgs> | null
+    /**
+     * Filter, which product_conditions to fetch.
+     */
+    where: product_conditionsWhereUniqueInput
+  }
+
+  /**
+   * product_conditions findFirst
+   */
+  export type product_conditionsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the product_conditions
+     */
+    select?: product_conditionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the product_conditions
+     */
+    omit?: product_conditionsOmit<ExtArgs> | null
+    /**
+     * Filter, which product_conditions to fetch.
+     */
+    where?: product_conditionsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of product_conditions to fetch.
+     */
+    orderBy?: product_conditionsOrderByWithRelationInput | product_conditionsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for product_conditions.
+     */
+    cursor?: product_conditionsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` product_conditions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` product_conditions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of product_conditions.
+     */
+    distinct?: Product_conditionsScalarFieldEnum | Product_conditionsScalarFieldEnum[]
+  }
+
+  /**
+   * product_conditions findFirstOrThrow
+   */
+  export type product_conditionsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the product_conditions
+     */
+    select?: product_conditionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the product_conditions
+     */
+    omit?: product_conditionsOmit<ExtArgs> | null
+    /**
+     * Filter, which product_conditions to fetch.
+     */
+    where?: product_conditionsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of product_conditions to fetch.
+     */
+    orderBy?: product_conditionsOrderByWithRelationInput | product_conditionsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for product_conditions.
+     */
+    cursor?: product_conditionsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` product_conditions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` product_conditions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of product_conditions.
+     */
+    distinct?: Product_conditionsScalarFieldEnum | Product_conditionsScalarFieldEnum[]
+  }
+
+  /**
+   * product_conditions findMany
+   */
+  export type product_conditionsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the product_conditions
+     */
+    select?: product_conditionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the product_conditions
+     */
+    omit?: product_conditionsOmit<ExtArgs> | null
+    /**
+     * Filter, which product_conditions to fetch.
+     */
+    where?: product_conditionsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of product_conditions to fetch.
+     */
+    orderBy?: product_conditionsOrderByWithRelationInput | product_conditionsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing product_conditions.
+     */
+    cursor?: product_conditionsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` product_conditions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` product_conditions.
+     */
+    skip?: number
+    distinct?: Product_conditionsScalarFieldEnum | Product_conditionsScalarFieldEnum[]
+  }
+
+  /**
+   * product_conditions create
+   */
+  export type product_conditionsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the product_conditions
+     */
+    select?: product_conditionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the product_conditions
+     */
+    omit?: product_conditionsOmit<ExtArgs> | null
+    /**
+     * The data needed to create a product_conditions.
+     */
+    data?: XOR<product_conditionsCreateInput, product_conditionsUncheckedCreateInput>
+  }
+
+  /**
+   * product_conditions createMany
+   */
+  export type product_conditionsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many product_conditions.
+     */
+    data: product_conditionsCreateManyInput | product_conditionsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * product_conditions update
+   */
+  export type product_conditionsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the product_conditions
+     */
+    select?: product_conditionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the product_conditions
+     */
+    omit?: product_conditionsOmit<ExtArgs> | null
+    /**
+     * The data needed to update a product_conditions.
+     */
+    data: XOR<product_conditionsUpdateInput, product_conditionsUncheckedUpdateInput>
+    /**
+     * Choose, which product_conditions to update.
+     */
+    where: product_conditionsWhereUniqueInput
+  }
+
+  /**
+   * product_conditions updateMany
+   */
+  export type product_conditionsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update product_conditions.
+     */
+    data: XOR<product_conditionsUpdateManyMutationInput, product_conditionsUncheckedUpdateManyInput>
+    /**
+     * Filter which product_conditions to update
+     */
+    where?: product_conditionsWhereInput
+    /**
+     * Limit how many product_conditions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * product_conditions upsert
+   */
+  export type product_conditionsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the product_conditions
+     */
+    select?: product_conditionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the product_conditions
+     */
+    omit?: product_conditionsOmit<ExtArgs> | null
+    /**
+     * The filter to search for the product_conditions to update in case it exists.
+     */
+    where: product_conditionsWhereUniqueInput
+    /**
+     * In case the product_conditions found by the `where` argument doesn't exist, create a new product_conditions with this data.
+     */
+    create: XOR<product_conditionsCreateInput, product_conditionsUncheckedCreateInput>
+    /**
+     * In case the product_conditions was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<product_conditionsUpdateInput, product_conditionsUncheckedUpdateInput>
+  }
+
+  /**
+   * product_conditions delete
+   */
+  export type product_conditionsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the product_conditions
+     */
+    select?: product_conditionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the product_conditions
+     */
+    omit?: product_conditionsOmit<ExtArgs> | null
+    /**
+     * Filter which product_conditions to delete.
+     */
+    where: product_conditionsWhereUniqueInput
+  }
+
+  /**
+   * product_conditions deleteMany
+   */
+  export type product_conditionsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which product_conditions to delete
+     */
+    where?: product_conditionsWhereInput
+    /**
+     * Limit how many product_conditions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * product_conditions without action
+   */
+  export type product_conditionsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the product_conditions
+     */
+    select?: product_conditionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the product_conditions
+     */
+    omit?: product_conditionsOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -34084,6 +35147,22 @@ export namespace Prisma {
   export type Import_batch_logsScalarFieldEnum = (typeof Import_batch_logsScalarFieldEnum)[keyof typeof Import_batch_logsScalarFieldEnum]
 
 
+  export const Product_conditionsScalarFieldEnum: {
+    id: 'id',
+    pro_id: 'pro_id',
+    pro_sku: 'pro_sku',
+    pro_brand: 'pro_brand',
+    pro_details: 'pro_details',
+    minimum_length: 'minimum_length',
+    sales_type: 'sales_type',
+    units_system: 'units_system',
+    created_at: 'created_at',
+    updated_at: 'updated_at'
+  };
+
+  export type Product_conditionsScalarFieldEnum = (typeof Product_conditionsScalarFieldEnum)[keyof typeof Product_conditionsScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -34421,6 +35500,18 @@ export namespace Prisma {
   };
 
   export type import_batch_logsOrderByRelevanceFieldEnum = (typeof import_batch_logsOrderByRelevanceFieldEnum)[keyof typeof import_batch_logsOrderByRelevanceFieldEnum]
+
+
+  export const product_conditionsOrderByRelevanceFieldEnum: {
+    pro_sku: 'pro_sku',
+    pro_brand: 'pro_brand',
+    pro_details: 'pro_details',
+    minimum_length: 'minimum_length',
+    sales_type: 'sales_type',
+    units_system: 'units_system'
+  };
+
+  export type product_conditionsOrderByRelevanceFieldEnum = (typeof product_conditionsOrderByRelevanceFieldEnum)[keyof typeof product_conditionsOrderByRelevanceFieldEnum]
 
 
   /**
@@ -37046,6 +38137,86 @@ export namespace Prisma {
     start_timestamp?: DateTimeWithAggregatesFilter<"import_batch_logs"> | Date | string
     end_timestamp?: DateTimeNullableWithAggregatesFilter<"import_batch_logs"> | Date | string | null
     last_log_message?: StringNullableWithAggregatesFilter<"import_batch_logs"> | string | null
+  }
+
+  export type product_conditionsWhereInput = {
+    AND?: product_conditionsWhereInput | product_conditionsWhereInput[]
+    OR?: product_conditionsWhereInput[]
+    NOT?: product_conditionsWhereInput | product_conditionsWhereInput[]
+    id?: IntFilter<"product_conditions"> | number
+    pro_id?: IntNullableFilter<"product_conditions"> | number | null
+    pro_sku?: StringNullableFilter<"product_conditions"> | string | null
+    pro_brand?: StringNullableFilter<"product_conditions"> | string | null
+    pro_details?: StringNullableFilter<"product_conditions"> | string | null
+    minimum_length?: StringNullableFilter<"product_conditions"> | string | null
+    sales_type?: StringNullableFilter<"product_conditions"> | string | null
+    units_system?: StringNullableFilter<"product_conditions"> | string | null
+    created_at?: DateTimeFilter<"product_conditions"> | Date | string
+    updated_at?: DateTimeFilter<"product_conditions"> | Date | string
+  }
+
+  export type product_conditionsOrderByWithRelationInput = {
+    id?: SortOrder
+    pro_id?: SortOrderInput | SortOrder
+    pro_sku?: SortOrderInput | SortOrder
+    pro_brand?: SortOrderInput | SortOrder
+    pro_details?: SortOrderInput | SortOrder
+    minimum_length?: SortOrderInput | SortOrder
+    sales_type?: SortOrderInput | SortOrder
+    units_system?: SortOrderInput | SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+    _relevance?: product_conditionsOrderByRelevanceInput
+  }
+
+  export type product_conditionsWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: product_conditionsWhereInput | product_conditionsWhereInput[]
+    OR?: product_conditionsWhereInput[]
+    NOT?: product_conditionsWhereInput | product_conditionsWhereInput[]
+    pro_id?: IntNullableFilter<"product_conditions"> | number | null
+    pro_sku?: StringNullableFilter<"product_conditions"> | string | null
+    pro_brand?: StringNullableFilter<"product_conditions"> | string | null
+    pro_details?: StringNullableFilter<"product_conditions"> | string | null
+    minimum_length?: StringNullableFilter<"product_conditions"> | string | null
+    sales_type?: StringNullableFilter<"product_conditions"> | string | null
+    units_system?: StringNullableFilter<"product_conditions"> | string | null
+    created_at?: DateTimeFilter<"product_conditions"> | Date | string
+    updated_at?: DateTimeFilter<"product_conditions"> | Date | string
+  }, "id">
+
+  export type product_conditionsOrderByWithAggregationInput = {
+    id?: SortOrder
+    pro_id?: SortOrderInput | SortOrder
+    pro_sku?: SortOrderInput | SortOrder
+    pro_brand?: SortOrderInput | SortOrder
+    pro_details?: SortOrderInput | SortOrder
+    minimum_length?: SortOrderInput | SortOrder
+    sales_type?: SortOrderInput | SortOrder
+    units_system?: SortOrderInput | SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+    _count?: product_conditionsCountOrderByAggregateInput
+    _avg?: product_conditionsAvgOrderByAggregateInput
+    _max?: product_conditionsMaxOrderByAggregateInput
+    _min?: product_conditionsMinOrderByAggregateInput
+    _sum?: product_conditionsSumOrderByAggregateInput
+  }
+
+  export type product_conditionsScalarWhereWithAggregatesInput = {
+    AND?: product_conditionsScalarWhereWithAggregatesInput | product_conditionsScalarWhereWithAggregatesInput[]
+    OR?: product_conditionsScalarWhereWithAggregatesInput[]
+    NOT?: product_conditionsScalarWhereWithAggregatesInput | product_conditionsScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"product_conditions"> | number
+    pro_id?: IntNullableWithAggregatesFilter<"product_conditions"> | number | null
+    pro_sku?: StringNullableWithAggregatesFilter<"product_conditions"> | string | null
+    pro_brand?: StringNullableWithAggregatesFilter<"product_conditions"> | string | null
+    pro_details?: StringNullableWithAggregatesFilter<"product_conditions"> | string | null
+    minimum_length?: StringNullableWithAggregatesFilter<"product_conditions"> | string | null
+    sales_type?: StringNullableWithAggregatesFilter<"product_conditions"> | string | null
+    units_system?: StringNullableWithAggregatesFilter<"product_conditions"> | string | null
+    created_at?: DateTimeWithAggregatesFilter<"product_conditions"> | Date | string
+    updated_at?: DateTimeWithAggregatesFilter<"product_conditions"> | Date | string
   }
 
   export type categoryCreateInput = {
@@ -39876,6 +41047,94 @@ export namespace Prisma {
     last_log_message?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
+  export type product_conditionsCreateInput = {
+    pro_id?: number | null
+    pro_sku?: string | null
+    pro_brand?: string | null
+    pro_details?: string | null
+    minimum_length?: string | null
+    sales_type?: string | null
+    units_system?: string | null
+    created_at?: Date | string
+    updated_at?: Date | string
+  }
+
+  export type product_conditionsUncheckedCreateInput = {
+    id?: number
+    pro_id?: number | null
+    pro_sku?: string | null
+    pro_brand?: string | null
+    pro_details?: string | null
+    minimum_length?: string | null
+    sales_type?: string | null
+    units_system?: string | null
+    created_at?: Date | string
+    updated_at?: Date | string
+  }
+
+  export type product_conditionsUpdateInput = {
+    pro_id?: NullableIntFieldUpdateOperationsInput | number | null
+    pro_sku?: NullableStringFieldUpdateOperationsInput | string | null
+    pro_brand?: NullableStringFieldUpdateOperationsInput | string | null
+    pro_details?: NullableStringFieldUpdateOperationsInput | string | null
+    minimum_length?: NullableStringFieldUpdateOperationsInput | string | null
+    sales_type?: NullableStringFieldUpdateOperationsInput | string | null
+    units_system?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type product_conditionsUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    pro_id?: NullableIntFieldUpdateOperationsInput | number | null
+    pro_sku?: NullableStringFieldUpdateOperationsInput | string | null
+    pro_brand?: NullableStringFieldUpdateOperationsInput | string | null
+    pro_details?: NullableStringFieldUpdateOperationsInput | string | null
+    minimum_length?: NullableStringFieldUpdateOperationsInput | string | null
+    sales_type?: NullableStringFieldUpdateOperationsInput | string | null
+    units_system?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type product_conditionsCreateManyInput = {
+    id?: number
+    pro_id?: number | null
+    pro_sku?: string | null
+    pro_brand?: string | null
+    pro_details?: string | null
+    minimum_length?: string | null
+    sales_type?: string | null
+    units_system?: string | null
+    created_at?: Date | string
+    updated_at?: Date | string
+  }
+
+  export type product_conditionsUpdateManyMutationInput = {
+    pro_id?: NullableIntFieldUpdateOperationsInput | number | null
+    pro_sku?: NullableStringFieldUpdateOperationsInput | string | null
+    pro_brand?: NullableStringFieldUpdateOperationsInput | string | null
+    pro_details?: NullableStringFieldUpdateOperationsInput | string | null
+    minimum_length?: NullableStringFieldUpdateOperationsInput | string | null
+    sales_type?: NullableStringFieldUpdateOperationsInput | string | null
+    units_system?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type product_conditionsUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    pro_id?: NullableIntFieldUpdateOperationsInput | number | null
+    pro_sku?: NullableStringFieldUpdateOperationsInput | string | null
+    pro_brand?: NullableStringFieldUpdateOperationsInput | string | null
+    pro_details?: NullableStringFieldUpdateOperationsInput | string | null
+    minimum_length?: NullableStringFieldUpdateOperationsInput | string | null
+    sales_type?: NullableStringFieldUpdateOperationsInput | string | null
+    units_system?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[]
@@ -42238,6 +43497,61 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumimport_batch_logs_overall_statusFilter<$PrismaModel>
     _max?: NestedEnumimport_batch_logs_overall_statusFilter<$PrismaModel>
+  }
+
+  export type product_conditionsOrderByRelevanceInput = {
+    fields: product_conditionsOrderByRelevanceFieldEnum | product_conditionsOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type product_conditionsCountOrderByAggregateInput = {
+    id?: SortOrder
+    pro_id?: SortOrder
+    pro_sku?: SortOrder
+    pro_brand?: SortOrder
+    pro_details?: SortOrder
+    minimum_length?: SortOrder
+    sales_type?: SortOrder
+    units_system?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type product_conditionsAvgOrderByAggregateInput = {
+    id?: SortOrder
+    pro_id?: SortOrder
+  }
+
+  export type product_conditionsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    pro_id?: SortOrder
+    pro_sku?: SortOrder
+    pro_brand?: SortOrder
+    pro_details?: SortOrder
+    minimum_length?: SortOrder
+    sales_type?: SortOrder
+    units_system?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type product_conditionsMinOrderByAggregateInput = {
+    id?: SortOrder
+    pro_id?: SortOrder
+    pro_sku?: SortOrder
+    pro_brand?: SortOrder
+    pro_details?: SortOrder
+    minimum_length?: SortOrder
+    sales_type?: SortOrder
+    units_system?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type product_conditionsSumOrderByAggregateInput = {
+    id?: SortOrder
+    pro_id?: SortOrder
   }
 
   export type StringFieldUpdateOperationsInput = {

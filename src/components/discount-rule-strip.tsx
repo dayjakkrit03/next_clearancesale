@@ -129,16 +129,7 @@ export default function DiscountRuleStrip() {
                 <div className="p-4 pr-24">
                   {/* หัวข้อเล็ก */}
                   <div className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground mb-1">
-                    DISCOUNT STYLING RULE
-                  </div>
-
-                  {/* แถวหัวข้อหลัก + ปุ่ม */}
-                  <div className="flex items-end justify-between gap-2 min-h-[2.4rem]">
-                    {/* ► line-height สูงขึ้น + ไม่ให้ตัดวรรณยุกต์ */}
-                    <h3 className="font-bold text-base leading-[1.8] truncate">
-                      {title}
-                    </h3>
-
+                    {/* DISCOUNT STYLING RULE */}
                     <Button
                       size="sm"
                       className="h-8 px-3 text-xs whitespace-nowrap border self-end"
@@ -154,6 +145,16 @@ export default function DiscountRuleStrip() {
                     >
                       ดูโปรทั้งหมด
                     </Button>
+                  </div>
+
+                  {/* แถวหัวข้อหลัก + ปุ่ม */}
+                  <div className="flex items-end justify-between gap-2 min-h-[2.4rem]">
+                    {/* ► line-height สูงขึ้น + ไม่ให้ตัดวรรณยุกต์ */}
+                    <h3 className="font-bold text-base leading-[1.8] truncate">
+                      {title}
+                    </h3>
+
+                    
                   </div>
                 </div>
 
