@@ -353,14 +353,14 @@ export const ProductCard = ({
                   </div>
                 )}
               </div>
-              <Button
+              {/* <Button
                 className="group-hover:shadow-glow transition-all duration-300 whitespace-nowrap"
                 size="sm"
                 onClick={handleAddToCart}
               >
                 <ShoppingCart className="h-4 w-4 mr-1 group-hover:animate-bounce-gentle" />
                 ใส่ตะกร้า
-              </Button>
+              </Button> */}
             </div>
           </div>
         </div>
@@ -474,7 +474,7 @@ export const ProductCard = ({
         )}
       </CardContent>
 
-      <div className="p-3 sm:p-4 pt-0">
+      {/* <div className="p-3 sm:p-4 pt-0">
         <Button
           className="w-full group-hover:shadow-glow transition-all duration-300"
           onClick={handleAddToCart}
@@ -482,7 +482,7 @@ export const ProductCard = ({
           <ShoppingCart className="h-4 w-4 mr-2 group-hover:animate-bounce-gentle" />
           ใส่ตะกร้า
         </Button>
-      </div>
+      </div> */}
     </Card>
   );
 };

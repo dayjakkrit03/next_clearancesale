@@ -6953,6 +6953,7 @@ export namespace Prisma {
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        */
       clearanceSales: boolean | null
       clearanceQuantity: number | null
@@ -16832,6 +16833,7 @@ export namespace Prisma {
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        */
       clearanceSales: boolean | null
       clearanceQuantity: number | null
@@ -18052,6 +18054,7 @@ export namespace Prisma {
       updated_at: Date
       product_uom: string | null
       /**
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
@@ -24312,6 +24315,8 @@ export namespace Prisma {
       visible: boolean
       display_order: number
       /**
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
@@ -33689,6 +33694,8 @@ export namespace Prisma {
     minimum_length: string | null
     sales_type: string | null
     units_system: string | null
+    num_stock: string | null
+    cut_steps: string | null
     created_at: Date | null
     updated_at: Date | null
   }
@@ -33702,6 +33709,8 @@ export namespace Prisma {
     minimum_length: string | null
     sales_type: string | null
     units_system: string | null
+    num_stock: string | null
+    cut_steps: string | null
     created_at: Date | null
     updated_at: Date | null
   }
@@ -33715,6 +33724,8 @@ export namespace Prisma {
     minimum_length: number
     sales_type: number
     units_system: number
+    num_stock: number
+    cut_steps: number
     created_at: number
     updated_at: number
     _all: number
@@ -33740,6 +33751,8 @@ export namespace Prisma {
     minimum_length?: true
     sales_type?: true
     units_system?: true
+    num_stock?: true
+    cut_steps?: true
     created_at?: true
     updated_at?: true
   }
@@ -33753,6 +33766,8 @@ export namespace Prisma {
     minimum_length?: true
     sales_type?: true
     units_system?: true
+    num_stock?: true
+    cut_steps?: true
     created_at?: true
     updated_at?: true
   }
@@ -33766,6 +33781,8 @@ export namespace Prisma {
     minimum_length?: true
     sales_type?: true
     units_system?: true
+    num_stock?: true
+    cut_steps?: true
     created_at?: true
     updated_at?: true
     _all?: true
@@ -33866,8 +33883,10 @@ export namespace Prisma {
     minimum_length: string | null
     sales_type: string | null
     units_system: string | null
+    num_stock: string | null
+    cut_steps: string | null
     created_at: Date
-    updated_at: Date
+    updated_at: Date | null
     _count: Product_conditionsCountAggregateOutputType | null
     _avg: Product_conditionsAvgAggregateOutputType | null
     _sum: Product_conditionsSumAggregateOutputType | null
@@ -33898,6 +33917,8 @@ export namespace Prisma {
     minimum_length?: boolean
     sales_type?: boolean
     units_system?: boolean
+    num_stock?: boolean
+    cut_steps?: boolean
     created_at?: boolean
     updated_at?: boolean
   }, ExtArgs["result"]["product_conditions"]>
@@ -33913,11 +33934,13 @@ export namespace Prisma {
     minimum_length?: boolean
     sales_type?: boolean
     units_system?: boolean
+    num_stock?: boolean
+    cut_steps?: boolean
     created_at?: boolean
     updated_at?: boolean
   }
 
-  export type product_conditionsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "pro_id" | "pro_sku" | "pro_brand" | "pro_details" | "minimum_length" | "sales_type" | "units_system" | "created_at" | "updated_at", ExtArgs["result"]["product_conditions"]>
+  export type product_conditionsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "pro_id" | "pro_sku" | "pro_brand" | "pro_details" | "minimum_length" | "sales_type" | "units_system" | "num_stock" | "cut_steps" | "created_at" | "updated_at", ExtArgs["result"]["product_conditions"]>
 
   export type $product_conditionsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "product_conditions"
@@ -33931,8 +33954,10 @@ export namespace Prisma {
       minimum_length: string | null
       sales_type: string | null
       units_system: string | null
+      num_stock: string | null
+      cut_steps: string | null
       created_at: Date
-      updated_at: Date
+      updated_at: Date | null
     }, ExtArgs["result"]["product_conditions"]>
     composites: {}
   }
@@ -34310,6 +34335,8 @@ export namespace Prisma {
     readonly minimum_length: FieldRef<"product_conditions", 'String'>
     readonly sales_type: FieldRef<"product_conditions", 'String'>
     readonly units_system: FieldRef<"product_conditions", 'String'>
+    readonly num_stock: FieldRef<"product_conditions", 'String'>
+    readonly cut_steps: FieldRef<"product_conditions", 'String'>
     readonly created_at: FieldRef<"product_conditions", 'DateTime'>
     readonly updated_at: FieldRef<"product_conditions", 'DateTime'>
   }
@@ -35156,6 +35183,8 @@ export namespace Prisma {
     minimum_length: 'minimum_length',
     sales_type: 'sales_type',
     units_system: 'units_system',
+    num_stock: 'num_stock',
+    cut_steps: 'cut_steps',
     created_at: 'created_at',
     updated_at: 'updated_at'
   };
@@ -35508,7 +35537,9 @@ export namespace Prisma {
     pro_details: 'pro_details',
     minimum_length: 'minimum_length',
     sales_type: 'sales_type',
-    units_system: 'units_system'
+    units_system: 'units_system',
+    num_stock: 'num_stock',
+    cut_steps: 'cut_steps'
   };
 
   export type product_conditionsOrderByRelevanceFieldEnum = (typeof product_conditionsOrderByRelevanceFieldEnum)[keyof typeof product_conditionsOrderByRelevanceFieldEnum]
@@ -38151,8 +38182,10 @@ export namespace Prisma {
     minimum_length?: StringNullableFilter<"product_conditions"> | string | null
     sales_type?: StringNullableFilter<"product_conditions"> | string | null
     units_system?: StringNullableFilter<"product_conditions"> | string | null
+    num_stock?: StringNullableFilter<"product_conditions"> | string | null
+    cut_steps?: StringNullableFilter<"product_conditions"> | string | null
     created_at?: DateTimeFilter<"product_conditions"> | Date | string
-    updated_at?: DateTimeFilter<"product_conditions"> | Date | string
+    updated_at?: DateTimeNullableFilter<"product_conditions"> | Date | string | null
   }
 
   export type product_conditionsOrderByWithRelationInput = {
@@ -38164,8 +38197,10 @@ export namespace Prisma {
     minimum_length?: SortOrderInput | SortOrder
     sales_type?: SortOrderInput | SortOrder
     units_system?: SortOrderInput | SortOrder
+    num_stock?: SortOrderInput | SortOrder
+    cut_steps?: SortOrderInput | SortOrder
     created_at?: SortOrder
-    updated_at?: SortOrder
+    updated_at?: SortOrderInput | SortOrder
     _relevance?: product_conditionsOrderByRelevanceInput
   }
 
@@ -38181,8 +38216,10 @@ export namespace Prisma {
     minimum_length?: StringNullableFilter<"product_conditions"> | string | null
     sales_type?: StringNullableFilter<"product_conditions"> | string | null
     units_system?: StringNullableFilter<"product_conditions"> | string | null
+    num_stock?: StringNullableFilter<"product_conditions"> | string | null
+    cut_steps?: StringNullableFilter<"product_conditions"> | string | null
     created_at?: DateTimeFilter<"product_conditions"> | Date | string
-    updated_at?: DateTimeFilter<"product_conditions"> | Date | string
+    updated_at?: DateTimeNullableFilter<"product_conditions"> | Date | string | null
   }, "id">
 
   export type product_conditionsOrderByWithAggregationInput = {
@@ -38194,8 +38231,10 @@ export namespace Prisma {
     minimum_length?: SortOrderInput | SortOrder
     sales_type?: SortOrderInput | SortOrder
     units_system?: SortOrderInput | SortOrder
+    num_stock?: SortOrderInput | SortOrder
+    cut_steps?: SortOrderInput | SortOrder
     created_at?: SortOrder
-    updated_at?: SortOrder
+    updated_at?: SortOrderInput | SortOrder
     _count?: product_conditionsCountOrderByAggregateInput
     _avg?: product_conditionsAvgOrderByAggregateInput
     _max?: product_conditionsMaxOrderByAggregateInput
@@ -38215,8 +38254,10 @@ export namespace Prisma {
     minimum_length?: StringNullableWithAggregatesFilter<"product_conditions"> | string | null
     sales_type?: StringNullableWithAggregatesFilter<"product_conditions"> | string | null
     units_system?: StringNullableWithAggregatesFilter<"product_conditions"> | string | null
+    num_stock?: StringNullableWithAggregatesFilter<"product_conditions"> | string | null
+    cut_steps?: StringNullableWithAggregatesFilter<"product_conditions"> | string | null
     created_at?: DateTimeWithAggregatesFilter<"product_conditions"> | Date | string
-    updated_at?: DateTimeWithAggregatesFilter<"product_conditions"> | Date | string
+    updated_at?: DateTimeNullableWithAggregatesFilter<"product_conditions"> | Date | string | null
   }
 
   export type categoryCreateInput = {
@@ -41055,8 +41096,10 @@ export namespace Prisma {
     minimum_length?: string | null
     sales_type?: string | null
     units_system?: string | null
+    num_stock?: string | null
+    cut_steps?: string | null
     created_at?: Date | string
-    updated_at?: Date | string
+    updated_at?: Date | string | null
   }
 
   export type product_conditionsUncheckedCreateInput = {
@@ -41068,8 +41111,10 @@ export namespace Prisma {
     minimum_length?: string | null
     sales_type?: string | null
     units_system?: string | null
+    num_stock?: string | null
+    cut_steps?: string | null
     created_at?: Date | string
-    updated_at?: Date | string
+    updated_at?: Date | string | null
   }
 
   export type product_conditionsUpdateInput = {
@@ -41080,8 +41125,10 @@ export namespace Prisma {
     minimum_length?: NullableStringFieldUpdateOperationsInput | string | null
     sales_type?: NullableStringFieldUpdateOperationsInput | string | null
     units_system?: NullableStringFieldUpdateOperationsInput | string | null
+    num_stock?: NullableStringFieldUpdateOperationsInput | string | null
+    cut_steps?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type product_conditionsUncheckedUpdateInput = {
@@ -41093,8 +41140,10 @@ export namespace Prisma {
     minimum_length?: NullableStringFieldUpdateOperationsInput | string | null
     sales_type?: NullableStringFieldUpdateOperationsInput | string | null
     units_system?: NullableStringFieldUpdateOperationsInput | string | null
+    num_stock?: NullableStringFieldUpdateOperationsInput | string | null
+    cut_steps?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type product_conditionsCreateManyInput = {
@@ -41106,8 +41155,10 @@ export namespace Prisma {
     minimum_length?: string | null
     sales_type?: string | null
     units_system?: string | null
+    num_stock?: string | null
+    cut_steps?: string | null
     created_at?: Date | string
-    updated_at?: Date | string
+    updated_at?: Date | string | null
   }
 
   export type product_conditionsUpdateManyMutationInput = {
@@ -41118,8 +41169,10 @@ export namespace Prisma {
     minimum_length?: NullableStringFieldUpdateOperationsInput | string | null
     sales_type?: NullableStringFieldUpdateOperationsInput | string | null
     units_system?: NullableStringFieldUpdateOperationsInput | string | null
+    num_stock?: NullableStringFieldUpdateOperationsInput | string | null
+    cut_steps?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type product_conditionsUncheckedUpdateManyInput = {
@@ -41131,8 +41184,10 @@ export namespace Prisma {
     minimum_length?: NullableStringFieldUpdateOperationsInput | string | null
     sales_type?: NullableStringFieldUpdateOperationsInput | string | null
     units_system?: NullableStringFieldUpdateOperationsInput | string | null
+    num_stock?: NullableStringFieldUpdateOperationsInput | string | null
+    cut_steps?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type IntFilter<$PrismaModel = never> = {
@@ -43514,6 +43569,8 @@ export namespace Prisma {
     minimum_length?: SortOrder
     sales_type?: SortOrder
     units_system?: SortOrder
+    num_stock?: SortOrder
+    cut_steps?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
   }
@@ -43532,6 +43589,8 @@ export namespace Prisma {
     minimum_length?: SortOrder
     sales_type?: SortOrder
     units_system?: SortOrder
+    num_stock?: SortOrder
+    cut_steps?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
   }
@@ -43545,6 +43604,8 @@ export namespace Prisma {
     minimum_length?: SortOrder
     sales_type?: SortOrder
     units_system?: SortOrder
+    num_stock?: SortOrder
+    cut_steps?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
   }

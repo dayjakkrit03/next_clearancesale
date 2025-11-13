@@ -83,6 +83,7 @@ model product {
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   clearanceSales      Boolean? @default(false)
   clearanceQuantity   Int?     @default(0)
   clearancePrice      Decimal? @db.Decimal(10, 2)
@@ -229,6 +230,7 @@ model product_clearance {
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   clearanceSales      Boolean? @default(false)
   clearanceQuantity   Int?     @default(0)
   clearancePrice      Decimal? @db.Decimal(10, 2)
@@ -264,6 +266,7 @@ model product_test_upload {
   product_uom         String?  @db.VarChar(10)
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 09 Boolean @default(true) @map("09")
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
@@ -380,6 +383,8 @@ model products_clearance {
   // 09 Boolean @default(true) @map("09")
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 13 Boolean @default(true) @map("13")
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
@@ -524,16 +529,18 @@ model import_batch_logs {
 }
 
 model product_conditions {
-  id             Int      @id @default(autoincrement())
+  id             Int       @id @default(autoincrement())
   pro_id         Int?
-  pro_sku        String?  @db.VarChar(50)
-  pro_brand      String?  @db.VarChar(50)
-  pro_details    String?  @db.Text
-  minimum_length String?  @db.VarChar(255)
-  sales_type     String?  @db.VarChar(50)
-  units_system   String?  @db.VarChar(50)
-  created_at     DateTime @default(now()) @db.Timestamp(0)
-  updated_at     DateTime @default(dbgenerated("'0000-00-00 00:00:00'")) @db.Timestamp(0)
+  pro_sku        String?   @db.VarChar(50)
+  pro_brand      String?   @db.VarChar(50)
+  pro_details    String?   @db.Text
+  minimum_length String?   @db.VarChar(255)
+  sales_type     String?   @db.VarChar(50)
+  units_system   String?   @db.VarChar(50)
+  num_stock      String?   @db.VarChar(255)
+  cut_steps      String?   @db.VarChar(255)
+  created_at     DateTime  @default(now()) @db.Timestamp(0)
+  updated_at     DateTime? @default(now()) @db.Timestamp(0)
 }
 
 enum discount_rules_frame_mode {

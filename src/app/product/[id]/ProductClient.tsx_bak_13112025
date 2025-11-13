@@ -1,0 +1,1440 @@
+// v.1.1.2 ============================================================
+// // src/app/product/[id]/ProductClient.tsx
+
+// "use client";
+
+// import { useMemo, useState } from "react";
+// import { useRouter } from "next/navigation";
+// import { Star, Plus, Minus, Shield, Truck, RotateCcw, ZoomIn } from "lucide-react";
+// import { Button } from "@/components/ui/button";
+// import { Badge } from "@/components/ui/badge";
+// import { Card, CardContent } from "@/components/ui/card";
+// import { Separator } from "@/components/ui/separator";
+// import {
+//   Carousel,
+//   CarouselContent,
+//   CarouselItem,
+//   CarouselNext,
+//   CarouselPrevious,
+// } from "@/components/ui/carousel";
+// import { ShoppingCart } from "@/components/shopping-cart";
+
+// // ===== Types =====
+// export type UIProduct = {
+//   id: number | string;
+//   name: string;
+//   brand?: string;
+//   sku?: string;
+//   price: number;
+//   discountPercent?: number;
+//   image_url?: string;
+//   visible?: boolean;
+//   order?: number;
+//   rating?: number;
+//   reviews?: number;
+//   category_id?: number | string;
+//   uom?: string;
+//   images?: Array<{ url: string; order: number; isPrimary?: boolean }>;
+//   conditions?: Array<
+//     | {
+//         salesType: "CUT";
+//         unit: string;
+//         minimumLength?: number;
+//         cutStepOptions?: number[];
+//         stepOptions?: number[]; // เผื่อรับชื่อจาก service layer
+//       }
+//     | { salesType: "ROLL"; unit: string; rollLengths?: number[]; rollStocks?: number[] }
+//   >;
+// };
+
+// export type DiscountRuleLite = {
+//   id: string | number;
+//   minPercent?: number;
+//   maxPercent?: number;
+//   borderWidth: number;
+//   borderColorHex: string;
+//   frameMode?: "image" | "draw";
+//   frameImageUrl?: string;
+//   frameInsetPx?: number;
+//   frameOpacity?: number;
+//   frameObjectFit?: "contain" | "cover" | "stretch";
+//   enabled?: boolean;
+//   order?: number;
+// };
+
+// type FrameInfo =
+//   | {
+//       mode: "image";
+//       imageUrl: string;
+//       inset: number;
+//       opacity: number;
+//       objectFit: "contain" | "cover" | "fill";
+//     }
+//   | { mode: "draw"; borderWidth: number; borderColorHex: string };
+
+// type VisibleParts = Partial<{
+//   image: boolean;
+//   discountBadge: boolean;
+//   brandLogo: boolean;
+//   frame: boolean;
+//   brandName: boolean;
+//   sku: boolean;
+//   name: boolean;
+//   ratingReview: boolean;
+//   category: boolean;
+//   price: boolean;
+//   originalPrice: boolean;
+//   uom: boolean;
+// }>;
+
+// type ProductClientProps = {
+//   product: UIProduct;
+//   visibleParts?: VisibleParts;
+//   rules?: DiscountRuleLite[];
+// };
+
+// // ===== Helpers =====
+// const getOriginalPrice = (price: number, discountPercent?: number) => {
+//   if (!discountPercent || discountPercent <= 0) return undefined;
+//   const original = price / (1 - discountPercent / 100);
+//   return Math.round(original);
+// };
+// const objectFit = (fit?: string): "contain" | "cover" | "fill" =>
+//   fit === "cover" ? "cover" : fit === "stretch" ? "fill" : "contain";
+
+// const toFrameInfo = (rule: DiscountRuleLite | null): FrameInfo | null => {
+//   if (!rule) return null;
+//   if (rule.frameMode === "image" && rule.frameImageUrl) {
+//     return {
+//       mode: "image",
+//       imageUrl: rule.frameImageUrl,
+//       inset: Math.max(0, Number(rule.frameInsetPx ?? 0)),
+//       opacity:
+//         typeof rule.frameOpacity === "number"
+//           ? Math.max(0, Math.min(1, rule.frameOpacity))
+//           : 1,
+//       objectFit: objectFit(rule.frameObjectFit),
+//     };
+//   }
+//   return {
+//     mode: "draw",
+//     borderWidth: Number(rule.borderWidth) || 2,
+//     borderColorHex: String(rule.borderColorHex || "#000"),
+//   };
+// };
+
+// const pickRuleFactory =
+//   (rules: DiscountRuleLite[]) => (percent?: number): DiscountRuleLite | null => {
+//     if (percent == null) return null;
+//     for (const r of rules) {
+//       const lowerOk = percent >= (r.minPercent ?? 0);
+//       const upperOk =
+//         typeof r.maxPercent === "number" ? percent <= r.maxPercent : true;
+//       if (lowerOk && upperOk) return r;
+//     }
+//     return null;
+//   };
+
+// const brandToLogoUrl = (brand?: string) => {
+//   if (!brand) return undefined;
+//   const slug = brand.toLowerCase().replace(/\s+/g, "-");
+//   return `/brand_logo/${slug}_logo.png`;
+// };
+
+// export default function ProductClient({
+//   product,
+//   visibleParts,
+//   rules = [],
+// }: ProductClientProps) {
+//   const router = useRouter();
+
+//   // ===== images (จาก props) =====
+//   const images = useMemo(() => {
+//     const imgs = Array.isArray(product.images) ? [...product.images] : [];
+//     imgs.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+//     if (imgs.length === 0) {
+//       const fallback = product.image_url || "/placeholder.png";
+//       return [{ url: fallback, order: 0, isPrimary: true }];
+//     }
+//     return imgs;
+//   }, [product.images, product.image_url]);
+//   const [selectedImage, setSelectedImage] = useState(0);
+//   const currentImageUrl = images[selectedImage]?.url || "/placeholder.png";
+
+//   // ===== discount frame =====
+//   const pickRule = useMemo(() => pickRuleFactory(rules), [rules]);
+//   const frameInfo: FrameInfo | null = useMemo(
+//     () => toFrameInfo(pickRule(product?.discountPercent)),
+//     [pickRule, product?.discountPercent]
+//   );
+
+//   const originalPrice = useMemo(
+//     () => getOriginalPrice(product.price, product.discountPercent),
+//     [product.price, product.discountPercent]
+//   );
+//   const brandLogoUrl = useMemo(
+//     () => brandToLogoUrl(product?.brand),
+//     [product?.brand]
+//   );
+
+//   // ===== sales conditions (derive ค่าเริ่มต้นจาก props.product) =====
+//   const hasConditions =
+//     Array.isArray(product.conditions) && product.conditions.length > 0;
+//   const firstCond = hasConditions ? (product.conditions![0] as any) : undefined;
+
+//   const [salesMode] = useState<"CUT" | "ROLL" | null>(
+//     () => firstCond?.salesType ?? null
+//   );
+//   const [unit] = useState<string>(
+//     () => (firstCond?.unit ?? product.uom ?? "M.") as string
+//   );
+
+//   // --- CUT ---
+//   const cutCond = (product.conditions ?? []).find(
+//     (c: any) => c.salesType === "CUT"
+//   ) as
+//     | {
+//         salesType: "CUT";
+//         unit: string;
+//         minimumLength?: number;
+//         cutStepOptions?: number[];
+//         stepOptions?: number[];
+//       }
+//     | undefined;
+
+//   const cutMinimum =
+//     typeof cutCond?.minimumLength === "number" && cutCond.minimumLength > 0
+//       ? cutCond.minimumLength
+//       : 1;
+
+//   // รองรับทั้งชื่อ cutStepOptions (client) และ stepOptions (service)
+//   const cutStepOptions: number[] = Array.isArray(cutCond?.cutStepOptions)
+//     ? (cutCond!.cutStepOptions as number[])
+//     : Array.isArray((cutCond as any)?.stepOptions)
+//     ? ((cutCond as any).stepOptions as number[])
+//     : [];
+
+//   const [cutLength, setCutLength] = useState<number>(() => cutMinimum);
+
+//   // --- ROLL ---
+//   const rollCond = useMemo(() => {
+//     return (product?.conditions ?? []).find(
+//       (c: any) => c.salesType === "ROLL"
+//     ) as
+//       | {
+//           salesType: "ROLL";
+//           unit: string;
+//           rollLengths?: number[];
+//           rollStocks?: number[];
+//         }
+//       | undefined;
+//   }, [product]);
+
+//   const [rollLength, setRollLength] = useState<number | null>(() => {
+//     if (rollCond?.rollLengths?.length) return rollCond.rollLengths[0];
+//     return null;
+//   });
+
+//   const rollPairs = useMemo(() => {
+//     const lens = rollCond?.rollLengths ?? [];
+//     const stocks = rollCond?.rollStocks ?? [];
+//     return lens.map((len, i) => ({ len, stock: Number(stocks[i] ?? 0) }));
+//   }, [rollCond]);
+
+//   const selectedRollStock = useMemo(() => {
+//     if (!rollCond || !rollLength) return null;
+//     const idx = (rollCond.rollLengths ?? []).findIndex((l) => l === rollLength);
+//     return idx >= 0 ? Number(rollCond.rollStocks?.[idx] ?? 0) : null;
+//   }, [rollCond, rollLength]);
+
+//   // ===== local UI states =====
+//   const [quantity, setQuantity] = useState(1);
+//   const [isCartOpen, setIsCartOpen] = useState(false);
+//   const [showZoom, setShowZoom] = useState(false);
+//   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+
+//   const showDiscountBadge =
+//     (visibleParts?.discountBadge ?? true) && (product.discountPercent ?? 0) > 0;
+//   const showBrandLogo = (visibleParts?.brandLogo ?? true) && !!brandLogoUrl;
+//   const showFrame = (visibleParts?.frame ?? true) && !!frameInfo;
+
+//   // ===== คำนวณยอดรวม =====
+//   const lengthPerItem = useMemo(() => {
+//     if (!hasConditions || !salesMode) return 1;
+//     if (salesMode === "CUT") return Math.max(cutMinimum, Number(cutLength));
+//     if (salesMode === "ROLL") return Math.max(1, Number(rollLength ?? 1));
+//     return 1;
+//   }, [hasConditions, salesMode, cutLength, rollLength, cutMinimum]);
+
+//   const totalLength = useMemo(
+//     () =>
+//       Math.max(1, Number(lengthPerItem)) * Math.max(1, Number(quantity)),
+//     [lengthPerItem, quantity]
+//   );
+//   const totalPrice = useMemo(() => {
+//     if (hasConditions && salesMode)
+//       return totalLength * Number(product.price ?? 0);
+//     return Math.max(1, Number(quantity)) * Number(product.price ?? 0);
+//   }, [hasConditions, salesMode, totalLength, quantity, product.price]);
+
+//   // ===== Handlers =====
+//   // เพิ่ม/ลดความยาวสำหรับ CUT ตาม step (เช่น +10 / -10) พร้อม guard ขั้นต่ำ
+//   const handleCutStep = (delta: number) => {
+//     if (!hasConditions || salesMode !== "CUT") return;
+//     setCutLength((prev) => {
+//       const next = prev + delta;
+//       return next < cutMinimum ? cutMinimum : next;
+//     });
+//   };
+
+//   const handleQuantityChange = (change: number) => {
+//     let next = Math.max(1, quantity + change);
+//     // จำกัดตามสต๊อกเฉพาะโหมด ROLL
+//     if (salesMode === "ROLL" && selectedRollStock != null) {
+//       next = Math.min(next, Math.max(0, selectedRollStock));
+//     }
+//     setQuantity(next);
+//   };
+
+//   const handleMouseEnterImage = (e: React.MouseEvent<HTMLImageElement>) => {
+//     const rect = e.currentTarget.getBoundingClientRect();
+//     const x = ((e.clientX - rect.left) / rect.width) * 100;
+//     const y = ((e.clientY - rect.top) / rect.height) * 100;
+//     setZoomPosition({ x, y });
+//     setShowZoom(true);
+//   };
+//   const handleMouseMoveImage = (e: React.MouseEvent<HTMLImageElement>) => {
+//     const rect = e.currentTarget.getBoundingClientRect();
+//     const x = ((e.clientX - rect.left) / rect.width) * 100;
+//     const y = ((e.clientY - rect.top) / rect.height) * 100;
+//     setZoomPosition({ x, y });
+//   };
+//   const handleMouseLeaveImage = () => setShowZoom(false);
+
+//   return (
+//     <div className="min-h-screen bg-background">
+//       <div className="container mx-auto max-w-screen-xl px-2 sm:px-4 py-6">
+//         {/* Breadcrumb */}
+//         <nav className="text-sm text-muted-foreground mb-8 overflow-hidden">
+//           <div className="flex flex-wrap items-center gap-2">
+//             <span
+//               className="hover:text-primary cursor-pointer"
+//               onClick={() => router.push("/")}
+//             >
+//               หน้าแรก
+//             </span>
+//             <span>/</span>
+//             <span
+//               className="hover:text-primary cursor-pointer"
+//               onClick={() => router.push("/products")}
+//             >
+//               สินค้า
+//             </span>
+//             <span>/</span>
+//             <span className="text-primary truncate">{product.name}</span>
+//           </div>
+//         </nav>
+
+//         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-12 mb-12">
+//           {/* Product Images */}
+//           <div className="lg:col-span-2 space-y-4 relative">
+//             <div
+//               className={[
+//                 "aspect-square rounded-lg overflow-hidden relative bg-muted/30",
+//                 showFrame && frameInfo?.mode === "draw" ? "border-solid" : "",
+//               ].join(" ")}
+//               style={
+//                 showFrame && frameInfo?.mode === "draw"
+//                   ? {
+//                       borderWidth: (frameInfo as any).borderWidth,
+//                       borderColor: (frameInfo as any).borderColorHex,
+//                     }
+//                   : undefined
+//               }
+//             >
+//               {showDiscountBadge && (
+//                 <div className="absolute top-3 left-3 z-20">
+//                   <Badge className="bg-sale text-sale-foreground text-base font-bold px-5 py-2 rounded-lg shadow-lg">
+//                     -{product.discountPercent}%
+//                   </Badge>
+//                 </div>
+//               )}
+
+//               {showBrandLogo && (
+//                 <div className="absolute top-3 right-3 z-20 bg-white/90 backdrop-blur-sm rounded-lg border border-gray-200 p-2 shadow-lg">
+//                   {/* eslint-disable-next-line @next/next/no-img-element */}
+//                   <img
+//                     src={brandLogoUrl}
+//                     alt={product.brand || "brand"}
+//                     className="h-12 w-auto object-contain drop-shadow-md"
+//                     onError={(e) => {
+//                       (e.currentTarget as HTMLImageElement).style.display =
+//                         "none";
+//                     }}
+//                   />
+//                 </div>
+//               )}
+
+//               {showFrame && frameInfo?.mode === "image" && (
+//                 <div
+//                   className="pointer-events-none absolute inset-2 z-10 rounded-lg"
+//                   style={{
+//                     opacity: (frameInfo as any).opacity ?? 1,
+//                     padding: (frameInfo as any).inset ?? 0,
+//                   }}
+//                 >
+//                   {/* eslint-disable-next-line @next/next/no-img-element */}
+//                   <img
+//                     src={(frameInfo as any).imageUrl}
+//                     alt="frame"
+//                     className="w-full h-full object-contain"
+//                     style={{ objectFit: (frameInfo as any).objectFit }}
+//                   />
+//                 </div>
+//               )}
+
+//               {/* main image */}
+//               {/* eslint-disable-next-line @next/next/no-img-element */}
+//               <img
+//                 src={currentImageUrl}
+//                 alt={product.name}
+//                 className="w-full h-full object-cover cursor-zoom-in"
+//                 onMouseEnter={handleMouseEnterImage}
+//                 onMouseMove={handleMouseMoveImage}
+//                 onMouseLeave={handleMouseLeaveImage}
+//               />
+
+//               {showZoom && (
+//                 <div className="absolute inset-0 pointer-events-none">
+//                   <ZoomIn className="absolute top-4 right-4 h-6 w-6 text-white/80" />
+//                 </div>
+//               )}
+//             </div>
+
+//             {/* Zoom overlay - desktop only */}
+//             {showZoom && (
+//               <div
+//                 className="hidden lg:block absolute top-0 left-full ml-4 w-96 h-96 bg-white rounded-lg shadow-xl border overflow-hidden z-50"
+//                 style={{
+//                   backgroundImage: `url(${currentImageUrl})`,
+//                   backgroundSize: "200%",
+//                   backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
+//                   backgroundRepeat: "no-repeat",
+//                 }}
+//               />
+//             )}
+
+//             {/* Thumbnails */}
+//             <div className="w-full">
+//               <Carousel className="w-full">
+//                 <CarouselContent className="-ml-2">
+//                   {images.map((im, index) => (
+//                     <CarouselItem
+//                       key={`${im.url}-${index}`}
+//                       className="pl-2 basis-1/4 sm:basis-1/5"
+//                     >
+//                       <button
+//                         onMouseEnter={() => setSelectedImage(index)}
+//                         onClick={() => setSelectedImage(index)}
+//                         className={[
+//                           "aspect-square rounded-lg overflow-hidden border-2 transition-colors w-full relative bg-muted/20",
+//                           selectedImage === index
+//                             ? "border-primary"
+//                             : "border-muted hover:border-primary/50",
+//                         ].join(" ")}
+//                       >
+//                         {/* eslint-disable-next-line @next/next/no-img-element */}
+//                         <img
+//                           src={im.url}
+//                           alt={`thumb ${index + 1}`}
+//                           className="w-full h-full object-cover"
+//                         />
+//                         {im.isPrimary && (
+//                           <span className="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1 rounded">
+//                             main
+//                           </span>
+//                         )}
+//                       </button>
+//                     </CarouselItem>
+//                   ))}
+//                 </CarouselContent>
+//                 <CarouselPrevious className="left-0" />
+//                 <CarouselNext className="right-0" />
+//               </Carousel>
+//             </div>
+//           </div>
+
+//           {/* Product Info */}
+//           <div className="lg:col-span-3 space-y-4 lg:space-y-6">
+//             <div>
+//               <h1 className="text-2xl md:text-3xl font-bold mb-2 break-words">
+//                 {product.name}
+//               </h1>
+//               <p className="text-muted-foreground text-sm md:text-base break-words">
+//                 {visibleParts?.brandName !== false && (
+//                   <>Brand: {product.brand || "-"} </>
+//                 )}
+//                 {visibleParts?.sku !== false && (
+//                   <>| Model (SKU): {product.sku || "-"} </>
+//                 )}
+//                 {visibleParts?.uom !== false && (
+//                   <>| หน่วยสินค้า: {product.uom || "BX."}</>
+//                 )}
+//               </p>
+//             </div>
+
+//             {/* Rating */}
+//             {visibleParts?.ratingReview !== false && (
+//               <div className="flex items-center gap-4">
+//                 <div className="flex items-center gap-1">
+//                   {[...Array(5)].map((_, i) => (
+//                     <Star
+//                       key={i}
+//                       className={`h-5 w-5 ${
+//                         i < Math.floor(product.rating ?? 0)
+//                           ? "text-warning fill-current"
+//                           : "text-gray-300"
+//                       }`}
+//                     />
+//                   ))}
+//                   <span className="ml-2 text-lg font-medium">
+//                     {(product.rating ?? 0).toFixed(1)}
+//                   </span>
+//                 </div>
+//                 <Separator orientation="vertical" className="h-6" />
+//                 <span className="text-muted-foreground">
+//                   {product.reviews ?? 0} รีวิว
+//                 </span>
+//               </div>
+//             )}
+
+//             {/* Price */}
+//             <div className="space-y-2">
+//               <div className="flex flex-wrap items-center gap-3">
+//                 {visibleParts?.price !== false && (
+//                   <span className="text-2xl md:text-3xl font-bold text-sale">
+//                     ฿{product.price.toLocaleString()}
+//                     {hasConditions && salesMode ? ` / ${unit}` : ""}
+//                   </span>
+//                 )}
+//                 {visibleParts?.originalPrice !== false && originalPrice && (
+//                   <span className="text-lg md:text-xl text-muted-foreground line-through">
+//                     ฿{originalPrice.toLocaleString()}
+//                   </span>
+//                 )}
+//                 {showDiscountBadge && (
+//                   <Badge className="bg-sale text-sale-foreground text-sm px-3 py-1">
+//                     ประหยัด {product.discountPercent}%
+//                   </Badge>
+//                 )}
+//               </div>
+//               <p className="text-sm text-muted-foreground">รวม VAT แล้ว</p>
+//             </div>
+
+//             {/* Return & Warranty */}
+//             <div className="flex flex-wrap items-start gap-2">
+//               <span className="text-muted-foreground font-medium text-sm md:text-base">
+//                 Return & Warranty:
+//               </span>
+//               <div className="flex items-center gap-2">
+//                 <RotateCcw className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+//                 <span className="text-sm break-words">
+//                   Change of Mind • 7 Days Free Return • Warranty not available
+//                 </span>
+//               </div>
+//             </div>
+
+//             {/* Sales Type */}
+//             {hasConditions && salesMode && (
+//               <div className="space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
+//                 <span className="text-muted-foreground font-medium text-sm md:text-base">
+//                   ประเภทการขาย:
+//                 </span>
+//                 <div className="flex flex-wrap items-center gap-3">
+//                   <span className="inline-flex items-center rounded-lg border border-muted px-3 py-1.5 text-sm bg-white shadow-sm">
+//                     {salesMode === "CUT"
+//                       ? "ตัดแบ่งขาย (Cut)"
+//                       : "ขายยกม้วน (Roll)"}
+//                   </span>
+//                 </div>
+//               </div>
+//             )}
+
+//             {/* Length (CUT + step options) */}
+//             {hasConditions && salesMode === "CUT" && (
+//               <div className="space-y-2">
+//                 {/* แสดงความยาวปัจจุบัน + ขั้นต่ำ */}
+//                 <div className="sm:flex sm:items-center sm:gap-4">
+//                   <span className="text-muted-foreground font-medium text-sm md:text-base">
+//                     ความยาวตัดขาย:
+//                   </span>
+//                   <div className="flex items-center gap-3">
+//                     <span
+//                       className="inline-flex items-center rounded-lg border border-muted px-3 py-2 text-sm bg-muted/20"
+//                       title="ความยาวที่ตัดขายต่อ 1 รายการ"
+//                     >
+//                       {cutLength.toLocaleString()} {unit}
+//                     </span>
+//                     <span className="text-xs text-muted-foreground">
+//                       ขั้นต่ำ {cutMinimum.toLocaleString()} {unit}
+//                     </span>
+//                   </div>
+//                 </div>
+
+//                 {/* ปุ่มเพิ่ม/ลดตาม stepOptions */}
+//                 {cutStepOptions.length > 0 && (
+//                   <div className="sm:flex sm:items-center sm:gap-4">
+//                     <span className="text-muted-foreground font-medium text-xs md:text-sm">
+//                       เพิ่ม/ลดความยาว:
+//                     </span>
+//                     <div className="flex flex-wrap items-center gap-2">
+//                       {cutStepOptions.map((step) => (
+//                         <div key={step} className="flex items-center gap-1">
+//                           <Button
+//                             variant="outline"
+//                             size="sm"
+//                             onClick={() => handleCutStep(-step)}
+//                             disabled={cutLength - step < cutMinimum}
+//                             title={`ลด -${step.toLocaleString()} ${unit}`}
+//                           >
+//                             -{step.toLocaleString()} {unit}
+//                           </Button>
+//                           <Button
+//                             variant="outline"
+//                             size="sm"
+//                             onClick={() => handleCutStep(step)}
+//                             title={`เพิ่ม +${step.toLocaleString()} ${unit}`}
+//                           >
+//                             +{step.toLocaleString()} {unit}
+//                           </Button>
+//                         </div>
+//                       ))}
+//                       <span className="text-xs text-muted-foreground">
+//                         (กดเพิ่ม/ลดจากค่าขั้นต่ำ)
+//                       </span>
+//                     </div>
+//                   </div>
+//                 )}
+//               </div>
+//             )}
+
+//             {hasConditions && salesMode === "ROLL" && (
+//               <div className="space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
+//                 <span className="text-muted-foreground font-medium text-sm md:text-base">
+//                   ความยาวม้วน:
+//                 </span>
+
+//                 <div className="flex flex-wrap items-center gap-3">
+//                   {rollPairs.map(({ len, stock }) => {
+//                     const isActive = rollLength === len;
+//                     const soldOut = stock <= 0;
+//                     return (
+//                       <button
+//                         key={len}
+//                         onClick={() => !soldOut && setRollLength(len)}
+//                         disabled={soldOut}
+//                         className={[
+//                           "cursor-pointer border rounded-lg px-3 py-2 transition-colors text-sm",
+//                           isActive
+//                             ? "border-primary text-primary"
+//                             : "border-muted hover:bg-muted/50",
+//                           soldOut ? "opacity-50 cursor-not-allowed" : "",
+//                         ].join(" ")}
+//                         title={
+//                           soldOut
+//                             ? "สินค้าหมด"
+//                             : `สต๊อก: ${stock.toLocaleString()} ม้วน`
+//                         }
+//                       >
+//                         {len.toLocaleString()} {unit}
+//                         <span className="ml-2 text-xs text-muted-foreground">
+//                           ({soldOut ? "หมด" : stock.toLocaleString()})
+//                         </span>
+//                       </button>
+//                     );
+//                   })}
+//                   <span className="text-sm text-muted-foreground">
+//                     {rollLength ? `(${rollLength.toLocaleString()} ${unit})` : ""}
+//                   </span>
+//                 </div>
+//               </div>
+//             )}
+
+//             {/* Stock */}
+//             <div className="flex items-center gap-2">
+//               {salesMode === "ROLL" ? (
+//                 selectedRollStock != null ? (
+//                   selectedRollStock > 0 ? (
+//                     <>
+//                       <div className="w-2 h-2 bg-success rounded-full" />
+//                       <span className="text-success font-medium">
+//                         สต๊อก {selectedRollStock.toLocaleString()} ม้วน (ขนาด{" "}
+//                         {rollLength?.toLocaleString()} {unit})
+//                       </span>
+//                     </>
+//                   ) : (
+//                     <>
+//                       <div className="w-2 h-2 bg-destructive rounded-full" />
+//                       <span className="text-destructive font-medium">
+//                         ขนาดที่เลือกหมดสต๊อก
+//                       </span>
+//                     </>
+//                   )
+//                 ) : (
+//                   <>
+//                     <div className="w-2 h-2 bg-muted-foreground rounded-full" />
+//                     <span className="text-muted-foreground">
+//                       เลือกความยาวม้วนเพื่อดูสต๊อก
+//                     </span>
+//                   </>
+//                 )
+//               ) : (
+//                 <>
+//                   <div className="w-2 h-2 bg-success rounded-full" />
+//                   <span className="text-success font-medium">
+//                     มีสินค้าในสต๊อก
+//                   </span>
+//                 </>
+//               )}
+//             </div>
+
+//             {/* Quantity & Actions */}
+//             <div className="space-y-4">
+//               <div className="flex items-center gap-4">
+//                 <span className="font-medium text-muted-foreground">
+//                   Quantity:
+//                 </span>
+//                 <div className="flex items-center border rounded-lg">
+//                   <Button
+//                     variant="ghost"
+//                     size="sm"
+//                     onClick={() => handleQuantityChange(-1)}
+//                     className="h-10 w-10 p-0"
+//                   >
+//                     <Minus className="h-4 w-4" />
+//                   </Button>
+//                   <span className="px-4 py-2 min-w-[3rem] text-center">
+//                     {quantity}
+//                   </span>
+//                   <Button
+//                     variant="ghost"
+//                     size="sm"
+//                     onClick={() => handleQuantityChange(1)}
+//                     className="h-10 w-10 p-0"
+//                   >
+//                     <Plus className="h-4 w-4" />
+//                   </Button>
+//                 </div>
+//               </div>
+
+//               {/* Summary */}
+//               <div className="text-sm text-muted-foreground space-y-1">
+//                 {hasConditions && salesMode ? (
+//                   <>
+//                     <div>
+//                       ความยาวรวม:{" "}
+//                       <span className="font-medium text-foreground">
+//                         {totalLength.toLocaleString()} {unit}
+//                       </span>
+//                     </div>
+//                     <div>
+//                       ราคารวม:{" "}
+//                       <span className="font-bold text-foreground">
+//                         ฿{totalPrice.toLocaleString()}
+//                       </span>
+//                     </div>
+//                     {salesMode === "ROLL" && selectedRollStock != null && (
+//                       <div className="text-xs">
+//                         สต๊อกสูงสุดสำหรับขนาดนี้:{" "}
+//                         {selectedRollStock.toLocaleString()} ม้วน
+//                       </div>
+//                     )}
+//                     <div className="text-xs">
+//                       ({quantity.toLocaleString()} ×{" "}
+//                       {Number(lengthPerItem).toLocaleString()} {unit} × ฿
+//                       {Number(product.price).toLocaleString()}/{unit})
+//                     </div>
+//                   </>
+//                 ) : (
+//                   <>
+//                     <div>
+//                       ราคารวม:{" "}
+//                       <span className="font-bold text-foreground">
+//                         ฿{totalPrice.toLocaleString()}
+//                       </span>
+//                     </div>
+//                     <div className="text-xs">
+//                       ({quantity.toLocaleString()} × ฿
+//                       {Number(product.price).toLocaleString()} / ชิ้น)
+//                     </div>
+//                   </>
+//                 )}
+//               </div>
+
+//               <div className="flex gap-3">
+//                 <Button
+//                   variant="outline"
+//                   size="lg"
+//                   className="flex-1 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+//                   onClick={() => router.push("/checkout")}
+//                 >
+//                   Buy Now
+//                 </Button>
+//                 <Button
+//                   size="lg"
+//                   className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+//                   onClick={() => setIsCartOpen(true)}
+//                 >
+//                   Add to Cart
+//                 </Button>
+//               </div>
+//             </div>
+
+//             {/* Service Features */}
+//             <Card>
+//               <CardContent className="p-4">
+//                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+//                   <div className="flex items-center gap-3">
+//                     <Truck className="h-5 w-5 text-success" />
+//                     <div>
+//                       <p className="font-medium text-sm">ส่งฟรี</p>
+//                       <p className="text-xs text-muted-foreground">
+//                         สั่งซื้อขั้นต่ำ 5,000฿
+//                       </p>
+//                     </div>
+//                   </div>
+//                   <div className="flex items-center gap-3">
+//                     <Shield className="h-5 w-5 text-primary" />
+//                     <div>
+//                       <p className="font-medium text-sm">รับประกัน</p>
+//                       <p className="text-xs text-muted-foreground">3 ปี</p>
+//                     </div>
+//                   </div>
+//                   <div className="flex items-center gap-3">
+//                     <RotateCcw className="h-5 w-5 text-warning" />
+//                     <div>
+//                       <p className="font-medium text-sm">เปลี่ยน/คืนสินค้า</p>
+//                       <p className="text-xs text-muted-foreground">ภายใน 7 วัน</p>
+//                     </div>
+//                   </div>
+//                 </div>
+//               </CardContent>
+//             </Card>
+//           </div>
+//         </div>
+//       </div>
+
+//       <ShoppingCart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+//     </div>
+//   );
+// }
+
+
+// v.1.1.2 ============================================================
+
+// // src/app/product/[id]/ProductClient.tsx
+
+// "use client";
+
+// import { useMemo, useState } from "react";
+// import { useRouter } from "next/navigation";
+// import {
+//   Star, Plus, Minus, Shield, Truck, RotateCcw, ZoomIn,
+// } from "lucide-react";
+// import { Button } from "@/components/ui/button";
+// import { Badge } from "@/components/ui/badge";
+// import { Card, CardContent } from "@/components/ui/card";
+// import { Separator } from "@/components/ui/separator";
+// import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+// import { ShoppingCart } from "@/components/shopping-cart";
+
+// // ===== Types =====
+// export type UIProduct = {
+//   id: number | string;
+//   name: string;
+//   brand?: string;
+//   sku?: string;
+//   price: number;
+//   discountPercent?: number;
+//   image_url?: string;
+//   visible?: boolean;
+//   order?: number;
+//   rating?: number;
+//   reviews?: number;
+//   category_id?: number | string;
+//   uom?: string;
+//   images?: Array<{ url: string; order: number; isPrimary?: boolean }>;
+//   conditions?: Array<
+//     | { salesType: "CUT"; unit: string; minimumLength?: number }
+//     | { salesType: "ROLL"; unit: string; rollLengths?: number[] }
+//   >;
+// };
+
+// export type DiscountRuleLite = {
+//   id: string | number;
+//   minPercent?: number;
+//   maxPercent?: number;
+//   borderWidth: number;
+//   borderColorHex: string;
+//   frameMode?: "image" | "draw";
+//   frameImageUrl?: string;
+//   frameInsetPx?: number;
+//   frameOpacity?: number;
+//   frameObjectFit?: "contain" | "cover" | "stretch";
+//   enabled?: boolean;
+//   order?: number;
+// };
+
+// type FrameInfo =
+//   | { mode: "image"; imageUrl: string; inset: number; opacity: number; objectFit: "contain" | "cover" | "fill" }
+//   | { mode: "draw"; borderWidth: number; borderColorHex: string };
+
+// type VisibleParts = Partial<{
+//   image: boolean;
+//   discountBadge: boolean;
+//   brandLogo: boolean;
+//   frame: boolean;
+//   brandName: boolean;
+//   sku: boolean;
+//   name: boolean;
+//   ratingReview: boolean;
+//   category: boolean;
+//   price: boolean;
+//   originalPrice: boolean;
+//   uom: boolean;
+// }>;
+
+// type ProductClientProps = {
+//   product: UIProduct;
+//   visibleParts?: VisibleParts;
+//   rules?: DiscountRuleLite[];
+// };
+
+// // ===== Helpers =====
+// const getOriginalPrice = (price: number, discountPercent?: number) => {
+//   if (!discountPercent || discountPercent <= 0) return undefined;
+//   const original = price / (1 - discountPercent / 100);
+//   return Math.round(original);
+// };
+// const objectFit = (fit?: string): "contain" | "cover" | "fill" =>
+//   fit === "cover" ? "cover" : fit === "stretch" ? "fill" : "contain";
+
+// const toFrameInfo = (rule: DiscountRuleLite | null): FrameInfo | null => {
+//   if (!rule) return null;
+//   if (rule.frameMode === "image" && rule.frameImageUrl) {
+//     return {
+//       mode: "image",
+//       imageUrl: rule.frameImageUrl,
+//       inset: Math.max(0, Number(rule.frameInsetPx ?? 0)),
+//       opacity: typeof rule.frameOpacity === "number" ? Math.max(0, Math.min(1, rule.frameOpacity)) : 1,
+//       objectFit: objectFit(rule.frameObjectFit),
+//     };
+//   }
+//   return { mode: "draw", borderWidth: Number(rule.borderWidth) || 2, borderColorHex: String(rule.borderColorHex || "#000") };
+// };
+
+// const pickRuleFactory = (rules: DiscountRuleLite[]) => (percent?: number): DiscountRuleLite | null => {
+//   if (percent == null) return null;
+//   for (const r of rules) {
+//     const lowerOk = percent >= (r.minPercent ?? 0);
+//     const upperOk = typeof r.maxPercent === "number" ? percent <= r.maxPercent : true;
+//     if (lowerOk && upperOk) return r;
+//   }
+//   return null;
+// };
+
+// const brandToLogoUrl = (brand?: string) => {
+//   if (!brand) return undefined;
+//   const slug = brand.toLowerCase().replace(/\s+/g, "-");
+//   return `/brand_logo/${slug}_logo.png`;
+// };
+
+// export default function ProductClient({ product, visibleParts, rules = [] }: ProductClientProps) {
+//   const router = useRouter();
+
+//   // ===== images (จาก props) =====
+//   const images = useMemo(() => {
+//     const imgs = Array.isArray(product.images) ? [...product.images] : [];
+//     imgs.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+//     if (imgs.length === 0) {
+//       const fallback = product.image_url || "/placeholder.png";
+//       return [{ url: fallback, order: 0, isPrimary: true }];
+//     }
+//     return imgs;
+//   }, [product.images, product.image_url]);
+//   const [selectedImage, setSelectedImage] = useState(0);
+//   const currentImageUrl = images[selectedImage]?.url || "/placeholder.png";
+
+//   // ===== discount frame =====
+//   const pickRule = useMemo(() => pickRuleFactory(rules), [rules]);
+//   const frameInfo: FrameInfo | null = useMemo(
+//     () => toFrameInfo(pickRule(product?.discountPercent)),
+//     [pickRule, product?.discountPercent]
+//   );
+
+//   const originalPrice = useMemo(
+//     () => getOriginalPrice(product.price, product.discountPercent),
+//     [product.price, product.discountPercent]
+//   );
+//   const brandLogoUrl = useMemo(() => brandToLogoUrl(product?.brand), [product?.brand]);
+
+//   // ===== sales conditions (derive ค่าเริ่มต้นจาก props.product) =====
+//   const hasConditions = Array.isArray(product.conditions) && product.conditions.length > 0;
+//   const firstCond = hasConditions ? (product.conditions![0] as any) : undefined;
+
+//   const [salesMode] = useState<"CUT" | "ROLL" | null>(() => firstCond?.salesType ?? null);
+//   const [unit] = useState<string>(() => (firstCond?.unit ?? product.uom ?? "M.") as string);
+//   const [cutLength] = useState<number | null>(() =>
+//     firstCond?.salesType === "CUT" ? (typeof firstCond.minimumLength === "number" ? firstCond.minimumLength : 1) : null
+//   );
+//   const [rollLength, setRollLength] = useState<number | null>(() => {
+//     if (firstCond?.salesType === "ROLL") {
+//       const rl = Array.isArray(firstCond.rollLengths) ? firstCond.rollLengths : [];
+//       return rl.length ? rl[0] : null;
+//     }
+//     return null;
+//   });
+
+//     // ===== ROLL helpers: pair (length, stock) และสต๊อกจากตัวเลือกที่เลือก
+//     const rollCond = useMemo(() => {
+//     return (product?.conditions ?? []).find((c: any) => c.salesType === "ROLL") as
+//         | { salesType: "ROLL"; unit: string; rollLengths?: number[]; rollStocks?: number[] }
+//         | undefined;
+//     }, [product]);
+
+//     const rollPairs = useMemo(() => {
+//     const lens = rollCond?.rollLengths ?? [];
+//     const stocks = rollCond?.rollStocks ?? [];
+//     return lens.map((len, i) => ({ len, stock: Number(stocks[i] ?? 0) }));
+//     }, [rollCond]);
+
+//     const selectedRollStock = useMemo(() => {
+//     if (!rollCond || !rollLength) return null;
+//     const idx = (rollCond.rollLengths ?? []).findIndex((l) => l === rollLength);
+//     return idx >= 0 ? Number(rollCond.rollStocks?.[idx] ?? 0) : null;
+//     }, [rollCond, rollLength]);
+
+
+//   // ===== local UI states =====
+//   const [quantity, setQuantity] = useState(1);
+//   const [isCartOpen, setIsCartOpen] = useState(false);
+//   const [showZoom, setShowZoom] = useState(false);
+//   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+
+//   const showDiscountBadge = (visibleParts?.discountBadge ?? true) && (product.discountPercent ?? 0) > 0;
+//   const showBrandLogo = (visibleParts?.brandLogo ?? true) && !!brandLogoUrl;
+//   const showFrame = (visibleParts?.frame ?? true) && !!frameInfo;
+
+//   // ===== คำนวณยอดรวม =====
+//   const lengthPerItem = useMemo(() => {
+//     if (!hasConditions || !salesMode) return 1;
+//     if (salesMode === "CUT") return Math.max(1, Number(cutLength ?? 1));
+//     if (salesMode === "ROLL") return Math.max(1, Number(rollLength ?? 1));
+//     return 1;
+//   }, [hasConditions, salesMode, cutLength, rollLength]);
+
+//   const totalLength = useMemo(() => Math.max(1, Number(lengthPerItem)) * Math.max(1, Number(quantity)), [lengthPerItem, quantity]);
+//   const totalPrice = useMemo(() => {
+//     if (hasConditions && salesMode) return totalLength * Number(product.price ?? 0);
+//     return Math.max(1, Number(quantity)) * Number(product.price ?? 0);
+//   }, [hasConditions, salesMode, totalLength, quantity, product.price]);
+
+//   // ===== Handlers =====
+
+//     const handleQuantityChange = (change: number) => {
+//         let next = Math.max(1, quantity + change);
+
+//         // จำกัดตามสต๊อกเฉพาะโหมด ROLL
+//         if (salesMode === "ROLL" && selectedRollStock != null) {
+//             next = Math.min(next, Math.max(0, selectedRollStock));
+//         }
+//         setQuantity(next);
+//     };
+   
+
+//   const handleMouseEnterImage = (e: React.MouseEvent<HTMLImageElement>) => {
+//     const rect = e.currentTarget.getBoundingClientRect();
+//     const x = ((e.clientX - rect.left) / rect.width) * 100;
+//     const y = ((e.clientY - rect.top) / rect.height) * 100;
+//     setZoomPosition({ x, y });
+//     setShowZoom(true);
+//   };
+//   const handleMouseMoveImage = (e: React.MouseEvent<HTMLImageElement>) => {
+//     const rect = e.currentTarget.getBoundingClientRect();
+//     const x = ((e.clientX - rect.left) / rect.width) * 100;
+//     const y = ((e.clientY - rect.top) / rect.height) * 100;
+//     setZoomPosition({ x, y });
+//   };
+//   const handleMouseLeaveImage = () => setShowZoom(false);
+
+//   return (
+//     <div className="min-h-screen bg-background">
+//       <div className="container mx-auto max-w-screen-xl px-2 sm:px-4 py-6">
+//         {/* Breadcrumb */}
+//         <nav className="text-sm text-muted-foreground mb-8 overflow-hidden">
+//           <div className="flex flex-wrap items-center gap-2">
+//             <span className="hover:text-primary cursor-pointer" onClick={() => router.push("/")}>หน้าแรก</span>
+//             <span>/</span>
+//             <span className="hover:text-primary cursor-pointer" onClick={() => router.push("/products")}>สินค้า</span>
+//             <span>/</span>
+//             <span className="text-primary truncate">{product.name}</span>
+//           </div>
+//         </nav>
+
+//         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-12 mb-12">
+//           {/* Product Images */}
+//           <div className="lg:col-span-2 space-y-4 relative">
+//             <div
+//               className={[
+//                 "aspect-square rounded-lg overflow-hidden relative bg-muted/30",
+//                 showFrame && frameInfo?.mode === "draw" ? "border-solid" : "",
+//               ].join(" ")}
+//               style={
+//                 showFrame && frameInfo?.mode === "draw"
+//                   ? { borderWidth: (frameInfo as any).borderWidth, borderColor: (frameInfo as any).borderColorHex }
+//                   : undefined
+//               }
+//             >
+//               {showDiscountBadge && (
+//                 <div className="absolute top-3 left-3 z-20">
+//                   <Badge className="bg-sale text-sale-foreground text-base font-bold px-5 py-2 rounded-lg shadow-lg">
+//                     -{product.discountPercent}%
+//                   </Badge>
+//                 </div>
+//               )}
+
+//               {showBrandLogo && (
+//                 <div className="absolute top-3 right-3 z-20 bg-white/90 backdrop-blur-sm rounded-lg border border-gray-200 p-2 shadow-lg">
+//                   {/* eslint-disable-next-line @next/next/no-img-element */}
+//                   <img
+//                     src={brandLogoUrl}
+//                     alt={product.brand || "brand"}
+//                     className="h-12 w-auto object-contain drop-shadow-md"
+//                     onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+//                   />
+//                 </div>
+//               )}
+
+//               {showFrame && frameInfo?.mode === "image" && (
+//                 <div
+//                   className="pointer-events-none absolute inset-2 z-10 rounded-lg"
+//                   style={{ opacity: (frameInfo as any).opacity ?? 1, padding: (frameInfo as any).inset ?? 0 }}
+//                 >
+//                   {/* eslint-disable-next-line @next/next/no-img-element */}
+//                   <img
+//                     src={(frameInfo as any).imageUrl}
+//                     alt="frame"
+//                     className="w-full h-full object-contain"
+//                     style={{ objectFit: (frameInfo as any).objectFit }}
+//                   />
+//                 </div>
+//               )}
+
+//               {/* main image */}
+//               {/* eslint-disable-next-line @next/next/no-img-element */}
+//               <img
+//                 src={currentImageUrl}
+//                 alt={product.name}
+//                 className="w-full h-full object-cover cursor-zoom-in"
+//                 onMouseEnter={handleMouseEnterImage}
+//                 onMouseMove={handleMouseMoveImage}
+//                 onMouseLeave={handleMouseLeaveImage}
+//               />
+
+//               {showZoom && (
+//                 <div className="absolute inset-0 pointer-events-none">
+//                   <ZoomIn className="absolute top-4 right-4 h-6 w-6 text-white/80" />
+//                 </div>
+//               )}
+//             </div>
+
+//             {/* Zoom overlay - desktop only */}
+//             {showZoom && (
+//               <div
+//                 className="hidden lg:block absolute top-0 left-full ml-4 w-96 h-96 bg-white rounded-lg shadow-xl border overflow-hidden z-50"
+//                 style={{
+//                   backgroundImage: `url(${currentImageUrl})`,
+//                   backgroundSize: "200%",
+//                   backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
+//                   backgroundRepeat: "no-repeat",
+//                 }}
+//               />
+//             )}
+
+//             {/* Thumbnails */}
+//             <div className="w-full">
+//               <Carousel className="w-full">
+//                 <CarouselContent className="-ml-2">
+//                   {images.map((im, index) => (
+//                     <CarouselItem key={`${im.url}-${index}`} className="pl-2 basis-1/4 sm:basis-1/5">
+//                       <button
+//                         onMouseEnter={() => setSelectedImage(index)}
+//                         onClick={() => setSelectedImage(index)}
+//                         className={[
+//                           "aspect-square rounded-lg overflow-hidden border-2 transition-colors w-full relative bg-muted/20",
+//                           selectedImage === index ? "border-primary" : "border-muted hover:border-primary/50",
+//                         ].join(" ")}
+//                       >
+//                         {/* eslint-disable-next-line @next/next/no-img-element */}
+//                         <img src={im.url} alt={`thumb ${index + 1}`} className="w-full h-full object-cover" />
+//                         {im.isPrimary && (
+//                           <span className="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1 rounded">main</span>
+//                         )}
+//                       </button>
+//                     </CarouselItem>
+//                   ))}
+//                 </CarouselContent>
+//                 <CarouselPrevious className="left-0" />
+//                 <CarouselNext className="right-0" />
+//               </Carousel>
+//             </div>
+//           </div>
+
+//           {/* Product Info */}
+//           <div className="lg:col-span-3 space-y-4 lg:space-y-6">
+//             <div>
+//               <h1 className="text-2xl md:text-3xl font-bold mb-2 break-words">{product.name}</h1>
+//               <p className="text-muted-foreground text-sm md:text-base break-words">
+//                 {visibleParts?.brandName !== false && <>Brand: {product.brand || "-"}</>}{" "}
+//                 {visibleParts?.sku !== false && <> | Model (SKU): {product.sku || "-"}</>}{" "}
+//                 {visibleParts?.uom !== false && <> | หน่วยสินค้า: {product.uom || "BX."}</>}
+//               </p>
+//             </div>
+
+//             {/* Rating */}
+//             {visibleParts?.ratingReview !== false && (
+//               <div className="flex items-center gap-4">
+//                 <div className="flex items-center gap-1">
+//                   {[...Array(5)].map((_, i) => (
+//                     <Star
+//                       key={i}
+//                       className={`h-5 w-5 ${i < Math.floor(product.rating ?? 0) ? "text-warning fill-current" : "text-gray-300"}`}
+//                     />
+//                   ))}
+//                   <span className="ml-2 text-lg font-medium">{(product.rating ?? 0).toFixed(1)}</span>
+//                 </div>
+//                 <Separator orientation="vertical" className="h-6" />
+//                 <span className="text-muted-foreground">{product.reviews ?? 0} รีวิว</span>
+//               </div>
+//             )}
+
+//             {/* Price */}
+//             <div className="space-y-2">
+//               <div className="flex flex-wrap items-center gap-3">
+//                 {visibleParts?.price !== false && (
+//                   <span className="text-2xl md:text-3xl font-bold text-sale">
+//                     ฿{product.price.toLocaleString()}{hasConditions && salesMode ? ` / ${unit}` : ""}
+//                   </span>
+//                 )}
+//                 {visibleParts?.originalPrice !== false && originalPrice && (
+//                   <span className="text-lg md:text-xl text-muted-foreground line-through">฿{originalPrice.toLocaleString()}</span>
+//                 )}
+//                 {showDiscountBadge && (
+//                   <Badge className="bg-sale text-sale-foreground text-sm px-3 py-1">
+//                     ประหยัด {product.discountPercent}%
+//                   </Badge>
+//                 )}
+//               </div>
+//               <p className="text-sm text-muted-foreground">รวม VAT แล้ว</p>
+//             </div>
+
+//             {/* Return & Warranty */}
+//             <div className="flex flex-wrap items-start gap-2">
+//               <span className="text-muted-foreground font-medium text-sm md:text-base">Return & Warranty:</span>
+//               <div className="flex items-center gap-2">
+//                 <RotateCcw className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+//                 <span className="text-sm break-words">Change of Mind • 7 Days Free Return • Warranty not available</span>
+//               </div>
+//             </div>
+
+//             {/* Sales Type */}
+//             {hasConditions && salesMode && (
+//               <div className="space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
+//                 <span className="text-muted-foreground font-medium text-sm md:text-base">ประเภทการขาย:</span>
+//                 <div className="flex flex-wrap items-center gap-3">
+//                   <span className="inline-flex items-center rounded-lg border border-muted px-3 py-1.5 text-sm bg-white shadow-sm">
+//                     {salesMode === "CUT" ? "ตัดแบ่งขาย (Cut)" : "ขายยกม้วน (Roll)"}
+//                   </span>
+//                 </div>
+//               </div>
+//             )}
+
+//             {/* Length */}
+//             {hasConditions && salesMode === "CUT" && (
+//               <div className="space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
+//                 <span className="text-muted-foreground font-medium text-sm md:text-base">ความยาวขั้นต่ำ:</span>
+//                 <div className="flex items-center gap-3">
+//                   <span
+//                     className="inline-flex items-center rounded-lg border border-muted px-3 py-2 text-sm bg-muted/20"
+//                     title="ความยาวขั้นต่ำในการตัดขาย"
+//                   >
+//                     {Number(cutLength ?? 1).toLocaleString()} {unit}
+//                   </span>
+//                   <span className="text-xs text-muted-foreground">(ค่าเริ่มต้น / ไม่สามารถแก้ไขได้)</span>
+//                 </div>
+//               </div>
+//             )}
+
+//             {hasConditions && salesMode === "ROLL" && (
+//               <div className="space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
+//                 <span className="text-muted-foreground font-medium text-sm md:text-base">ความยาวม้วน:</span>
+                
+//                 <div className="flex flex-wrap items-center gap-3">
+//                     {rollPairs.map(({ len, stock }) => {
+//                         const isActive = rollLength === len;
+//                         const soldOut = stock <= 0;
+//                         return (
+//                         <button
+//                             key={len}
+//                             onClick={() => !soldOut && setRollLength(len)}
+//                             disabled={soldOut}
+//                             className={[
+//                             "cursor-pointer border rounded-lg px-3 py-2 transition-colors text-sm",
+//                             isActive ? "border-primary text-primary" : "border-muted hover:bg-muted/50",
+//                             soldOut ? "opacity-50 cursor-not-allowed" : "",
+//                             ].join(" ")}
+//                             title={soldOut ? "สินค้าหมด" : `สต๊อก: ${stock.toLocaleString()} ม้วน`}
+//                         >
+//                             {len.toLocaleString()} {unit}
+//                             <span className="ml-2 text-xs text-muted-foreground">
+//                             ({soldOut ? "หมด" : stock.toLocaleString()})
+//                             </span>
+//                         </button>
+//                         );
+//                     })}
+//                     <span className="text-sm text-muted-foreground">
+//                         {rollLength ? `(${rollLength.toLocaleString()} ${unit})` : ""}
+//                     </span>
+//                 </div>
+
+//               </div>
+//             )}
+
+
+//             {/* Stock */}
+//             <div className="flex items-center gap-2">
+//                 {salesMode === "ROLL" ? (
+//                     selectedRollStock != null ? (
+//                     selectedRollStock > 0 ? (
+//                         <>
+//                         <div className="w-2 h-2 bg-success rounded-full" />
+//                         <span className="text-success font-medium">
+//                             สต๊อก {selectedRollStock.toLocaleString()} ม้วน (ขนาด {rollLength?.toLocaleString()} {unit})
+//                         </span>
+//                         </>
+//                     ) : (
+//                         <>
+//                         <div className="w-2 h-2 bg-destructive rounded-full" />
+//                         <span className="text-destructive font-medium">ขนาดที่เลือกหมดสต๊อก</span>
+//                         </>
+//                     )
+//                     ) : (
+//                     <>
+//                         <div className="w-2 h-2 bg-muted-foreground rounded-full" />
+//                         <span className="text-muted-foreground">เลือกความยาวม้วนเพื่อดูสต๊อก</span>
+//                     </>
+//                     )
+//                 ) : (
+//                     <>
+//                     <div className="w-2 h-2 bg-success rounded-full" />
+//                     <span className="text-success font-medium">มีสินค้าในสต๊อก</span>
+//                     </>
+//                 )}
+//             </div>
+
+
+//             {/* Quantity & Actions */}
+//             <div className="space-y-4">
+//               <div className="flex items-center gap-4">
+//                 <span className="font-medium text-muted-foreground">Quantity:</span>
+//                 <div className="flex items-center border rounded-lg">
+//                   <Button variant="ghost" size="sm" onClick={() => handleQuantityChange(-1)} className="h-10 w-10 p-0">
+//                     <Minus className="h-4 w-4" />
+//                   </Button>
+//                   <span className="px-4 py-2 min-w-[3rem] text-center">{quantity}</span>
+//                   <Button variant="ghost" size="sm" onClick={() => handleQuantityChange(1)} className="h-10 w-10 p-0">
+//                     <Plus className="h-4 w-4" />
+//                   </Button>
+//                 </div>
+//               </div>
+
+//               {/* Summary */}
+//               <div className="text-sm text-muted-foreground space-y-1">
+//                 {hasConditions && salesMode ? (
+//                   <>
+//                     <div>ความยาวรวม: <span className="font-medium text-foreground">{totalLength.toLocaleString()} {unit}</span></div>
+//                     <div>ราคารวม: <span className="font-bold text-foreground">฿{totalPrice.toLocaleString()}</span></div>
+//                     {salesMode === "ROLL" && selectedRollStock != null && (
+//                         <div className="text-xs">
+//                             สต๊อกสูงสุดสำหรับขนาดนี้: {selectedRollStock.toLocaleString()} ม้วน
+//                         </div>
+//                     )}
+//                     <div className="text-xs">
+//                       ({quantity.toLocaleString()} × {Number(lengthPerItem).toLocaleString()} {unit} × ฿{Number(product.price).toLocaleString()}/{unit})
+//                     </div>
+//                   </>
+//                 ) : (
+//                   <>
+//                     <div>ราคารวม: <span className="font-bold text-foreground">฿{totalPrice.toLocaleString()}</span></div>
+//                     <div className="text-xs">
+//                       ({quantity.toLocaleString()} × ฿{Number(product.price).toLocaleString()} / ชิ้น)
+//                     </div>
+//                   </>
+//                 )}
+//               </div>
+
+//               <div className="flex gap-3">
+//                 <Button
+//                   variant="outline"
+//                   size="lg"
+//                   className="flex-1 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+//                   onClick={() => router.push("/checkout")}
+//                 >
+//                   Buy Now
+//                 </Button>
+//                 <Button
+//                   size="lg"
+//                   className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+//                   onClick={() => setIsCartOpen(true)}
+//                 >
+//                   Add to Cart
+//                 </Button>
+//               </div>
+//             </div>
+
+//             {/* Service Features */}
+//             <Card>
+//               <CardContent className="p-4">
+//                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+//                   <div className="flex items-center gap-3">
+//                     <Truck className="h-5 w-5 text-success" />
+//                     <div>
+//                       <p className="font-medium text-sm">ส่งฟรี</p>
+//                       <p className="text-xs text-muted-foreground">สั่งซื้อขั้นต่ำ 5,000฿</p>
+//                     </div>
+//                   </div>
+//                   <div className="flex items-center gap-3">
+//                     <Shield className="h-5 w-5 text-primary" />
+//                     <div>
+//                       <p className="font-medium text-sm">รับประกัน</p>
+//                       <p className="text-xs text-muted-foreground">3 ปี</p>
+//                     </div>
+//                   </div>
+//                   <div className="flex items-center gap-3">
+//                     <RotateCcw className="h-5 w-5 text-warning" />
+//                     <div>
+//                       <p className="font-medium text-sm">เปลี่ยน/คืนสินค้า</p>
+//                       <p className="text-xs text-muted-foreground">ภายใน 7 วัน</p>
+//                     </div>
+//                   </div>
+//                 </div>
+//               </CardContent>
+//             </Card>
+//           </div>
+//         </div>
+//       </div>
+
+//       <ShoppingCart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+//     </div>
+//   );
+// }

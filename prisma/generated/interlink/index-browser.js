@@ -539,6 +539,8 @@ exports.Prisma.Product_conditionsScalarFieldEnum = {
   minimum_length: 'minimum_length',
   sales_type: 'sales_type',
   units_system: 'units_system',
+  num_stock: 'num_stock',
+  cut_steps: 'cut_steps',
   created_at: 'created_at',
   updated_at: 'updated_at'
 };
@@ -783,7 +785,9 @@ exports.Prisma.product_conditionsOrderByRelevanceFieldEnum = {
   pro_details: 'pro_details',
   minimum_length: 'minimum_length',
   sales_type: 'sales_type',
-  units_system: 'units_system'
+  units_system: 'units_system',
+  num_stock: 'num_stock',
+  cut_steps: 'cut_steps'
 };
 exports.discount_rules_frame_mode = exports.$Enums.discount_rules_frame_mode = {
   draw: 'draw',

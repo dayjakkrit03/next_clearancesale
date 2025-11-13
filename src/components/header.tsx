@@ -110,7 +110,7 @@ export const Header = ({
   return (
     <header className="bg-primary text-primary-foreground shadow-header sticky top-0 z-50">
       {/* Top bar */}
-      <div className="bg-black/10 text-xs py-1 hidden md:block">
+      {/* <div className="bg-black/10 text-xs py-1 hidden md:block">
         <div className="w-full max-w-screen-2xl mx-auto px-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <Link href="/" className="hover:text-white/80 transition-colors">หน้าแรก</Link>
@@ -123,7 +123,7 @@ export const Header = ({
             <span>สมัครใหม่</span>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Main header */}
       <div className="w-full max-w-screen-2xl mx-auto px-4 py-4">
