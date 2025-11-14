@@ -6,8 +6,6 @@ import { ArrowLeft, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
 
 interface PaymentData {
   amount: number;
@@ -71,7 +69,6 @@ export default function PaymentQRPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
       
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-6">
@@ -240,7 +237,6 @@ export default function PaymentQRPage() {
         </div>
       </div>
 
-      <Footer />
     </div>
   );
 }

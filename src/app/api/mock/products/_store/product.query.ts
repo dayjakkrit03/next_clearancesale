@@ -28,6 +28,7 @@ export async function getAll(opts?: { includeHidden?: boolean }): Promise<UIProd
       p.product_id, p.product_name, p.product_brand, p.product_sku, p.product_filename,
       p.product_price, p.discount_label, p.image_url, p.visible, p.display_order,
       p.rating_score, p.rating_count, p.category_id, p.product_uom,
+      p.product_new, p.product_best, p.users_action, p.clearanceSales, p.clearanceQuantity,
       ip.image_name
     FROM ${TABLE} p
     LEFT JOIN ${IMAGES_TABLE} ip
@@ -187,6 +188,7 @@ export async function getById(id: UIProduct["id"]): Promise<UIProduct | undefine
       p.product_id, p.product_name, p.product_brand, p.product_sku, p.product_filename,
       p.product_price, p.discount_label, p.image_url, p.visible, p.display_order,
       p.rating_score, p.rating_count, p.category_id, p.product_uom,
+      p.product_new, p.product_best, p.users_action, p.clearanceSales, p.clearanceQuantity,
       ip.image_name
     FROM ${TABLE} p
     LEFT JOIN ${IMAGES_TABLE} ip
@@ -226,6 +228,7 @@ export async function getManyByIds(ids: Array<UIProduct["id"]>): Promise<UIProdu
       p.product_id, p.product_name, p.product_brand, p.product_sku, p.product_filename,
       p.product_price, p.discount_label, p.image_url, p.visible, p.display_order,
       p.rating_score, p.rating_count, p.category_id, p.product_uom,
+      p.product_new, p.product_best, p.users_action, p.clearanceSales, p.clearanceQuantity,
       ip.image_name
     FROM ${TABLE} p
     LEFT JOIN ${IMAGES_TABLE} ip
@@ -266,6 +269,7 @@ export async function queryProducts(params: ProductQuery) {
       p.product_id, p.product_name, p.product_brand, p.product_sku, p.product_filename,
       p.product_price, p.discount_label, p.image_url, p.visible, p.display_order,
       p.rating_score, p.rating_count, p.category_id, p.product_uom,
+      p.product_new, p.product_best, p.users_action, p.clearanceSales, p.clearanceQuantity,
       ip.image_name
     FROM ${TABLE} p
     LEFT JOIN ${IMAGES_TABLE} ip

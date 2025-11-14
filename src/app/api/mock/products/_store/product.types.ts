@@ -20,6 +20,13 @@ export type UIProduct = {
   category_id?: number | string;
   uom?: string;
 
+  // NEW: ฟิลด์จากตาราง products_clearance
+  product_new?: number;         // 0/1 จาก DB
+  product_best?: number;        // 0/1 จาก DB
+  users_action?: number | null; // จำนวนคลิก
+  clearanceSales?: boolean;     // boolean จาก DB
+  clearanceQuantity?: number;   // จำนวนคงเหลือ
+
   /** NEW: รูปทั้งหมดของสินค้า (เรียงตาม display_order) */
   images?: Array<{ url: string; order: number; isPrimary?: boolean }>;
 

@@ -14,8 +14,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
+
 
 // Mock data for checkout items (in real app, this would come from state/props)
 const initialCheckoutItems = [
@@ -252,7 +251,6 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
       
       <div className="container mx-auto px-4 py-6 max-w-6xl">
         <div className="flex items-center gap-4 mb-6">
@@ -446,7 +444,6 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }

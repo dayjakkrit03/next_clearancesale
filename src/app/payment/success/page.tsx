@@ -3,8 +3,6 @@
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Mail, Package } from "lucide-react";
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
 
 // Mock data for demonstration purposes, making the page standalone.
 const mockPaymentData = {
@@ -51,7 +49,6 @@ export default function PaymentSuccessPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
       <div className="py-8">
         <div className="max-w-2xl mx-auto px-4">
           {/* Success Header */}
@@ -174,7 +171,6 @@ export default function PaymentSuccessPage() {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }

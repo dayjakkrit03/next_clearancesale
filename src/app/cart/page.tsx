@@ -7,8 +7,7 @@ import { ArrowLeft, Plus, Minus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
+
 
 // Mock cart data
 const cartItems = [
@@ -81,7 +80,6 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
       
       <div className="container mx-auto px-4 py-6 max-w-6xl">
         {/* Header */}
@@ -233,7 +231,6 @@ export default function CartPage() {
         </div>
       </div>
       
-      <Footer />
     </div>
   );
 }
