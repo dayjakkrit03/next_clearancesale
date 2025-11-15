@@ -84,6 +84,7 @@ model product {
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   clearanceSales      Boolean? @default(false)
   clearanceQuantity   Int?     @default(0)
   clearancePrice      Decimal? @db.Decimal(10, 2)
@@ -231,6 +232,7 @@ model product_clearance {
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   clearanceSales      Boolean? @default(false)
   clearanceQuantity   Int?     @default(0)
   clearancePrice      Decimal? @db.Decimal(10, 2)
@@ -266,6 +268,7 @@ model product_test_upload {
   product_uom         String?  @db.VarChar(10)
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 09 Boolean @default(true) @map("09")
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
@@ -358,27 +361,27 @@ model featured_lists {
 }
 
 model products_clearance {
-  product_id          Int                   @id @default(autoincrement()) @db.UnsignedInt
-  category_id         Int?                  @default(0) @db.UnsignedInt
-  sub_id              Int?                  @default(0) @db.UnsignedInt
-  part_id             Int?                  @default(0) @db.UnsignedInt
-  product_name        String?               @db.VarChar(255)
-  product_brand       String?               @db.VarChar(255)
-  product_description String?               @db.Text
-  product_picture     String?               @db.Text
-  product_sku         String?               @db.VarChar(255)
-  product_file        String?               @db.Text
-  product_filename    String?               @db.VarChar(255)
-  product_price       Decimal?              @db.Decimal(10, 2)
-  product_new         Int                   @default(0)
-  product_best        Int                   @default(0)
-  product_status      Int                   @default(1)
-  users_action        Int?
-  created_at          DateTime              @default(now()) @db.Timestamp(0)
-  updated_at          DateTime?             @default(now()) @db.Timestamp(0)
-  product_uom         String?               @db.VarChar(10)
-  visible             Boolean               @default(true)
-  display_order       Int                   @default(0)
+  product_id             Int                   @id @default(autoincrement()) @db.UnsignedInt
+  category_id            Int?                  @default(0) @db.UnsignedInt
+  sub_id                 Int?                  @default(0) @db.UnsignedInt
+  part_id                Int?                  @default(0) @db.UnsignedInt
+  product_name           String?               @db.VarChar(255)
+  product_brand          String?               @db.VarChar(255)
+  product_description    String?               @db.Text
+  product_picture        String?               @db.Text
+  product_sku            String?               @db.VarChar(255)
+  product_file           String?               @db.Text
+  product_filename       String?               @db.VarChar(255)
+  product_price          Decimal?              @db.Decimal(10, 2)
+  product_new            Int                   @default(0)
+  product_best           Int                   @default(0)
+  product_status         Int                   @default(1)
+  users_action           Int?
+  created_at             DateTime              @default(now()) @db.Timestamp(0)
+  updated_at             DateTime?             @default(now()) @db.Timestamp(0)
+  product_uom            String?               @db.VarChar(10)
+  visible                Boolean               @default(true)
+  display_order          Int                   @default(0)
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 09 Boolean @default(true) @map("09")
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
@@ -401,19 +404,25 @@ model products_clearance {
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
-  clearanceSales      Boolean               @default(false)
-  clearanceQuantity   Int                   @default(0)
-  clearancePrice      Decimal?              @db.Decimal(10, 2)
-  expo_status         Int                   @default(0) @db.TinyInt
-  expo_price          Decimal               @default(0.00) @db.Decimal(10, 2)
-  cat5e               Int                   @default(0) @db.TinyInt
-  cat6                Int                   @default(0) @db.TinyInt
-  tool_tester         Int                   @default(0) @db.TinyInt
-  image_url           String?               @db.VarChar(255)
-  discount_label      String?               @db.VarChar(16)
-  rating_score        Decimal?              @db.Decimal(3, 2)
-  rating_count        Int?                  @default(0) @db.UnsignedInt
-  featured_list_items featured_list_items[]
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  clearanceSales         Boolean               @default(false)
+  clearanceQuantity      Int                   @default(0)
+  clearancePrice         Decimal?              @db.Decimal(10, 2)
+  expo_status            Int                   @default(0) @db.TinyInt
+  expo_price             Decimal               @default(0.00) @db.Decimal(10, 2)
+  cat5e                  Int                   @default(0) @db.TinyInt
+  cat6                   Int                   @default(0) @db.TinyInt
+  tool_tester            Int                   @default(0) @db.TinyInt
+  image_url              String?               @db.VarChar(255)
+  discount_label         String?               @db.VarChar(16)
+  rating_score           Decimal?              @db.Decimal(3, 2)
+  rating_count           Int?                  @default(0) @db.UnsignedInt
+  free_shipping_eligible Boolean               @default(true)
+  free_ship_minimum      Decimal?              @default(5000.00) @db.Decimal(10, 2)
+  warranty_months        Int?                  @default(36)
+  return_days            Int?                  @default(7)
+  featured_list_items    featured_list_items[]
 
   @@index([product_brand], map: "idx_products_clearance_brand")
   @@index([category_id], map: "idx_products_clearance_category")

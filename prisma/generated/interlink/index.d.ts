@@ -6954,6 +6954,7 @@ export namespace Prisma {
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        */
       clearanceSales: boolean | null
       clearanceQuantity: number | null
@@ -16834,6 +16835,7 @@ export namespace Prisma {
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        */
       clearanceSales: boolean | null
       clearanceQuantity: number | null
@@ -18054,6 +18056,7 @@ export namespace Prisma {
       updated_at: Date
       product_uom: string | null
       /**
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
@@ -23777,6 +23780,9 @@ export namespace Prisma {
     tool_tester: number | null
     rating_score: Decimal | null
     rating_count: number | null
+    free_ship_minimum: Decimal | null
+    warranty_months: number | null
+    return_days: number | null
   }
 
   export type Products_clearanceSumAggregateOutputType = {
@@ -23799,6 +23805,9 @@ export namespace Prisma {
     tool_tester: number | null
     rating_score: Decimal | null
     rating_count: number | null
+    free_ship_minimum: Decimal | null
+    warranty_months: number | null
+    return_days: number | null
   }
 
   export type Products_clearanceMinAggregateOutputType = {
@@ -23835,6 +23844,10 @@ export namespace Prisma {
     discount_label: string | null
     rating_score: Decimal | null
     rating_count: number | null
+    free_shipping_eligible: boolean | null
+    free_ship_minimum: Decimal | null
+    warranty_months: number | null
+    return_days: number | null
   }
 
   export type Products_clearanceMaxAggregateOutputType = {
@@ -23871,6 +23884,10 @@ export namespace Prisma {
     discount_label: string | null
     rating_score: Decimal | null
     rating_count: number | null
+    free_shipping_eligible: boolean | null
+    free_ship_minimum: Decimal | null
+    warranty_months: number | null
+    return_days: number | null
   }
 
   export type Products_clearanceCountAggregateOutputType = {
@@ -23907,6 +23924,10 @@ export namespace Prisma {
     discount_label: number
     rating_score: number
     rating_count: number
+    free_shipping_eligible: number
+    free_ship_minimum: number
+    warranty_months: number
+    return_days: number
     _all: number
   }
 
@@ -23931,6 +23952,9 @@ export namespace Prisma {
     tool_tester?: true
     rating_score?: true
     rating_count?: true
+    free_ship_minimum?: true
+    warranty_months?: true
+    return_days?: true
   }
 
   export type Products_clearanceSumAggregateInputType = {
@@ -23953,6 +23977,9 @@ export namespace Prisma {
     tool_tester?: true
     rating_score?: true
     rating_count?: true
+    free_ship_minimum?: true
+    warranty_months?: true
+    return_days?: true
   }
 
   export type Products_clearanceMinAggregateInputType = {
@@ -23989,6 +24016,10 @@ export namespace Prisma {
     discount_label?: true
     rating_score?: true
     rating_count?: true
+    free_shipping_eligible?: true
+    free_ship_minimum?: true
+    warranty_months?: true
+    return_days?: true
   }
 
   export type Products_clearanceMaxAggregateInputType = {
@@ -24025,6 +24056,10 @@ export namespace Prisma {
     discount_label?: true
     rating_score?: true
     rating_count?: true
+    free_shipping_eligible?: true
+    free_ship_minimum?: true
+    warranty_months?: true
+    return_days?: true
   }
 
   export type Products_clearanceCountAggregateInputType = {
@@ -24061,6 +24096,10 @@ export namespace Prisma {
     discount_label?: true
     rating_score?: true
     rating_count?: true
+    free_shipping_eligible?: true
+    free_ship_minimum?: true
+    warranty_months?: true
+    return_days?: true
     _all?: true
   }
 
@@ -24184,6 +24223,10 @@ export namespace Prisma {
     discount_label: string | null
     rating_score: Decimal | null
     rating_count: number | null
+    free_shipping_eligible: boolean
+    free_ship_minimum: Decimal | null
+    warranty_months: number | null
+    return_days: number | null
     _count: Products_clearanceCountAggregateOutputType | null
     _avg: Products_clearanceAvgAggregateOutputType | null
     _sum: Products_clearanceSumAggregateOutputType | null
@@ -24239,6 +24282,10 @@ export namespace Prisma {
     discount_label?: boolean
     rating_score?: boolean
     rating_count?: boolean
+    free_shipping_eligible?: boolean
+    free_ship_minimum?: boolean
+    warranty_months?: boolean
+    return_days?: boolean
     featured_list_items?: boolean | products_clearance$featured_list_itemsArgs<ExtArgs>
     _count?: boolean | Products_clearanceCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["products_clearance"]>
@@ -24279,9 +24326,13 @@ export namespace Prisma {
     discount_label?: boolean
     rating_score?: boolean
     rating_count?: boolean
+    free_shipping_eligible?: boolean
+    free_ship_minimum?: boolean
+    warranty_months?: boolean
+    return_days?: boolean
   }
 
-  export type products_clearanceOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"product_id" | "category_id" | "sub_id" | "part_id" | "product_name" | "product_brand" | "product_description" | "product_picture" | "product_sku" | "product_file" | "product_filename" | "product_price" | "product_new" | "product_best" | "product_status" | "users_action" | "created_at" | "updated_at" | "product_uom" | "visible" | "display_order" | "clearanceSales" | "clearanceQuantity" | "clearancePrice" | "expo_status" | "expo_price" | "cat5e" | "cat6" | "tool_tester" | "image_url" | "discount_label" | "rating_score" | "rating_count", ExtArgs["result"]["products_clearance"]>
+  export type products_clearanceOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"product_id" | "category_id" | "sub_id" | "part_id" | "product_name" | "product_brand" | "product_description" | "product_picture" | "product_sku" | "product_file" | "product_filename" | "product_price" | "product_new" | "product_best" | "product_status" | "users_action" | "created_at" | "updated_at" | "product_uom" | "visible" | "display_order" | "clearanceSales" | "clearanceQuantity" | "clearancePrice" | "expo_status" | "expo_price" | "cat5e" | "cat6" | "tool_tester" | "image_url" | "discount_label" | "rating_score" | "rating_count" | "free_shipping_eligible" | "free_ship_minimum" | "warranty_months" | "return_days", ExtArgs["result"]["products_clearance"]>
   export type products_clearanceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     featured_list_items?: boolean | products_clearance$featured_list_itemsArgs<ExtArgs>
     _count?: boolean | Products_clearanceCountOutputTypeDefaultArgs<ExtArgs>
@@ -24335,6 +24386,8 @@ export namespace Prisma {
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        */
       clearanceSales: boolean
       clearanceQuantity: number
@@ -24348,6 +24401,10 @@ export namespace Prisma {
       discount_label: string | null
       rating_score: Prisma.Decimal | null
       rating_count: number | null
+      free_shipping_eligible: boolean
+      free_ship_minimum: Prisma.Decimal | null
+      warranty_months: number | null
+      return_days: number | null
     }, ExtArgs["result"]["products_clearance"]>
     composites: {}
   }
@@ -24751,6 +24808,10 @@ export namespace Prisma {
     readonly discount_label: FieldRef<"products_clearance", 'String'>
     readonly rating_score: FieldRef<"products_clearance", 'Decimal'>
     readonly rating_count: FieldRef<"products_clearance", 'Int'>
+    readonly free_shipping_eligible: FieldRef<"products_clearance", 'Boolean'>
+    readonly free_ship_minimum: FieldRef<"products_clearance", 'Decimal'>
+    readonly warranty_months: FieldRef<"products_clearance", 'Int'>
+    readonly return_days: FieldRef<"products_clearance", 'Int'>
   }
     
 
@@ -35056,7 +35117,11 @@ export namespace Prisma {
     image_url: 'image_url',
     discount_label: 'discount_label',
     rating_score: 'rating_score',
-    rating_count: 'rating_count'
+    rating_count: 'rating_count',
+    free_shipping_eligible: 'free_shipping_eligible',
+    free_ship_minimum: 'free_ship_minimum',
+    warranty_months: 'warranty_months',
+    return_days: 'return_days'
   };
 
   export type Products_clearanceScalarFieldEnum = (typeof Products_clearanceScalarFieldEnum)[keyof typeof Products_clearanceScalarFieldEnum]
@@ -37443,6 +37508,10 @@ export namespace Prisma {
     discount_label?: StringNullableFilter<"products_clearance"> | string | null
     rating_score?: DecimalNullableFilter<"products_clearance"> | Decimal | DecimalJsLike | number | string | null
     rating_count?: IntNullableFilter<"products_clearance"> | number | null
+    free_shipping_eligible?: BoolFilter<"products_clearance"> | boolean
+    free_ship_minimum?: DecimalNullableFilter<"products_clearance"> | Decimal | DecimalJsLike | number | string | null
+    warranty_months?: IntNullableFilter<"products_clearance"> | number | null
+    return_days?: IntNullableFilter<"products_clearance"> | number | null
     featured_list_items?: Featured_list_itemsListRelationFilter
   }
 
@@ -37480,6 +37549,10 @@ export namespace Prisma {
     discount_label?: SortOrderInput | SortOrder
     rating_score?: SortOrderInput | SortOrder
     rating_count?: SortOrderInput | SortOrder
+    free_shipping_eligible?: SortOrder
+    free_ship_minimum?: SortOrderInput | SortOrder
+    warranty_months?: SortOrderInput | SortOrder
+    return_days?: SortOrderInput | SortOrder
     featured_list_items?: featured_list_itemsOrderByRelationAggregateInput
     _relevance?: products_clearanceOrderByRelevanceInput
   }
@@ -37521,6 +37594,10 @@ export namespace Prisma {
     discount_label?: StringNullableFilter<"products_clearance"> | string | null
     rating_score?: DecimalNullableFilter<"products_clearance"> | Decimal | DecimalJsLike | number | string | null
     rating_count?: IntNullableFilter<"products_clearance"> | number | null
+    free_shipping_eligible?: BoolFilter<"products_clearance"> | boolean
+    free_ship_minimum?: DecimalNullableFilter<"products_clearance"> | Decimal | DecimalJsLike | number | string | null
+    warranty_months?: IntNullableFilter<"products_clearance"> | number | null
+    return_days?: IntNullableFilter<"products_clearance"> | number | null
     featured_list_items?: Featured_list_itemsListRelationFilter
   }, "product_id">
 
@@ -37558,6 +37635,10 @@ export namespace Prisma {
     discount_label?: SortOrderInput | SortOrder
     rating_score?: SortOrderInput | SortOrder
     rating_count?: SortOrderInput | SortOrder
+    free_shipping_eligible?: SortOrder
+    free_ship_minimum?: SortOrderInput | SortOrder
+    warranty_months?: SortOrderInput | SortOrder
+    return_days?: SortOrderInput | SortOrder
     _count?: products_clearanceCountOrderByAggregateInput
     _avg?: products_clearanceAvgOrderByAggregateInput
     _max?: products_clearanceMaxOrderByAggregateInput
@@ -37602,6 +37683,10 @@ export namespace Prisma {
     discount_label?: StringNullableWithAggregatesFilter<"products_clearance"> | string | null
     rating_score?: DecimalNullableWithAggregatesFilter<"products_clearance"> | Decimal | DecimalJsLike | number | string | null
     rating_count?: IntNullableWithAggregatesFilter<"products_clearance"> | number | null
+    free_shipping_eligible?: BoolWithAggregatesFilter<"products_clearance"> | boolean
+    free_ship_minimum?: DecimalNullableWithAggregatesFilter<"products_clearance"> | Decimal | DecimalJsLike | number | string | null
+    warranty_months?: IntNullableWithAggregatesFilter<"products_clearance"> | number | null
+    return_days?: IntNullableWithAggregatesFilter<"products_clearance"> | number | null
   }
 
   export type products_metaWhereInput = {
@@ -40282,6 +40367,10 @@ export namespace Prisma {
     discount_label?: string | null
     rating_score?: Decimal | DecimalJsLike | number | string | null
     rating_count?: number | null
+    free_shipping_eligible?: boolean
+    free_ship_minimum?: Decimal | DecimalJsLike | number | string | null
+    warranty_months?: number | null
+    return_days?: number | null
     featured_list_items?: featured_list_itemsCreateNestedManyWithoutProducts_clearanceInput
   }
 
@@ -40319,6 +40408,10 @@ export namespace Prisma {
     discount_label?: string | null
     rating_score?: Decimal | DecimalJsLike | number | string | null
     rating_count?: number | null
+    free_shipping_eligible?: boolean
+    free_ship_minimum?: Decimal | DecimalJsLike | number | string | null
+    warranty_months?: number | null
+    return_days?: number | null
     featured_list_items?: featured_list_itemsUncheckedCreateNestedManyWithoutProducts_clearanceInput
   }
 
@@ -40355,6 +40448,10 @@ export namespace Prisma {
     discount_label?: NullableStringFieldUpdateOperationsInput | string | null
     rating_score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rating_count?: NullableIntFieldUpdateOperationsInput | number | null
+    free_shipping_eligible?: BoolFieldUpdateOperationsInput | boolean
+    free_ship_minimum?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    warranty_months?: NullableIntFieldUpdateOperationsInput | number | null
+    return_days?: NullableIntFieldUpdateOperationsInput | number | null
     featured_list_items?: featured_list_itemsUpdateManyWithoutProducts_clearanceNestedInput
   }
 
@@ -40392,6 +40489,10 @@ export namespace Prisma {
     discount_label?: NullableStringFieldUpdateOperationsInput | string | null
     rating_score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rating_count?: NullableIntFieldUpdateOperationsInput | number | null
+    free_shipping_eligible?: BoolFieldUpdateOperationsInput | boolean
+    free_ship_minimum?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    warranty_months?: NullableIntFieldUpdateOperationsInput | number | null
+    return_days?: NullableIntFieldUpdateOperationsInput | number | null
     featured_list_items?: featured_list_itemsUncheckedUpdateManyWithoutProducts_clearanceNestedInput
   }
 
@@ -40429,6 +40530,10 @@ export namespace Prisma {
     discount_label?: string | null
     rating_score?: Decimal | DecimalJsLike | number | string | null
     rating_count?: number | null
+    free_shipping_eligible?: boolean
+    free_ship_minimum?: Decimal | DecimalJsLike | number | string | null
+    warranty_months?: number | null
+    return_days?: number | null
   }
 
   export type products_clearanceUpdateManyMutationInput = {
@@ -40464,6 +40569,10 @@ export namespace Prisma {
     discount_label?: NullableStringFieldUpdateOperationsInput | string | null
     rating_score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rating_count?: NullableIntFieldUpdateOperationsInput | number | null
+    free_shipping_eligible?: BoolFieldUpdateOperationsInput | boolean
+    free_ship_minimum?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    warranty_months?: NullableIntFieldUpdateOperationsInput | number | null
+    return_days?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type products_clearanceUncheckedUpdateManyInput = {
@@ -40500,6 +40609,10 @@ export namespace Prisma {
     discount_label?: NullableStringFieldUpdateOperationsInput | string | null
     rating_score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rating_count?: NullableIntFieldUpdateOperationsInput | number | null
+    free_shipping_eligible?: BoolFieldUpdateOperationsInput | boolean
+    free_ship_minimum?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    warranty_months?: NullableIntFieldUpdateOperationsInput | number | null
+    return_days?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type products_metaCreateInput = {
@@ -42881,6 +42994,10 @@ export namespace Prisma {
     discount_label?: SortOrder
     rating_score?: SortOrder
     rating_count?: SortOrder
+    free_shipping_eligible?: SortOrder
+    free_ship_minimum?: SortOrder
+    warranty_months?: SortOrder
+    return_days?: SortOrder
   }
 
   export type products_clearanceAvgOrderByAggregateInput = {
@@ -42903,6 +43020,9 @@ export namespace Prisma {
     tool_tester?: SortOrder
     rating_score?: SortOrder
     rating_count?: SortOrder
+    free_ship_minimum?: SortOrder
+    warranty_months?: SortOrder
+    return_days?: SortOrder
   }
 
   export type products_clearanceMaxOrderByAggregateInput = {
@@ -42939,6 +43059,10 @@ export namespace Prisma {
     discount_label?: SortOrder
     rating_score?: SortOrder
     rating_count?: SortOrder
+    free_shipping_eligible?: SortOrder
+    free_ship_minimum?: SortOrder
+    warranty_months?: SortOrder
+    return_days?: SortOrder
   }
 
   export type products_clearanceMinOrderByAggregateInput = {
@@ -42975,6 +43099,10 @@ export namespace Prisma {
     discount_label?: SortOrder
     rating_score?: SortOrder
     rating_count?: SortOrder
+    free_shipping_eligible?: SortOrder
+    free_ship_minimum?: SortOrder
+    warranty_months?: SortOrder
+    return_days?: SortOrder
   }
 
   export type products_clearanceSumOrderByAggregateInput = {
@@ -42997,6 +43125,9 @@ export namespace Prisma {
     tool_tester?: SortOrder
     rating_score?: SortOrder
     rating_count?: SortOrder
+    free_ship_minimum?: SortOrder
+    warranty_months?: SortOrder
+    return_days?: SortOrder
   }
   export type JsonNullableFilter<$PrismaModel = never> =
     | PatchUndefined<
@@ -44354,6 +44485,10 @@ export namespace Prisma {
     discount_label?: string | null
     rating_score?: Decimal | DecimalJsLike | number | string | null
     rating_count?: number | null
+    free_shipping_eligible?: boolean
+    free_ship_minimum?: Decimal | DecimalJsLike | number | string | null
+    warranty_months?: number | null
+    return_days?: number | null
   }
 
   export type products_clearanceUncheckedCreateWithoutFeatured_list_itemsInput = {
@@ -44390,6 +44525,10 @@ export namespace Prisma {
     discount_label?: string | null
     rating_score?: Decimal | DecimalJsLike | number | string | null
     rating_count?: number | null
+    free_shipping_eligible?: boolean
+    free_ship_minimum?: Decimal | DecimalJsLike | number | string | null
+    warranty_months?: number | null
+    return_days?: number | null
   }
 
   export type products_clearanceCreateOrConnectWithoutFeatured_list_itemsInput = {
@@ -44471,6 +44610,10 @@ export namespace Prisma {
     discount_label?: NullableStringFieldUpdateOperationsInput | string | null
     rating_score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rating_count?: NullableIntFieldUpdateOperationsInput | number | null
+    free_shipping_eligible?: BoolFieldUpdateOperationsInput | boolean
+    free_ship_minimum?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    warranty_months?: NullableIntFieldUpdateOperationsInput | number | null
+    return_days?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type products_clearanceUncheckedUpdateWithoutFeatured_list_itemsInput = {
@@ -44507,6 +44650,10 @@ export namespace Prisma {
     discount_label?: NullableStringFieldUpdateOperationsInput | string | null
     rating_score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rating_count?: NullableIntFieldUpdateOperationsInput | number | null
+    free_shipping_eligible?: BoolFieldUpdateOperationsInput | boolean
+    free_ship_minimum?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    warranty_months?: NullableIntFieldUpdateOperationsInput | number | null
+    return_days?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type featured_list_itemsCreateWithoutFeatured_listsInput = {

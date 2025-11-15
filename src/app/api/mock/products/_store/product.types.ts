@@ -27,6 +27,12 @@ export type UIProduct = {
   clearanceSales?: boolean;     // boolean จาก DB
   clearanceQuantity?: number;   // จำนวนคงเหลือ
 
+  // 💙 NEW: Service Features fields  
+  freeShippingEligible?: boolean;  // -> free_shipping_eligible
+  freeShipMinimum?: number;        // -> free_ship_minimum
+  warrantyMonths?: number;         // -> warranty_months
+  returnDays?: number;             // -> return_days
+
   /** NEW: รูปทั้งหมดของสินค้า (เรียงตาม display_order) */
   images?: Array<{ url: string; order: number; isPrimary?: boolean }>;
 

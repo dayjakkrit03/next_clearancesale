@@ -144,6 +144,17 @@ export async function upsert(p: Partial<UIProduct>): Promise<UIProduct> {
     if (typeof p.category_id !== "undefined") push("category_id", p.category_id == null ? null : coerceId(p.category_id));
     if (typeof p.uom !== "undefined")         push("product_uom", p.uom ?? null);
 
+    // ✅ ฟิลด์ใหม่จาก products_clearance
+    if (typeof p.product_new !== "undefined") push("product_new", Number(p.product_new) || 0);
+    if (typeof p.product_best !== "undefined") push("product_best", Number(p.product_best) || 0);
+    if (typeof p.users_action !== "undefined") push("users_action", p.users_action == null ? null : Number(p.users_action));
+    if (typeof p.clearanceQuantity !== "undefined") push("clearanceQuantity", Number(p.clearanceQuantity) || 0);
+
+    if (typeof p.freeShippingEligible !== "undefined") push("free_shipping_eligible", p.freeShippingEligible ? 1 : 0);
+    if (typeof p.freeShipMinimum !== "undefined") push("free_ship_minimum", p.freeShipMinimum == null ? null : Number(p.freeShipMinimum));
+    if (typeof p.warrantyMonths !== "undefined") push("warranty_months", p.warrantyMonths == null ? null : Number(p.warrantyMonths));
+    if (typeof p.returnDays !== "undefined") push("return_days", p.returnDays == null ? null : Number(p.returnDays));
+
     if (fields.length) {
       const sql = `UPDATE ${TABLE} SET ${fields.join(", ")}, updated_at = NOW() WHERE product_id = ?`;
       values.push(coerceId(p.id));

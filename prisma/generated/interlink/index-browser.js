@@ -442,7 +442,11 @@ exports.Prisma.Products_clearanceScalarFieldEnum = {
   image_url: 'image_url',
   discount_label: 'discount_label',
   rating_score: 'rating_score',
-  rating_count: 'rating_count'
+  rating_count: 'rating_count',
+  free_shipping_eligible: 'free_shipping_eligible',
+  free_ship_minimum: 'free_ship_minimum',
+  warranty_months: 'warranty_months',
+  return_days: 'return_days'
 };
 
 exports.Prisma.Products_metaScalarFieldEnum = {
