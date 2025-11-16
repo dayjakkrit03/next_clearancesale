@@ -743,6 +743,14 @@ exports.Prisma.Sub_districtsScalarFieldEnum = {
   updated_at: 'updated_at'
 };
 
+exports.Prisma.Password_reset_tokensScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  token: 'token',
+  expires_at: 'expires_at',
+  created_at: 'created_at'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1178,6 +1186,11 @@ exports.Prisma.sub_districtsOrderByRelevanceFieldEnum = {
   name: 'name'
 };
 
+exports.Prisma.password_reset_tokensOrderByRelevanceFieldEnum = {
+  email: 'email',
+  token: 'token'
+};
+
 
 exports.Prisma.ModelName = {
   backup_customersilink_28012565: 'backup_customersilink_28012565',
@@ -1222,7 +1235,8 @@ exports.Prisma.ModelName = {
   sales_detail_tb: 'sales_detail_tb',
   sales_report_tb: 'sales_report_tb',
   spy: 'spy',
-  sub_districts: 'sub_districts'
+  sub_districts: 'sub_districts',
+  password_reset_tokens: 'password_reset_tokens'
 };
 
 /**
