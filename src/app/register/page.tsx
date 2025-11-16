@@ -1,12 +1,9 @@
-// v.1.1.2 ===================================================================
+// v.1.1.3 ===================================================================
 // src/app/register/page.tsx
 
 import { Metadata } from "next";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import Link from "next/link";
 import AuthSocialButtons from "@/app/(auth)/components/AuthSocialButtons";
+import { RegisterForm } from "./register-form";
 
 export const metadata: Metadata = {
   title: "สมัครสมาชิก | Interlink Shop",
@@ -23,60 +20,119 @@ export default function RegisterPage() {
           สมัครสมาชิก Interlink Shop เพื่อสะสมประวัติการสั่งซื้อและใช้งานฟีเจอร์พิเศษ
         </p>
 
-        <form className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">ชื่อ-นามสกุล</Label>
-            <Input id="name" placeholder="ชื่อ-นามสกุล" />
-          </div>
+        {/* ฟอร์มสมัครสมาชิก + ยืนยันรหัส */}
+        <RegisterForm />
 
-          <div className="space-y-2">
-            <Label htmlFor="email">อีเมล</Label>
-            <Input id="email" type="email" placeholder="you@example.com" />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password">รหัสผ่าน</Label>
-            <Input id="password" type="password" placeholder="อย่างน้อย 8 ตัวอักษร" />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="confirm">ยืนยันรหัสผ่าน</Label>
-            <Input id="confirm" type="password" placeholder="กรอกรหัสผ่านอีกครั้ง" />
-          </div>
-
-          <Button type="submit" className="w-full">
-            สมัครสมาชิก
-          </Button>
-        </form>
-
-        {/* 🔹 ปุ่ม Social Register อยู่ตรงนี้ */}
+        {/* 🔹 ปุ่ม Social Register อยู่ตรงนี้เหมือนเดิม */}
         <div className="mt-6">
           <AuthSocialButtons mode="register" />
         </div>
 
         {/* Terms */}
         <p className="mt-6 text-center text-[10px] sm:text-xs text-muted-foreground leading-relaxed">
-        การสมัครสมาชิกถือว่าคุณยอมรับ{" "}
-        <Link href="/terms" className="text-primary hover:underline">
+          การสมัครสมาชิกถือว่าคุณยอมรับ{" "}
+          <a href="/terms" className="text-primary hover:underline">
             เงื่อนไขการใช้งาน
-        </Link>{" "}
-        และ{" "}
-        <Link href="/privacy" className="text-primary hover:underline">
+          </a>{" "}
+          และ{" "}
+          <a href="/privacy" className="text-primary hover:underline">
             นโยบายความเป็นส่วนตัว
-        </Link>{" "}
-        ของ Interlink Shop
+          </a>{" "}
+          ของ Interlink Shop
         </p>
 
         <p className="mt-6 text-center text-xs sm:text-sm text-muted-foreground">
           มีบัญชีอยู่แล้ว?{" "}
-          <Link href="/login" className="text-primary hover:underline">
+          <a href="/login" className="text-primary hover:underline">
             เข้าสู่ระบบที่นี่
-          </Link>
+          </a>
         </p>
       </div>
     </div>
   );
 }
+
+// v.1.1.3 ===================================================================
+
+// v.1.1.2 ===================================================================
+// // src/app/register/page.tsx
+
+// import { Metadata } from "next";
+// import { Button } from "@/components/ui/button";
+// import { Input } from "@/components/ui/input";
+// import { Label } from "@/components/ui/label";
+// import Link from "next/link";
+// import AuthSocialButtons from "@/app/(auth)/components/AuthSocialButtons";
+
+// export const metadata: Metadata = {
+//   title: "สมัครสมาชิก | Interlink Shop",
+// };
+
+// export default function RegisterPage() {
+//   return (
+//     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-8">
+//       <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-6 sm:p-8">
+//         <h1 className="text-xl sm:text-2xl font-bold text-center mb-2">
+//           สมัครสมาชิกใหม่
+//         </h1>
+//         <p className="text-xs sm:text-sm text-muted-foreground text-center mb-6">
+//           สมัครสมาชิก Interlink Shop เพื่อสะสมประวัติการสั่งซื้อและใช้งานฟีเจอร์พิเศษ
+//         </p>
+
+//         <form className="space-y-4">
+//           <div className="space-y-2">
+//             <Label htmlFor="name">ชื่อ-นามสกุล</Label>
+//             <Input id="name" placeholder="ชื่อ-นามสกุล" />
+//           </div>
+
+//           <div className="space-y-2">
+//             <Label htmlFor="email">อีเมล</Label>
+//             <Input id="email" type="email" placeholder="you@example.com" />
+//           </div>
+
+//           <div className="space-y-2">
+//             <Label htmlFor="password">รหัสผ่าน</Label>
+//             <Input id="password" type="password" placeholder="อย่างน้อย 8 ตัวอักษร" />
+//           </div>
+
+//           <div className="space-y-2">
+//             <Label htmlFor="confirm">ยืนยันรหัสผ่าน</Label>
+//             <Input id="confirm" type="password" placeholder="กรอกรหัสผ่านอีกครั้ง" />
+//           </div>
+
+//           <Button type="submit" className="w-full">
+//             สมัครสมาชิก
+//           </Button>
+//         </form>
+
+//         {/* 🔹 ปุ่ม Social Register อยู่ตรงนี้ */}
+//         <div className="mt-6">
+//           <AuthSocialButtons mode="register" />
+//         </div>
+
+//         {/* Terms */}
+//         <p className="mt-6 text-center text-[10px] sm:text-xs text-muted-foreground leading-relaxed">
+//         การสมัครสมาชิกถือว่าคุณยอมรับ{" "}
+//         <Link href="/terms" className="text-primary hover:underline">
+//             เงื่อนไขการใช้งาน
+//         </Link>{" "}
+//         และ{" "}
+//         <Link href="/privacy" className="text-primary hover:underline">
+//             นโยบายความเป็นส่วนตัว
+//         </Link>{" "}
+//         ของ Interlink Shop
+//         </p>
+
+//         <p className="mt-6 text-center text-xs sm:text-sm text-muted-foreground">
+//           มีบัญชีอยู่แล้ว?{" "}
+//           <Link href="/login" className="text-primary hover:underline">
+//             เข้าสู่ระบบที่นี่
+//           </Link>
+//         </p>
+//       </div>
+//     </div>
+//   );
+// }
 
 // v.1.1.2 ===================================================================
 

@@ -751,6 +751,15 @@ exports.Prisma.Password_reset_tokensScalarFieldEnum = {
   created_at: 'created_at'
 };
 
+exports.Prisma.Registration_verification_codesScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  code: 'code',
+  expires_at: 'expires_at',
+  used: 'used',
+  created_at: 'created_at'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1191,6 +1200,11 @@ exports.Prisma.password_reset_tokensOrderByRelevanceFieldEnum = {
   token: 'token'
 };
 
+exports.Prisma.registration_verification_codesOrderByRelevanceFieldEnum = {
+  email: 'email',
+  code: 'code'
+};
+
 
 exports.Prisma.ModelName = {
   backup_customersilink_28012565: 'backup_customersilink_28012565',
@@ -1236,7 +1250,8 @@ exports.Prisma.ModelName = {
   sales_report_tb: 'sales_report_tb',
   spy: 'spy',
   sub_districts: 'sub_districts',
-  password_reset_tokens: 'password_reset_tokens'
+  password_reset_tokens: 'password_reset_tokens',
+  registration_verification_codes: 'registration_verification_codes'
 };
 
 /**

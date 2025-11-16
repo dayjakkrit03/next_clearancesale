@@ -233,6 +233,11 @@ export type sub_districts = $Result.DefaultSelection<Prisma.$sub_districtsPayloa
  * 
  */
 export type password_reset_tokens = $Result.DefaultSelection<Prisma.$password_reset_tokensPayload>
+/**
+ * Model registration_verification_codes
+ * 
+ */
+export type registration_verification_codes = $Result.DefaultSelection<Prisma.$registration_verification_codesPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -791,6 +796,16 @@ export class PrismaClient<
     * ```
     */
   get password_reset_tokens(): Prisma.password_reset_tokensDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.registration_verification_codes`: Exposes CRUD operations for the **registration_verification_codes** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Registration_verification_codes
+    * const registration_verification_codes = await prisma.registration_verification_codes.findMany()
+    * ```
+    */
+  get registration_verification_codes(): Prisma.registration_verification_codesDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1274,7 +1289,8 @@ export namespace Prisma {
     sales_report_tb: 'sales_report_tb',
     spy: 'spy',
     sub_districts: 'sub_districts',
-    password_reset_tokens: 'password_reset_tokens'
+    password_reset_tokens: 'password_reset_tokens',
+    registration_verification_codes: 'registration_verification_codes'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1293,7 +1309,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "backup_customersilink_28012565" | "backup_interlinkid_invalid_customer_id_form_clearance_" | "carts" | "carts_expo" | "clearance_customer_profile_entities" | "clearance_customer_profile_people" | "clearance_customers" | "clearance_customers_old" | "clearancecarts" | "counts" | "customer_profile_entities" | "customer_profile_people" | "customer_shipment_addresses_old" | "customers" | "customersilink" | "customersilink_old02022565" | "districts" | "event_sales_old" | "identity_verifications" | "interlinkid" | "inv" | "lead_times" | "lock_orders" | "migrations" | "navisions" | "new2_customersilink" | "notify_kbanks" | "payment_redirects" | "postal_codes" | "product_conditions" | "provinces" | "public_holidays" | "ref_to_invs" | "regis" | "regis_event" | "remember_card_kbanks" | "report_soldouts" | "reserves" | "reservitemsteppay" | "sales_detail_tb" | "sales_report_tb" | "spy" | "sub_districts" | "password_reset_tokens"
+      modelProps: "backup_customersilink_28012565" | "backup_interlinkid_invalid_customer_id_form_clearance_" | "carts" | "carts_expo" | "clearance_customer_profile_entities" | "clearance_customer_profile_people" | "clearance_customers" | "clearance_customers_old" | "clearancecarts" | "counts" | "customer_profile_entities" | "customer_profile_people" | "customer_shipment_addresses_old" | "customers" | "customersilink" | "customersilink_old02022565" | "districts" | "event_sales_old" | "identity_verifications" | "interlinkid" | "inv" | "lead_times" | "lock_orders" | "migrations" | "navisions" | "new2_customersilink" | "notify_kbanks" | "payment_redirects" | "postal_codes" | "product_conditions" | "provinces" | "public_holidays" | "ref_to_invs" | "regis" | "regis_event" | "remember_card_kbanks" | "report_soldouts" | "reserves" | "reservitemsteppay" | "sales_detail_tb" | "sales_report_tb" | "spy" | "sub_districts" | "password_reset_tokens" | "registration_verification_codes"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -4201,6 +4217,72 @@ export namespace Prisma {
           }
         }
       }
+      registration_verification_codes: {
+        payload: Prisma.$registration_verification_codesPayload<ExtArgs>
+        fields: Prisma.registration_verification_codesFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.registration_verification_codesFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$registration_verification_codesPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.registration_verification_codesFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$registration_verification_codesPayload>
+          }
+          findFirst: {
+            args: Prisma.registration_verification_codesFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$registration_verification_codesPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.registration_verification_codesFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$registration_verification_codesPayload>
+          }
+          findMany: {
+            args: Prisma.registration_verification_codesFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$registration_verification_codesPayload>[]
+          }
+          create: {
+            args: Prisma.registration_verification_codesCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$registration_verification_codesPayload>
+          }
+          createMany: {
+            args: Prisma.registration_verification_codesCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.registration_verification_codesDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$registration_verification_codesPayload>
+          }
+          update: {
+            args: Prisma.registration_verification_codesUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$registration_verification_codesPayload>
+          }
+          deleteMany: {
+            args: Prisma.registration_verification_codesDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.registration_verification_codesUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.registration_verification_codesUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$registration_verification_codesPayload>
+          }
+          aggregate: {
+            args: Prisma.Registration_verification_codesAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateRegistration_verification_codes>
+          }
+          groupBy: {
+            args: Prisma.registration_verification_codesGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Registration_verification_codesGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.registration_verification_codesCountArgs<ExtArgs>
+            result: $Utils.Optional<Registration_verification_codesCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -4341,6 +4423,7 @@ export namespace Prisma {
     spy?: spyOmit
     sub_districts?: sub_districtsOmit
     password_reset_tokens?: password_reset_tokensOmit
+    registration_verification_codes?: registration_verification_codesOmit
   }
 
   /* Types for Logging */
@@ -48782,6 +48865,933 @@ export namespace Prisma {
 
 
   /**
+   * Model registration_verification_codes
+   */
+
+  export type AggregateRegistration_verification_codes = {
+    _count: Registration_verification_codesCountAggregateOutputType | null
+    _avg: Registration_verification_codesAvgAggregateOutputType | null
+    _sum: Registration_verification_codesSumAggregateOutputType | null
+    _min: Registration_verification_codesMinAggregateOutputType | null
+    _max: Registration_verification_codesMaxAggregateOutputType | null
+  }
+
+  export type Registration_verification_codesAvgAggregateOutputType = {
+    id: number | null
+  }
+
+  export type Registration_verification_codesSumAggregateOutputType = {
+    id: bigint | null
+  }
+
+  export type Registration_verification_codesMinAggregateOutputType = {
+    id: bigint | null
+    email: string | null
+    code: string | null
+    expires_at: Date | null
+    used: boolean | null
+    created_at: Date | null
+  }
+
+  export type Registration_verification_codesMaxAggregateOutputType = {
+    id: bigint | null
+    email: string | null
+    code: string | null
+    expires_at: Date | null
+    used: boolean | null
+    created_at: Date | null
+  }
+
+  export type Registration_verification_codesCountAggregateOutputType = {
+    id: number
+    email: number
+    code: number
+    expires_at: number
+    used: number
+    created_at: number
+    _all: number
+  }
+
+
+  export type Registration_verification_codesAvgAggregateInputType = {
+    id?: true
+  }
+
+  export type Registration_verification_codesSumAggregateInputType = {
+    id?: true
+  }
+
+  export type Registration_verification_codesMinAggregateInputType = {
+    id?: true
+    email?: true
+    code?: true
+    expires_at?: true
+    used?: true
+    created_at?: true
+  }
+
+  export type Registration_verification_codesMaxAggregateInputType = {
+    id?: true
+    email?: true
+    code?: true
+    expires_at?: true
+    used?: true
+    created_at?: true
+  }
+
+  export type Registration_verification_codesCountAggregateInputType = {
+    id?: true
+    email?: true
+    code?: true
+    expires_at?: true
+    used?: true
+    created_at?: true
+    _all?: true
+  }
+
+  export type Registration_verification_codesAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which registration_verification_codes to aggregate.
+     */
+    where?: registration_verification_codesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of registration_verification_codes to fetch.
+     */
+    orderBy?: registration_verification_codesOrderByWithRelationInput | registration_verification_codesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: registration_verification_codesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` registration_verification_codes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` registration_verification_codes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned registration_verification_codes
+    **/
+    _count?: true | Registration_verification_codesCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Registration_verification_codesAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Registration_verification_codesSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Registration_verification_codesMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Registration_verification_codesMaxAggregateInputType
+  }
+
+  export type GetRegistration_verification_codesAggregateType<T extends Registration_verification_codesAggregateArgs> = {
+        [P in keyof T & keyof AggregateRegistration_verification_codes]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateRegistration_verification_codes[P]>
+      : GetScalarType<T[P], AggregateRegistration_verification_codes[P]>
+  }
+
+
+
+
+  export type registration_verification_codesGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: registration_verification_codesWhereInput
+    orderBy?: registration_verification_codesOrderByWithAggregationInput | registration_verification_codesOrderByWithAggregationInput[]
+    by: Registration_verification_codesScalarFieldEnum[] | Registration_verification_codesScalarFieldEnum
+    having?: registration_verification_codesScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Registration_verification_codesCountAggregateInputType | true
+    _avg?: Registration_verification_codesAvgAggregateInputType
+    _sum?: Registration_verification_codesSumAggregateInputType
+    _min?: Registration_verification_codesMinAggregateInputType
+    _max?: Registration_verification_codesMaxAggregateInputType
+  }
+
+  export type Registration_verification_codesGroupByOutputType = {
+    id: bigint
+    email: string
+    code: string
+    expires_at: Date
+    used: boolean
+    created_at: Date
+    _count: Registration_verification_codesCountAggregateOutputType | null
+    _avg: Registration_verification_codesAvgAggregateOutputType | null
+    _sum: Registration_verification_codesSumAggregateOutputType | null
+    _min: Registration_verification_codesMinAggregateOutputType | null
+    _max: Registration_verification_codesMaxAggregateOutputType | null
+  }
+
+  type GetRegistration_verification_codesGroupByPayload<T extends registration_verification_codesGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Registration_verification_codesGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Registration_verification_codesGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Registration_verification_codesGroupByOutputType[P]>
+            : GetScalarType<T[P], Registration_verification_codesGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type registration_verification_codesSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    email?: boolean
+    code?: boolean
+    expires_at?: boolean
+    used?: boolean
+    created_at?: boolean
+  }, ExtArgs["result"]["registration_verification_codes"]>
+
+
+
+  export type registration_verification_codesSelectScalar = {
+    id?: boolean
+    email?: boolean
+    code?: boolean
+    expires_at?: boolean
+    used?: boolean
+    created_at?: boolean
+  }
+
+  export type registration_verification_codesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "code" | "expires_at" | "used" | "created_at", ExtArgs["result"]["registration_verification_codes"]>
+
+  export type $registration_verification_codesPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "registration_verification_codes"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: bigint
+      email: string
+      code: string
+      expires_at: Date
+      used: boolean
+      created_at: Date
+    }, ExtArgs["result"]["registration_verification_codes"]>
+    composites: {}
+  }
+
+  type registration_verification_codesGetPayload<S extends boolean | null | undefined | registration_verification_codesDefaultArgs> = $Result.GetResult<Prisma.$registration_verification_codesPayload, S>
+
+  type registration_verification_codesCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<registration_verification_codesFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Registration_verification_codesCountAggregateInputType | true
+    }
+
+  export interface registration_verification_codesDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['registration_verification_codes'], meta: { name: 'registration_verification_codes' } }
+    /**
+     * Find zero or one Registration_verification_codes that matches the filter.
+     * @param {registration_verification_codesFindUniqueArgs} args - Arguments to find a Registration_verification_codes
+     * @example
+     * // Get one Registration_verification_codes
+     * const registration_verification_codes = await prisma.registration_verification_codes.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends registration_verification_codesFindUniqueArgs>(args: SelectSubset<T, registration_verification_codesFindUniqueArgs<ExtArgs>>): Prisma__registration_verification_codesClient<$Result.GetResult<Prisma.$registration_verification_codesPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Registration_verification_codes that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {registration_verification_codesFindUniqueOrThrowArgs} args - Arguments to find a Registration_verification_codes
+     * @example
+     * // Get one Registration_verification_codes
+     * const registration_verification_codes = await prisma.registration_verification_codes.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends registration_verification_codesFindUniqueOrThrowArgs>(args: SelectSubset<T, registration_verification_codesFindUniqueOrThrowArgs<ExtArgs>>): Prisma__registration_verification_codesClient<$Result.GetResult<Prisma.$registration_verification_codesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Registration_verification_codes that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {registration_verification_codesFindFirstArgs} args - Arguments to find a Registration_verification_codes
+     * @example
+     * // Get one Registration_verification_codes
+     * const registration_verification_codes = await prisma.registration_verification_codes.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends registration_verification_codesFindFirstArgs>(args?: SelectSubset<T, registration_verification_codesFindFirstArgs<ExtArgs>>): Prisma__registration_verification_codesClient<$Result.GetResult<Prisma.$registration_verification_codesPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Registration_verification_codes that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {registration_verification_codesFindFirstOrThrowArgs} args - Arguments to find a Registration_verification_codes
+     * @example
+     * // Get one Registration_verification_codes
+     * const registration_verification_codes = await prisma.registration_verification_codes.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends registration_verification_codesFindFirstOrThrowArgs>(args?: SelectSubset<T, registration_verification_codesFindFirstOrThrowArgs<ExtArgs>>): Prisma__registration_verification_codesClient<$Result.GetResult<Prisma.$registration_verification_codesPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Registration_verification_codes that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {registration_verification_codesFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Registration_verification_codes
+     * const registration_verification_codes = await prisma.registration_verification_codes.findMany()
+     * 
+     * // Get first 10 Registration_verification_codes
+     * const registration_verification_codes = await prisma.registration_verification_codes.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const registration_verification_codesWithIdOnly = await prisma.registration_verification_codes.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends registration_verification_codesFindManyArgs>(args?: SelectSubset<T, registration_verification_codesFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$registration_verification_codesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Registration_verification_codes.
+     * @param {registration_verification_codesCreateArgs} args - Arguments to create a Registration_verification_codes.
+     * @example
+     * // Create one Registration_verification_codes
+     * const Registration_verification_codes = await prisma.registration_verification_codes.create({
+     *   data: {
+     *     // ... data to create a Registration_verification_codes
+     *   }
+     * })
+     * 
+     */
+    create<T extends registration_verification_codesCreateArgs>(args: SelectSubset<T, registration_verification_codesCreateArgs<ExtArgs>>): Prisma__registration_verification_codesClient<$Result.GetResult<Prisma.$registration_verification_codesPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Registration_verification_codes.
+     * @param {registration_verification_codesCreateManyArgs} args - Arguments to create many Registration_verification_codes.
+     * @example
+     * // Create many Registration_verification_codes
+     * const registration_verification_codes = await prisma.registration_verification_codes.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends registration_verification_codesCreateManyArgs>(args?: SelectSubset<T, registration_verification_codesCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a Registration_verification_codes.
+     * @param {registration_verification_codesDeleteArgs} args - Arguments to delete one Registration_verification_codes.
+     * @example
+     * // Delete one Registration_verification_codes
+     * const Registration_verification_codes = await prisma.registration_verification_codes.delete({
+     *   where: {
+     *     // ... filter to delete one Registration_verification_codes
+     *   }
+     * })
+     * 
+     */
+    delete<T extends registration_verification_codesDeleteArgs>(args: SelectSubset<T, registration_verification_codesDeleteArgs<ExtArgs>>): Prisma__registration_verification_codesClient<$Result.GetResult<Prisma.$registration_verification_codesPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Registration_verification_codes.
+     * @param {registration_verification_codesUpdateArgs} args - Arguments to update one Registration_verification_codes.
+     * @example
+     * // Update one Registration_verification_codes
+     * const registration_verification_codes = await prisma.registration_verification_codes.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends registration_verification_codesUpdateArgs>(args: SelectSubset<T, registration_verification_codesUpdateArgs<ExtArgs>>): Prisma__registration_verification_codesClient<$Result.GetResult<Prisma.$registration_verification_codesPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Registration_verification_codes.
+     * @param {registration_verification_codesDeleteManyArgs} args - Arguments to filter Registration_verification_codes to delete.
+     * @example
+     * // Delete a few Registration_verification_codes
+     * const { count } = await prisma.registration_verification_codes.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends registration_verification_codesDeleteManyArgs>(args?: SelectSubset<T, registration_verification_codesDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Registration_verification_codes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {registration_verification_codesUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Registration_verification_codes
+     * const registration_verification_codes = await prisma.registration_verification_codes.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends registration_verification_codesUpdateManyArgs>(args: SelectSubset<T, registration_verification_codesUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Registration_verification_codes.
+     * @param {registration_verification_codesUpsertArgs} args - Arguments to update or create a Registration_verification_codes.
+     * @example
+     * // Update or create a Registration_verification_codes
+     * const registration_verification_codes = await prisma.registration_verification_codes.upsert({
+     *   create: {
+     *     // ... data to create a Registration_verification_codes
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Registration_verification_codes we want to update
+     *   }
+     * })
+     */
+    upsert<T extends registration_verification_codesUpsertArgs>(args: SelectSubset<T, registration_verification_codesUpsertArgs<ExtArgs>>): Prisma__registration_verification_codesClient<$Result.GetResult<Prisma.$registration_verification_codesPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Registration_verification_codes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {registration_verification_codesCountArgs} args - Arguments to filter Registration_verification_codes to count.
+     * @example
+     * // Count the number of Registration_verification_codes
+     * const count = await prisma.registration_verification_codes.count({
+     *   where: {
+     *     // ... the filter for the Registration_verification_codes we want to count
+     *   }
+     * })
+    **/
+    count<T extends registration_verification_codesCountArgs>(
+      args?: Subset<T, registration_verification_codesCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Registration_verification_codesCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Registration_verification_codes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Registration_verification_codesAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Registration_verification_codesAggregateArgs>(args: Subset<T, Registration_verification_codesAggregateArgs>): Prisma.PrismaPromise<GetRegistration_verification_codesAggregateType<T>>
+
+    /**
+     * Group by Registration_verification_codes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {registration_verification_codesGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends registration_verification_codesGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: registration_verification_codesGroupByArgs['orderBy'] }
+        : { orderBy?: registration_verification_codesGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, registration_verification_codesGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetRegistration_verification_codesGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the registration_verification_codes model
+   */
+  readonly fields: registration_verification_codesFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for registration_verification_codes.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__registration_verification_codesClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the registration_verification_codes model
+   */
+  interface registration_verification_codesFieldRefs {
+    readonly id: FieldRef<"registration_verification_codes", 'BigInt'>
+    readonly email: FieldRef<"registration_verification_codes", 'String'>
+    readonly code: FieldRef<"registration_verification_codes", 'String'>
+    readonly expires_at: FieldRef<"registration_verification_codes", 'DateTime'>
+    readonly used: FieldRef<"registration_verification_codes", 'Boolean'>
+    readonly created_at: FieldRef<"registration_verification_codes", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * registration_verification_codes findUnique
+   */
+  export type registration_verification_codesFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the registration_verification_codes
+     */
+    select?: registration_verification_codesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the registration_verification_codes
+     */
+    omit?: registration_verification_codesOmit<ExtArgs> | null
+    /**
+     * Filter, which registration_verification_codes to fetch.
+     */
+    where: registration_verification_codesWhereUniqueInput
+  }
+
+  /**
+   * registration_verification_codes findUniqueOrThrow
+   */
+  export type registration_verification_codesFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the registration_verification_codes
+     */
+    select?: registration_verification_codesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the registration_verification_codes
+     */
+    omit?: registration_verification_codesOmit<ExtArgs> | null
+    /**
+     * Filter, which registration_verification_codes to fetch.
+     */
+    where: registration_verification_codesWhereUniqueInput
+  }
+
+  /**
+   * registration_verification_codes findFirst
+   */
+  export type registration_verification_codesFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the registration_verification_codes
+     */
+    select?: registration_verification_codesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the registration_verification_codes
+     */
+    omit?: registration_verification_codesOmit<ExtArgs> | null
+    /**
+     * Filter, which registration_verification_codes to fetch.
+     */
+    where?: registration_verification_codesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of registration_verification_codes to fetch.
+     */
+    orderBy?: registration_verification_codesOrderByWithRelationInput | registration_verification_codesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for registration_verification_codes.
+     */
+    cursor?: registration_verification_codesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` registration_verification_codes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` registration_verification_codes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of registration_verification_codes.
+     */
+    distinct?: Registration_verification_codesScalarFieldEnum | Registration_verification_codesScalarFieldEnum[]
+  }
+
+  /**
+   * registration_verification_codes findFirstOrThrow
+   */
+  export type registration_verification_codesFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the registration_verification_codes
+     */
+    select?: registration_verification_codesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the registration_verification_codes
+     */
+    omit?: registration_verification_codesOmit<ExtArgs> | null
+    /**
+     * Filter, which registration_verification_codes to fetch.
+     */
+    where?: registration_verification_codesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of registration_verification_codes to fetch.
+     */
+    orderBy?: registration_verification_codesOrderByWithRelationInput | registration_verification_codesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for registration_verification_codes.
+     */
+    cursor?: registration_verification_codesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` registration_verification_codes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` registration_verification_codes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of registration_verification_codes.
+     */
+    distinct?: Registration_verification_codesScalarFieldEnum | Registration_verification_codesScalarFieldEnum[]
+  }
+
+  /**
+   * registration_verification_codes findMany
+   */
+  export type registration_verification_codesFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the registration_verification_codes
+     */
+    select?: registration_verification_codesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the registration_verification_codes
+     */
+    omit?: registration_verification_codesOmit<ExtArgs> | null
+    /**
+     * Filter, which registration_verification_codes to fetch.
+     */
+    where?: registration_verification_codesWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of registration_verification_codes to fetch.
+     */
+    orderBy?: registration_verification_codesOrderByWithRelationInput | registration_verification_codesOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing registration_verification_codes.
+     */
+    cursor?: registration_verification_codesWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` registration_verification_codes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` registration_verification_codes.
+     */
+    skip?: number
+    distinct?: Registration_verification_codesScalarFieldEnum | Registration_verification_codesScalarFieldEnum[]
+  }
+
+  /**
+   * registration_verification_codes create
+   */
+  export type registration_verification_codesCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the registration_verification_codes
+     */
+    select?: registration_verification_codesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the registration_verification_codes
+     */
+    omit?: registration_verification_codesOmit<ExtArgs> | null
+    /**
+     * The data needed to create a registration_verification_codes.
+     */
+    data: XOR<registration_verification_codesCreateInput, registration_verification_codesUncheckedCreateInput>
+  }
+
+  /**
+   * registration_verification_codes createMany
+   */
+  export type registration_verification_codesCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many registration_verification_codes.
+     */
+    data: registration_verification_codesCreateManyInput | registration_verification_codesCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * registration_verification_codes update
+   */
+  export type registration_verification_codesUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the registration_verification_codes
+     */
+    select?: registration_verification_codesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the registration_verification_codes
+     */
+    omit?: registration_verification_codesOmit<ExtArgs> | null
+    /**
+     * The data needed to update a registration_verification_codes.
+     */
+    data: XOR<registration_verification_codesUpdateInput, registration_verification_codesUncheckedUpdateInput>
+    /**
+     * Choose, which registration_verification_codes to update.
+     */
+    where: registration_verification_codesWhereUniqueInput
+  }
+
+  /**
+   * registration_verification_codes updateMany
+   */
+  export type registration_verification_codesUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update registration_verification_codes.
+     */
+    data: XOR<registration_verification_codesUpdateManyMutationInput, registration_verification_codesUncheckedUpdateManyInput>
+    /**
+     * Filter which registration_verification_codes to update
+     */
+    where?: registration_verification_codesWhereInput
+    /**
+     * Limit how many registration_verification_codes to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * registration_verification_codes upsert
+   */
+  export type registration_verification_codesUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the registration_verification_codes
+     */
+    select?: registration_verification_codesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the registration_verification_codes
+     */
+    omit?: registration_verification_codesOmit<ExtArgs> | null
+    /**
+     * The filter to search for the registration_verification_codes to update in case it exists.
+     */
+    where: registration_verification_codesWhereUniqueInput
+    /**
+     * In case the registration_verification_codes found by the `where` argument doesn't exist, create a new registration_verification_codes with this data.
+     */
+    create: XOR<registration_verification_codesCreateInput, registration_verification_codesUncheckedCreateInput>
+    /**
+     * In case the registration_verification_codes was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<registration_verification_codesUpdateInput, registration_verification_codesUncheckedUpdateInput>
+  }
+
+  /**
+   * registration_verification_codes delete
+   */
+  export type registration_verification_codesDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the registration_verification_codes
+     */
+    select?: registration_verification_codesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the registration_verification_codes
+     */
+    omit?: registration_verification_codesOmit<ExtArgs> | null
+    /**
+     * Filter which registration_verification_codes to delete.
+     */
+    where: registration_verification_codesWhereUniqueInput
+  }
+
+  /**
+   * registration_verification_codes deleteMany
+   */
+  export type registration_verification_codesDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which registration_verification_codes to delete
+     */
+    where?: registration_verification_codesWhereInput
+    /**
+     * Limit how many registration_verification_codes to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * registration_verification_codes without action
+   */
+  export type registration_verification_codesDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the registration_verification_codes
+     */
+    select?: registration_verification_codesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the registration_verification_codes
+     */
+    omit?: registration_verification_codesOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -49558,6 +50568,18 @@ export namespace Prisma {
   export type Password_reset_tokensScalarFieldEnum = (typeof Password_reset_tokensScalarFieldEnum)[keyof typeof Password_reset_tokensScalarFieldEnum]
 
 
+  export const Registration_verification_codesScalarFieldEnum: {
+    id: 'id',
+    email: 'email',
+    code: 'code',
+    expires_at: 'expires_at',
+    used: 'used',
+    created_at: 'created_at'
+  };
+
+  export type Registration_verification_codesScalarFieldEnum = (typeof Registration_verification_codesScalarFieldEnum)[keyof typeof Registration_verification_codesScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -50131,6 +51153,14 @@ export namespace Prisma {
   };
 
   export type password_reset_tokensOrderByRelevanceFieldEnum = (typeof password_reset_tokensOrderByRelevanceFieldEnum)[keyof typeof password_reset_tokensOrderByRelevanceFieldEnum]
+
+
+  export const registration_verification_codesOrderByRelevanceFieldEnum: {
+    email: 'email',
+    code: 'code'
+  };
+
+  export type registration_verification_codesOrderByRelevanceFieldEnum = (typeof registration_verification_codesOrderByRelevanceFieldEnum)[keyof typeof registration_verification_codesOrderByRelevanceFieldEnum]
 
 
   /**
@@ -54050,6 +55080,66 @@ export namespace Prisma {
     token?: StringWithAggregatesFilter<"password_reset_tokens"> | string
     expires_at?: DateTimeWithAggregatesFilter<"password_reset_tokens"> | Date | string
     created_at?: DateTimeWithAggregatesFilter<"password_reset_tokens"> | Date | string
+  }
+
+  export type registration_verification_codesWhereInput = {
+    AND?: registration_verification_codesWhereInput | registration_verification_codesWhereInput[]
+    OR?: registration_verification_codesWhereInput[]
+    NOT?: registration_verification_codesWhereInput | registration_verification_codesWhereInput[]
+    id?: BigIntFilter<"registration_verification_codes"> | bigint | number
+    email?: StringFilter<"registration_verification_codes"> | string
+    code?: StringFilter<"registration_verification_codes"> | string
+    expires_at?: DateTimeFilter<"registration_verification_codes"> | Date | string
+    used?: BoolFilter<"registration_verification_codes"> | boolean
+    created_at?: DateTimeFilter<"registration_verification_codes"> | Date | string
+  }
+
+  export type registration_verification_codesOrderByWithRelationInput = {
+    id?: SortOrder
+    email?: SortOrder
+    code?: SortOrder
+    expires_at?: SortOrder
+    used?: SortOrder
+    created_at?: SortOrder
+    _relevance?: registration_verification_codesOrderByRelevanceInput
+  }
+
+  export type registration_verification_codesWhereUniqueInput = Prisma.AtLeast<{
+    id?: bigint | number
+    AND?: registration_verification_codesWhereInput | registration_verification_codesWhereInput[]
+    OR?: registration_verification_codesWhereInput[]
+    NOT?: registration_verification_codesWhereInput | registration_verification_codesWhereInput[]
+    email?: StringFilter<"registration_verification_codes"> | string
+    code?: StringFilter<"registration_verification_codes"> | string
+    expires_at?: DateTimeFilter<"registration_verification_codes"> | Date | string
+    used?: BoolFilter<"registration_verification_codes"> | boolean
+    created_at?: DateTimeFilter<"registration_verification_codes"> | Date | string
+  }, "id">
+
+  export type registration_verification_codesOrderByWithAggregationInput = {
+    id?: SortOrder
+    email?: SortOrder
+    code?: SortOrder
+    expires_at?: SortOrder
+    used?: SortOrder
+    created_at?: SortOrder
+    _count?: registration_verification_codesCountOrderByAggregateInput
+    _avg?: registration_verification_codesAvgOrderByAggregateInput
+    _max?: registration_verification_codesMaxOrderByAggregateInput
+    _min?: registration_verification_codesMinOrderByAggregateInput
+    _sum?: registration_verification_codesSumOrderByAggregateInput
+  }
+
+  export type registration_verification_codesScalarWhereWithAggregatesInput = {
+    AND?: registration_verification_codesScalarWhereWithAggregatesInput | registration_verification_codesScalarWhereWithAggregatesInput[]
+    OR?: registration_verification_codesScalarWhereWithAggregatesInput[]
+    NOT?: registration_verification_codesScalarWhereWithAggregatesInput | registration_verification_codesScalarWhereWithAggregatesInput[]
+    id?: BigIntWithAggregatesFilter<"registration_verification_codes"> | bigint | number
+    email?: StringWithAggregatesFilter<"registration_verification_codes"> | string
+    code?: StringWithAggregatesFilter<"registration_verification_codes"> | string
+    expires_at?: DateTimeWithAggregatesFilter<"registration_verification_codes"> | Date | string
+    used?: BoolWithAggregatesFilter<"registration_verification_codes"> | boolean
+    created_at?: DateTimeWithAggregatesFilter<"registration_verification_codes"> | Date | string
   }
 
   export type backup_customersilink_28012565CreateInput = {
@@ -58475,6 +59565,69 @@ export namespace Prisma {
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type registration_verification_codesCreateInput = {
+    id?: bigint | number
+    email: string
+    code: string
+    expires_at: Date | string
+    used?: boolean
+    created_at?: Date | string
+  }
+
+  export type registration_verification_codesUncheckedCreateInput = {
+    id?: bigint | number
+    email: string
+    code: string
+    expires_at: Date | string
+    used?: boolean
+    created_at?: Date | string
+  }
+
+  export type registration_verification_codesUpdateInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    email?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    expires_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    used?: BoolFieldUpdateOperationsInput | boolean
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type registration_verification_codesUncheckedUpdateInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    email?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    expires_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    used?: BoolFieldUpdateOperationsInput | boolean
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type registration_verification_codesCreateManyInput = {
+    id?: bigint | number
+    email: string
+    code: string
+    expires_at: Date | string
+    used?: boolean
+    created_at?: Date | string
+  }
+
+  export type registration_verification_codesUpdateManyMutationInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    email?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    expires_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    used?: BoolFieldUpdateOperationsInput | boolean
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type registration_verification_codesUncheckedUpdateManyInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    email?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    expires_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    used?: BoolFieldUpdateOperationsInput | boolean
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type BigIntFilter<$PrismaModel = never> = {
     equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
     in?: bigint[] | number[]
@@ -61474,6 +62627,47 @@ export namespace Prisma {
   }
 
   export type password_reset_tokensSumOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
+  export type registration_verification_codesOrderByRelevanceInput = {
+    fields: registration_verification_codesOrderByRelevanceFieldEnum | registration_verification_codesOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type registration_verification_codesCountOrderByAggregateInput = {
+    id?: SortOrder
+    email?: SortOrder
+    code?: SortOrder
+    expires_at?: SortOrder
+    used?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type registration_verification_codesAvgOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
+  export type registration_verification_codesMaxOrderByAggregateInput = {
+    id?: SortOrder
+    email?: SortOrder
+    code?: SortOrder
+    expires_at?: SortOrder
+    used?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type registration_verification_codesMinOrderByAggregateInput = {
+    id?: SortOrder
+    email?: SortOrder
+    code?: SortOrder
+    expires_at?: SortOrder
+    used?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type registration_verification_codesSumOrderByAggregateInput = {
     id?: SortOrder
   }
 

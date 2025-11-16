@@ -1,14 +1,46 @@
-// v.1.1.2 ===============================================
+// v.1.1.4 ================================================
 // src/services/mail.service.ts
 
 import { Resend } from "resend";
 import nodemailer from "nodemailer";
 import { absoluteUrl } from "@/lib/base-url";
 
-/** ส่งอีเมลตั้งรหัสผ่านใหม่ (Reset Password) */
+/** helper ใช้ config SMTP แบบเดียวกับโปรเจกต์ที่คุณเทสผ่าน */
+function createSmtpTransport() {
+  if (
+    !process.env.EMAIL_HOST ||
+    !process.env.EMAIL_PORT ||
+    !process.env.EMAIL_USER ||
+    !process.env.EMAIL_PASS
+  ) {
+    console.error(
+      "[mail] EMAIL_HOST / EMAIL_PORT / EMAIL_USER / EMAIL_PASS ยังไม่ครบใน .env"
+    );
+  }
+
+  const port = parseInt(process.env.EMAIL_PORT || "587", 10);
+
+  return nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port,
+    secure: port === 465, // true สำหรับ 465 (SSL) / false สำหรับ 587 (TLS)
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+    tls: {
+      // บาง hosting ต้องปิดเช็ค cert ไม่งั้น CONN/ESOCKET ได้
+      rejectUnauthorized: false,
+    },
+  });
+}
+
+/** 🔵 ส่งอีเมลตั้งรหัสผ่านใหม่ (Reset Password) */
 export async function sendResetPasswordEmail(to: string, token: string) {
   // สร้างลิงก์แบบ absolute URL
-  const url = await absoluteUrl(`/reset-password?token=${token}&email=${encodeURIComponent(to)}`);
+  const url = await absoluteUrl(
+    `/reset-password?token=${token}&email=${encodeURIComponent(to)}`
+  );
 
   const html = `
     <div style="font-family: sans-serif; max-width: 450px;">
@@ -23,9 +55,7 @@ export async function sendResetPasswordEmail(to: string, token: string) {
     </div>
   `;
 
-  /** -----------------------------
-   * 1) ถ้ามี RESEND_API_KEY → ใช้ Resend
-   * ------------------------------ */
+  /** 1) ถ้ามี RESEND_API_KEY → ใช้ Resend ก่อน */
   if (process.env.RESEND_API_KEY) {
     try {
       const resend = new Resend(process.env.RESEND_API_KEY);
@@ -43,19 +73,9 @@ export async function sendResetPasswordEmail(to: string, token: string) {
     }
   }
 
-  /** -----------------------------
-   * 2) ไม่มี Resend หรือ Resend error → ใช้ SMTP
-   * ------------------------------ */
+  /** 2) ไม่มี Resend หรือ Resend error → ใช้ SMTP (config เดียวกับโปรเจกต์ที่เทสผ่าน) */
   try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: Number(process.env.EMAIL_PORT ?? 587),
-      secure: false,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+    const transporter = createSmtpTransport();
 
     await transporter.sendMail({
       from: `"Interlink Shop" <${process.env.EMAIL_USER}>`,
@@ -66,10 +86,232 @@ export async function sendResetPasswordEmail(to: string, token: string) {
 
     return true;
   } catch (err) {
-    console.error("[mail] SMTP error:", err);
+    console.error("[mail] SMTP error (reset):", err);
     return false;
   }
 }
+
+/** 🟢 ส่งอีเมลรหัสยืนยันสมัครสมาชิก (ใช้ SMTP เท่านั้น ไม่ใช้ Resend) */
+export async function sendRegisterVerificationEmail(to: string, code: string) {
+  const html = `
+    <div style="font-family: sans-serif; max-width: 450px;">
+      <h2>ยืนยันการสมัครสมาชิก Interlink Shop</h2>
+      <p>รหัสยืนยันสำหรับการสมัครสมาชิกของคุณคือ:</p>
+      <p style="font-size: 24px; font-weight: bold; letter-spacing: 4px;">${code}</p>
+      <p>รหัสนี้มีอายุ <b>15 นาที</b> หลังจากเวลาที่ส่ง</p>
+      <p>หากคุณไม่ได้เป็นผู้ร้องขอสมัครสมาชิก สามารถละเว้นอีเมลนี้ได้เลย</p>
+      <br/>
+      <p>— Interlink Shop</p>
+    </div>
+  `;
+
+  try {
+    const transporter = createSmtpTransport();
+
+    await transporter.sendMail({
+      from: `"Interlink Shop" <${process.env.EMAIL_USER}>`,
+      to,
+      subject: "รหัสยืนยันสมัครสมาชิก | Interlink Shop",
+      html,
+    });
+
+    return true;
+  } catch (err) {
+    console.error("[mail] SMTP error (register verify):", err);
+    return false;
+  }
+}
+
+// v.1.1.4 ================================================
+
+// v.1.1.3 ===============================================
+// // src/services/mail.service.ts
+
+// import { Resend } from "resend";
+// import nodemailer from "nodemailer";
+// import { absoluteUrl } from "@/lib/base-url";
+
+// /** ส่งอีเมลตั้งรหัสผ่านใหม่ (Reset Password) */
+// export async function sendResetPasswordEmail(to: string, token: string) {
+//   // สร้างลิงก์แบบ absolute URL
+//   const url = await absoluteUrl(
+//     `/reset-password?token=${token}&email=${encodeURIComponent(to)}`
+//   );
+
+//   const html = `
+//     <div style="font-family: sans-serif; max-width: 450px;">
+//       <h2>ตั้งรหัสผ่านใหม่</h2>
+//       <p>คุณได้รับอีเมลนี้เนื่องจากมีการร้องขอให้ตั้งรหัสผ่านใหม่สำหรับบัญชีของคุณ</p>
+//       <p>กดลิงก์ด้านล่างเพื่อตั้งรหัสผ่านใหม่:</p>
+//       <p><a href="${url}" style="color: #0056b3;">${url}</a></p>
+//       <p>ลิงก์นี้จะหมดอายุภายใน <b>15 นาที</b></p>
+//       <p>หากคุณไม่ได้เป็นผู้ร้องขอ สามารถละเว้นอีเมลนี้ได้เลย</p>
+//       <br/>
+//       <p>— Interlink Shop</p>
+//     </div>
+//   `;
+
+//   /** -----------------------------
+//    * 1) ถ้ามี RESEND_API_KEY → ใช้ Resend
+//    * ------------------------------ */
+//   if (process.env.RESEND_API_KEY) {
+//     try {
+//       const resend = new Resend(process.env.RESEND_API_KEY);
+//       await resend.emails.send({
+//         from: "Interlink Shop <onboarding@resend.dev>",
+//         to,
+//         subject: "ตั้งรหัสผ่านใหม่ | Interlink Shop",
+//         html,
+//       });
+
+//       return true;
+//     } catch (err) {
+//       console.error("[mail] Resend error → fallback to SMTP", err);
+//       // → ตกไปใช้ SMTP ด้านล่าง
+//     }
+//   }
+
+//   /** -----------------------------
+//    * 2) ไม่มี Resend หรือ Resend error → ใช้ SMTP
+//    * ------------------------------ */
+//   try {
+//     const transporter = nodemailer.createTransport({
+//       host: process.env.EMAIL_HOST,
+//       port: Number(process.env.EMAIL_PORT ?? 587),
+//       secure: false,
+//       auth: {
+//         user: process.env.EMAIL_USER,
+//         pass: process.env.EMAIL_PASS,
+//       },
+//     });
+
+//     await transporter.sendMail({
+//       from: `"Interlink Shop" <${process.env.EMAIL_USER}>`,
+//       to,
+//       subject: "ตั้งรหัสผ่านใหม่ | Interlink Shop",
+//       html,
+//     });
+
+//     return true;
+//   } catch (err) {
+//     console.error("[mail] SMTP error:", err);
+//     return false;
+//   }
+// }
+
+// /** ✅ ส่งอีเมลรหัสยืนยันสมัครสมาชิก (ใช้ SMTP เท่านั้น ไม่ใช้ Resend) */
+// export async function sendRegisterVerificationEmail(to: string, code: string) {
+//   const html = `
+//     <div style="font-family: sans-serif; max-width: 450px;">
+//       <h2>ยืนยันการสมัครสมาชิก Interlink Shop</h2>
+//       <p>รหัสยืนยันสำหรับการสมัครสมาชิกของคุณคือ:</p>
+//       <p style="font-size: 24px; font-weight: bold; letter-spacing: 4px;">${code}</p>
+//       <p>รหัสนี้มีอายุ <b>15 นาที</b> หลังจากเวลาที่ส่ง</p>
+//       <p>หากคุณไม่ได้เป็นผู้ร้องขอสมัครสมาชิก สามารถละเว้นอีเมลนี้ได้เลย</p>
+//       <br/>
+//       <p>— Interlink Shop</p>
+//     </div>
+//   `;
+
+//   try {
+//     const transporter = nodemailer.createTransport({
+//       host: process.env.EMAIL_HOST,
+//       port: Number(process.env.EMAIL_PORT ?? 587),
+//       secure: false,
+//       auth: {
+//         user: process.env.EMAIL_USER,
+//         pass: process.env.EMAIL_PASS,
+//       },
+//     });
+
+//     await transporter.sendMail({
+//       from: `"Interlink Shop" <${process.env.EMAIL_USER}>`,
+//       to,
+//       subject: "รหัสยืนยันสมัครสมาชิก | Interlink Shop",
+//       html,
+//     });
+
+//     return true;
+//   } catch (err) {
+//     console.error("[mail] SMTP error (register verify):", err);
+//     return false;
+//   }
+// }
+
+// v.1.1.3 ===============================================
+
+// v.1.1.2 ===============================================
+// // src/services/mail.service.ts
+
+// import { Resend } from "resend";
+// import nodemailer from "nodemailer";
+// import { absoluteUrl } from "@/lib/base-url";
+
+// /** ส่งอีเมลตั้งรหัสผ่านใหม่ (Reset Password) */
+// export async function sendResetPasswordEmail(to: string, token: string) {
+//   // สร้างลิงก์แบบ absolute URL
+//   const url = await absoluteUrl(`/reset-password?token=${token}&email=${encodeURIComponent(to)}`);
+
+//   const html = `
+//     <div style="font-family: sans-serif; max-width: 450px;">
+//       <h2>ตั้งรหัสผ่านใหม่</h2>
+//       <p>คุณได้รับอีเมลนี้เนื่องจากมีการร้องขอให้ตั้งรหัสผ่านใหม่สำหรับบัญชีของคุณ</p>
+//       <p>กดลิงก์ด้านล่างเพื่อตั้งรหัสผ่านใหม่:</p>
+//       <p><a href="${url}" style="color: #0056b3;">${url}</a></p>
+//       <p>ลิงก์นี้จะหมดอายุภายใน <b>15 นาที</b></p>
+//       <p>หากคุณไม่ได้เป็นผู้ร้องขอ สามารถละเว้นอีเมลนี้ได้เลย</p>
+//       <br/>
+//       <p>— Interlink Shop</p>
+//     </div>
+//   `;
+
+//   /** -----------------------------
+//    * 1) ถ้ามี RESEND_API_KEY → ใช้ Resend
+//    * ------------------------------ */
+//   if (process.env.RESEND_API_KEY) {
+//     try {
+//       const resend = new Resend(process.env.RESEND_API_KEY);
+//       await resend.emails.send({
+//         from: "Interlink Shop <onboarding@resend.dev>",
+//         to,
+//         subject: "ตั้งรหัสผ่านใหม่ | Interlink Shop",
+//         html,
+//       });
+
+//       return true;
+//     } catch (err) {
+//       console.error("[mail] Resend error → fallback to SMTP", err);
+//       // → ตกไปใช้ SMTP ด้านล่าง
+//     }
+//   }
+
+//   /** -----------------------------
+//    * 2) ไม่มี Resend หรือ Resend error → ใช้ SMTP
+//    * ------------------------------ */
+//   try {
+//     const transporter = nodemailer.createTransport({
+//       host: process.env.EMAIL_HOST,
+//       port: Number(process.env.EMAIL_PORT ?? 587),
+//       secure: false,
+//       auth: {
+//         user: process.env.EMAIL_USER,
+//         pass: process.env.EMAIL_PASS,
+//       },
+//     });
+
+//     await transporter.sendMail({
+//       from: `"Interlink Shop" <${process.env.EMAIL_USER}>`,
+//       to,
+//       subject: "ตั้งรหัสผ่านใหม่ | Interlink Shop",
+//       html,
+//     });
+
+//     return true;
+//   } catch (err) {
+//     console.error("[mail] SMTP error:", err);
+//     return false;
+//   }
+// }
 
 // v.1.1.2 ===============================================
 
