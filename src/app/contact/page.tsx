@@ -47,7 +47,7 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header onCartClick={() => setIsCartOpen(true)} cartItemCount={cartItemCount} />
+      {/* <Header onCartClick={() => setIsCartOpen(true)} cartItemCount={cartItemCount} /> */}
       <main>
         {/* Hero Section */}
         <section className="relative py-20 md:py-32 bg-gradient-hero text-white">
@@ -189,9 +189,9 @@ export default function ContactPage() {
           </div>
         </section>
       </main>
-      <Footer />
+      {/* <Footer /> */}
       <ShoppingCart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-      <MessageChat />
+      {/* <MessageChat /> */}
     </div>
   );
 }

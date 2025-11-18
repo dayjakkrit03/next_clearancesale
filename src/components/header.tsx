@@ -51,7 +51,7 @@ export const Header = ({ onCartClick, cartItemCount = 0 }: HeaderProps) => {
   };
 
   const handleClearanceSaleClick = () => {
-    router.push("/products?search=Clearance Sale");
+    router.push("/products");
   };
 
   return (
@@ -122,13 +122,13 @@ export const Header = ({ onCartClick, cartItemCount = 0 }: HeaderProps) => {
                 หน้าแรก
               </Link>
               <Link
-                href="/products?tag=new"
+                href="/products"
                 className="hover:text-primary/80 transition-colors whitespace-nowrap text-sm font-medium"
               >
                 สินค้าแนะนำ
               </Link>
               <Link
-                href="https://interlink.co.th/contact"
+                href="/contact"
                 className="hover:text-primary/80 transition-colors whitespace-nowrap text-sm font-medium"
               >
                 ติดต่อเรา
