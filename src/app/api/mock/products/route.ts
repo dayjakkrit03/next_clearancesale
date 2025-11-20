@@ -115,11 +115,11 @@ export async function GET(req: Request) {
     });
 
     // --- LOG A: ตรวจสอบผลลัพธ์ที่ได้จาก queryProducts (Route.ts) ---
-    console.log("--- API LOG A: ผลลัพธ์ที่ได้จาก queryProducts (id, image_url) ---");
-    (result.items ?? []).slice(0, 3).forEach((p: any) => {
-        console.log(`[Item ${p.id}] image_url: ${p.image_url} (route.ts)`);
-    });
-    console.log("---------------------------------------------------------------");
+    // console.log("--- API LOG A: ผลลัพธ์ที่ได้จาก queryProducts (id, image_url) ---");
+    // (result.items ?? []).slice(0, 3).forEach((p: any) => {
+    //     console.log(`[Item ${p.id}] image_url: ${p.image_url} (route.ts)`);
+    // });
+    // console.log("---------------------------------------------------------------");
     // --- END LOG A ---
 
     const meta = await getMeta();

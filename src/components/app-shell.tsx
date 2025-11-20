@@ -49,20 +49,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {!isAdmin && (
           <>
             <ShoppingCart isOpen={isOpen} onClose={api.close} />
-            {/* <MessageChat /> */}
-
-            {/* Popup เฉพาะหน้าแรก */}
-            {/* {isHome && ( */}
-              {/* <HomePromoPopup */}
-                {/* imageSrc="/uploads/popup/popup.webp" */}
-                {/* // linkUrl="/promotions/clearance-2024" // ถ้ามีลิงก์ ให้เปิดบรรทัดนี้ได้ */}
-                {/* oncePer="always"         // 'day' | 'session' | 'always' */}
-                {/* storageKey="home-promo-popup" */}
-                {/* openDelayMs={300} */}
-                {/* caption="สอบถามการใช้งานได้ที่ 02-666-1111 ต่อ 1707" */}
-                {/* captionAlign="center" // หรือ 'left' */}
-              {/* /> */}
-            {/* )} */}
           </>
         )}
       </div>

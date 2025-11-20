@@ -1,7 +1,7 @@
 // src/services/product.service.ts
 
 import { prismaInterlink, setInterlinkSessionTZ } from "@/lib/db";
-import { Prisma } from "@prisma/client";
+// import { Prisma } from "@prisma/client";
 
 /**
  * Interface สำหรับ Query Parameters จาก URL Search Params

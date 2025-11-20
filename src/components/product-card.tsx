@@ -115,7 +115,7 @@ export const ProductCard = ({
   const router = useRouter();
   const [isLiked, setIsLiked] = useState(initialIsLiked);
 
-  console.log(`[Card] พาทรูปของสินค้า ${id}: ${image}`);
+  // console.log(`[Card] พาทรูปของสินค้า ${id}: ${image}`);
 
   // ✅ fallback handler: ถ้าไม่ส่ง onAddToCart จะเปิดตะกร้าจาก useCart()
   const cart = useCart();
