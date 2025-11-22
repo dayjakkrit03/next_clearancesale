@@ -1,4 +1,4 @@
-// v.1.1.3 ================================================
+// v.1.1.4 ================================================
 // src/components/app-shell.tsx
 
 "use client";
@@ -13,6 +13,7 @@ import { ShoppingCart } from "@/components/shopping-cart";
 
 type CartApi = { open: () => void; close: () => void; count: number };
 const CartCtx = createContext<CartApi | null>(null);
+
 export const useCart = () => {
   const c = useContext(CartCtx);
   if (!c) throw new Error("useCart must be used within <AppShell>");
@@ -25,6 +26,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isHome = pathname === "/" || pathname === "";
 
   const [isOpen, setOpen] = useState(false);
+
+  // ตอนนี้ header ไม่ได้ใช้ count จากตรงนี้แล้ว
   const cartItemCount = 4;
 
   const api: CartApi = {
@@ -38,11 +41,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen bg-background">
         {!isAdmin && (
           <>
-            <Header onCartClick={api.open} cartItemCount={api.count} />
+            {/* 🛒 header อ่านจำนวนจาก Zustand เองแล้ว ไม่ต้องส่ง cartItemCount */}
+            <Header onCartClick={api.open} />
             <main>{children}</main>
             <Footer />
           </>
         )}
+
         {isAdmin && <main>{children}</main>}
 
         {/* ซ่อนบน /admin */}
@@ -55,6 +60,66 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     </CartCtx.Provider>
   );
 }
+
+// v.1.1.4 ================================================
+
+// v.1.1.3 ================================================
+// // src/components/app-shell.tsx
+
+// "use client";
+
+// import { useState, createContext, useContext } from "react";
+// import { usePathname } from "next/navigation";
+// import { Header } from "@/components/header";
+// import { Footer } from "@/components/footer";
+// import { ShoppingCart } from "@/components/shopping-cart";
+// // import { MessageChat } from "@/components/message-chat";
+// // import HomePromoPopup from "@/components/home-promo-popup";
+
+// type CartApi = { open: () => void; close: () => void; count: number };
+// const CartCtx = createContext<CartApi | null>(null);
+// export const useCart = () => {
+//   const c = useContext(CartCtx);
+//   if (!c) throw new Error("useCart must be used within <AppShell>");
+//   return c;
+// };
+
+// export default function AppShell({ children }: { children: React.ReactNode }) {
+//   const pathname = usePathname();
+//   const isAdmin = pathname?.startsWith("/admin") ?? false;
+//   const isHome = pathname === "/" || pathname === "";
+
+//   const [isOpen, setOpen] = useState(false);
+//   const cartItemCount = 4;
+
+//   const api: CartApi = {
+//     open: () => setOpen(true),
+//     close: () => setOpen(false),
+//     count: cartItemCount,
+//   };
+
+//   return (
+//     <CartCtx.Provider value={api}>
+//       <div className="min-h-screen bg-background">
+//         {!isAdmin && (
+//           <>
+//             <Header onCartClick={api.open} cartItemCount={api.count} />
+//             <main>{children}</main>
+//             <Footer />
+//           </>
+//         )}
+//         {isAdmin && <main>{children}</main>}
+
+//         {/* ซ่อนบน /admin */}
+//         {!isAdmin && (
+//           <>
+//             <ShoppingCart isOpen={isOpen} onClose={api.close} />
+//           </>
+//         )}
+//       </div>
+//     </CartCtx.Provider>
+//   );
+// }
 
 // v.1.1.3 ================================================
 

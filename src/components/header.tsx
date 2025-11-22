@@ -1,4 +1,4 @@
-// v.1.1.4 =============================================
+// v.1.1.5 =============================================
 // src/components/header.tsx
 "use client";
 
@@ -9,6 +9,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+// Zustand store
+import { useCartStore } from "@/store/cart-store";
+
 // components ย่อย
 import { HeaderUserMenu } from "./header/user-menu";
 import { HeaderSearchBar } from "./header/search-bar";
@@ -16,13 +19,35 @@ import { HeaderCategoryMenu } from "./header/category-menu";
 
 interface HeaderProps {
   onCartClick?: () => void;
-  cartItemCount?: number;
 }
 
-export const Header = ({ onCartClick, cartItemCount = 0 }: HeaderProps) => {
+export const Header = ({ onCartClick }: HeaderProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
+
+  // 🛒 Zustand global store
+  const totalQuantity = useCartStore((s) => s.summary.totalQuantity);
+  const setSummary = useCartStore((s) => s.setSummary);
+
+  /* -------------------------------------------------
+   * โหลด summary ครั้งแรกตอนหน้าโหลด (header)
+   * ------------------------------------------------- */
+  useEffect(() => {
+    async function loadSummary() {
+      try {
+        const res = await fetch("/api/cart/summary", { cache: "no-store" });
+        const json = await res.json();
+        if (json?.summary) {
+          setSummary(json.summary);
+        }
+      } catch (err) {
+        console.error("Failed to load cart summary", err);
+      }
+    }
+
+    loadSummary();
+  }, [setSummary]);
 
   // sync searchTerm กับ query string
   useEffect(() => {
@@ -39,9 +64,7 @@ export const Header = ({ onCartClick, cartItemCount = 0 }: HeaderProps) => {
 
   const handleSearch = () => {
     if (searchTerm.trim()) {
-      router.push(
-        `/products?search=${encodeURIComponent(searchTerm.trim())}`
-      );
+      router.push(`/products?search=${encodeURIComponent(searchTerm.trim())}`);
     }
   };
 
@@ -89,6 +112,7 @@ export const Header = ({ onCartClick, cartItemCount = 0 }: HeaderProps) => {
           <div className="flex items-center gap-2 lg:gap-4">
             <HeaderUserMenu />
 
+            {/* Cart Button */}
             <Button
               variant="ghost"
               size="sm"
@@ -96,9 +120,10 @@ export const Header = ({ onCartClick, cartItemCount = 0 }: HeaderProps) => {
               onClick={onCartClick}
             >
               <ShoppingCart className="h-4 w-4 lg:h-5 lg:w-5" />
-              {cartItemCount > 0 && (
+
+              {totalQuantity > 0 && (
                 <span className="absolute -top-1 -right-1 lg:-top-2 lg:-right-2 bg-destructive text-destructive-foreground text-xs rounded-full w-4 h-4 lg:w-5 lg:h-5 flex items-center justify-center">
-                  {cartItemCount}
+                  {totalQuantity}
                 </span>
               )}
             </Button>
@@ -113,7 +138,7 @@ export const Header = ({ onCartClick, cartItemCount = 0 }: HeaderProps) => {
             {/* หมวดหมู่สินค้า */}
             <HeaderCategoryMenu onCategorySelected={handleCategorySelected} />
 
-            {/* เมนูหลัก */}
+            {/* Main menu */}
             <div className="hidden lg:flex items-center gap-4 xl:gap-6">
               <Link
                 href="/"
@@ -148,6 +173,159 @@ export const Header = ({ onCartClick, cartItemCount = 0 }: HeaderProps) => {
     </header>
   );
 };
+
+// v.1.1.5 =============================================
+
+// v.1.1.4 =============================================
+// // src/components/header.tsx
+// "use client";
+
+// import { useState, useEffect } from "react";
+// import Link from "next/link";
+// import Image from "next/image";
+// import { useRouter, useSearchParams } from "next/navigation";
+// import { ShoppingCart } from "lucide-react";
+// import { Button } from "@/components/ui/button";
+
+// // components ย่อย
+// import { HeaderUserMenu } from "./header/user-menu";
+// import { HeaderSearchBar } from "./header/search-bar";
+// import { HeaderCategoryMenu } from "./header/category-menu";
+
+// interface HeaderProps {
+//   onCartClick?: () => void;
+//   cartItemCount?: number;
+// }
+
+// export const Header = ({ onCartClick, cartItemCount = 0 }: HeaderProps) => {
+//   const router = useRouter();
+//   const searchParams = useSearchParams();
+//   const [searchTerm, setSearchTerm] = useState("");
+
+//   // sync searchTerm กับ query string
+//   useEffect(() => {
+//     const category = searchParams.get("category");
+//     const search = searchParams.get("search");
+//     if (category) {
+//       setSearchTerm(category);
+//     } else if (search) {
+//       setSearchTerm(search);
+//     } else {
+//       setSearchTerm("");
+//     }
+//   }, [searchParams]);
+
+//   const handleSearch = () => {
+//     if (searchTerm.trim()) {
+//       router.push(
+//         `/products?search=${encodeURIComponent(searchTerm.trim())}`
+//       );
+//     }
+//   };
+
+//   const handleCategorySelected = (category: string) => {
+//     setSearchTerm(category);
+//     router.push(`/products?category=${encodeURIComponent(category)}`);
+//   };
+
+//   const handleClearanceSaleClick = () => {
+//     router.push("/products");
+//   };
+
+//   return (
+//     <header className="bg-primary text-primary-foreground shadow-header sticky top-0 z-50">
+//       {/* Main header */}
+//       <div className="w-full max-w-screen-2xl mx-auto px-4 py-4">
+//         <div className="flex items-center gap-4 lg:gap-6">
+//           {/* Logo */}
+//           <Link href="/" className="flex items-center gap-2 lg:gap-3">
+//             <Image
+//               src="/assets/interlink-logo.png"
+//               alt="Interlink Logo"
+//               width={150}
+//               height={50}
+//               className="h-8 lg:h-10 w-auto hover:scale-105 transition-transform"
+//             />
+//             <div
+//               className="text-white font-bold text-lg lg:text-xl drop-shadow-lg hidden sm:block hover:text-white/90 transition-colors"
+//               style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.8)" }}
+//             >
+//               Interlink Shop
+//             </div>
+//           </Link>
+
+//           {/* Search */}
+//           <div className="flex-1 max-w-2xl">
+//             <HeaderSearchBar
+//               value={searchTerm}
+//               onChange={setSearchTerm}
+//               onSearch={handleSearch}
+//             />
+//           </div>
+
+//           {/* Right actions */}
+//           <div className="flex items-center gap-2 lg:gap-4">
+//             <HeaderUserMenu />
+
+//             <Button
+//               variant="ghost"
+//               size="sm"
+//               className="relative text-white hover:bg-white/20"
+//               onClick={onCartClick}
+//             >
+//               <ShoppingCart className="h-4 w-4 lg:h-5 lg:w-5" />
+//               {cartItemCount > 0 && (
+//                 <span className="absolute -top-1 -right-1 lg:-top-2 lg:-right-2 bg-destructive text-destructive-foreground text-xs rounded-full w-4 h-4 lg:w-5 lg:h-5 flex items-center justify-center">
+//                   {cartItemCount}
+//                 </span>
+//               )}
+//             </Button>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Navigation */}
+//       <div className="bg-white text-primary border-t border-primary/10">
+//         <div className="w-full max-w-screen-2xl mx-auto px-4">
+//           <nav className="flex items-center gap-2 md:gap-4 lg:gap-8 py-3">
+//             {/* หมวดหมู่สินค้า */}
+//             <HeaderCategoryMenu onCategorySelected={handleCategorySelected} />
+
+//             {/* เมนูหลัก */}
+//             <div className="hidden lg:flex items-center gap-4 xl:gap-6">
+//               <Link
+//                 href="/"
+//                 className="hover:text-primary/80 transition-colors whitespace-nowrap text-sm font-medium"
+//               >
+//                 หน้าแรก
+//               </Link>
+//               <Link
+//                 href="/products"
+//                 className="hover:text-primary/80 transition-colors whitespace-nowrap text-sm font-medium"
+//               >
+//                 สินค้าแนะนำ
+//               </Link>
+//               <Link
+//                 href="/contact"
+//                 className="hover:text-primary/80 transition-colors whitespace-nowrap text-sm font-medium"
+//               >
+//                 ติดต่อเรา
+//               </Link>
+//             </div>
+
+//             {/* Clearance sale banner */}
+//             <span
+//               className="text-destructive font-semibold ml-auto shrink-0 text-xs sm:text-sm cursor-pointer hover:text-destructive/80 transition-colors"
+//               onClick={handleClearanceSaleClick}
+//             >
+//               Clearance Sale ลดสูงสุด 90%
+//             </span>
+//           </nav>
+//         </div>
+//       </div>
+//     </header>
+//   );
+// };
 
 // v.1.1.4 =============================================
 

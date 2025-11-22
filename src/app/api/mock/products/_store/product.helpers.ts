@@ -88,52 +88,6 @@ export function alignLengthsAndStocks(lengths: number[], stocks: number[]) {
   return { lengths, stocks: outStocks };
 }
 
-// /** map แถว DB -> UIProduct (แปลง BigInt/Decimal เป็น number เสมอ) */
-// export function mapRowToUI(r: any): UIProduct {
-//   // ประกอบ URL รูป: ใช้ image_name จาก images_products ถ้ามี, หากไม่มี fallback เป็น product_filename
-//   const base = normalizeBasePath(r.image_url);
-//   const nameFromJoin = r.image_name ?? undefined;        // จาก images_products (หลัก)
-//   const nameFromFilename = r.product_filename ?? undefined;
-
-//   let finalImageUrl: string | undefined;
-//   if (nameFromJoin) finalImageUrl = `${base}/${nameFromJoin}`;
-//   else if (nameFromFilename) finalImageUrl = `${base}/${nameFromFilename}`;
-
-//   return {
-//     id: Number(r.product_id),
-//     name: String(r.product_name ?? ""),
-//     brand: r.product_brand ?? undefined,
-
-//     // ใช้ sku จริงก่อน ถ้าไม่มีค่อย fallback เป็น filename
-//     sku: r.product_sku ?? r.product_filename ?? undefined,
-
-//     price: Number(r.product_price ?? 0),
-//     discountPercent: parseDiscountLabel(r.discount_label),
-//     image_url: finalImageUrl,
-//     visible: r.visible === 1 || r.visible === true,
-//     order: Number(r.display_order ?? 0),
-
-//     rating: r.rating_score != null ? Number(r.rating_score) : undefined,
-//     reviews: r.rating_count != null ? Number(r.rating_count) : undefined,
-
-//     category_id:
-//       r.category_id == null
-//         ? undefined
-//         : (Number.isFinite(Number(r.category_id)) ? Number(r.category_id) : String(r.category_id)),
-
-//     uom: r.product_uom ?? undefined,
-
-//     /* ==========================
-//      *   🎉 ฟิลด์ใหม่เพิ่มตรงนี้
-//      * ========================== */
-//     product_new: r.product_new != null ? Number(r.product_new) : 0,
-//     product_best: r.product_best != null ? Number(r.product_best) : 0,
-//     users_action: r.users_action != null ? Number(r.users_action) : 0,
-//     clearanceSales: Boolean(r.clearanceSales),
-//     clearanceQuantity: r.clearanceQuantity != null ? Number(r.clearanceQuantity) : 0,
-//   };
-// }
-
 /** map แถว DB -> UIProduct (แปลง BigInt/Decimal เป็น number เสมอ) */
 export function mapRowToUI(r: any): UIProduct {
   const base = normalizeBasePath(r.image_url);

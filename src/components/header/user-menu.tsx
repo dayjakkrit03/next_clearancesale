@@ -1,4 +1,4 @@
-// v.1.1.6 ===================================================================
+// v.1.1.7 ===================================================================
 // src/components/header/user-menu.tsx
 
 "use client";
@@ -13,15 +13,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-  DropdownMenuLabel, // ใช้เพื่อโชว์ email บนสุดของเมนู
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+
+// 🛒 เพิ่ม: ใช้ Zustand cart store
+import { useCartStore } from "@/store/cart-store";
 
 type MeResponse = {
   ok: boolean;
   user?: {
     id: string;
     email: string;
-    name?: string | null; // ไม่ใช้แล้ว แต่ปล่อยไว้เผื่ออนาคต
+    name?: string | null;
   };
 };
 
@@ -30,6 +33,9 @@ export function HeaderUserMenu() {
   const pathname = usePathname();
   const [user, setUser] = useState<MeResponse["user"] | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // 🛒 ฟังก์ชัน reset summary เวลา logout
+  const resetCartSummary = useCartStore((s) => s.reset);
 
   useEffect(() => {
     let cancelled = false;
@@ -42,7 +48,9 @@ export function HeaderUserMenu() {
           cache: "no-store",
         });
 
-        const data: MeResponse = await res.json().catch(() => ({ ok: false }));
+        const data: MeResponse = await res
+          .json()
+          .catch(() => ({ ok: false } as MeResponse));
 
         if (!cancelled) {
           if (data.ok) {
@@ -75,7 +83,13 @@ export function HeaderUserMenu() {
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
-    } catch {}
+    } catch {
+      // ignore error, เราจะเคลียร์ state ฝั่ง client อยู่ดี
+    }
+
+    // 🛒 เคลียร์ตะกร้าทันทีหลัง logout (badge = 0)
+    resetCartSummary();
+
     setUser(null);
     router.push("/");
     router.refresh();
@@ -91,7 +105,6 @@ export function HeaderUserMenu() {
         >
           <User className="h-4 w-4 lg:h-5 lg:w-5" />
 
-          {/* ชื่อจริงถูกตัดออก → โชว์เฉพาะ email บนจอใหญ่ */}
           {isLoggedIn && (
             <span className="ml-2 hidden lg:block text-xs max-w-[160px] truncate">
               {user?.email}
@@ -108,11 +121,8 @@ export function HeaderUserMenu() {
       >
         {isLoggedIn ? (
           <>
-            {/* 🔥 แสดงเฉพาะอีเมลด้านบนเมนู */}
             <DropdownMenuLabel className="text-xs leading-tight">
-              <div className="font-semibold truncate">
-                {user?.email}
-              </div>
+              <div className="font-semibold truncate">{user?.email}</div>
             </DropdownMenuLabel>
 
             <DropdownMenuSeparator />
@@ -140,8 +150,8 @@ export function HeaderUserMenu() {
               onClick={() =>
                 router.push(
                   `/login?redirect=${encodeURIComponent(
-                    window.location.pathname + window.location.search
-                  )}`
+                    window.location.pathname + window.location.search,
+                  )}`,
                 )
               }
             >
@@ -157,6 +167,168 @@ export function HeaderUserMenu() {
     </DropdownMenu>
   );
 }
+
+// v.1.1.7 ===================================================================
+
+// v.1.1.6 ===================================================================
+// // src/components/header/user-menu.tsx
+
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import { useRouter, usePathname } from "next/navigation";
+// import { User, ChevronDown } from "lucide-react";
+// import { Button } from "@/components/ui/button";
+// import {
+//   DropdownMenu,
+//   DropdownMenuContent,
+//   DropdownMenuItem,
+//   DropdownMenuTrigger,
+//   DropdownMenuSeparator,
+//   DropdownMenuLabel, // ใช้เพื่อโชว์ email บนสุดของเมนู
+// } from "@/components/ui/dropdown-menu";
+
+// type MeResponse = {
+//   ok: boolean;
+//   user?: {
+//     id: string;
+//     email: string;
+//     name?: string | null; // ไม่ใช้แล้ว แต่ปล่อยไว้เผื่ออนาคต
+//   };
+// };
+
+// export function HeaderUserMenu() {
+//   const router = useRouter();
+//   const pathname = usePathname();
+//   const [user, setUser] = useState<MeResponse["user"] | null>(null);
+//   const [loading, setLoading] = useState(true);
+
+//   useEffect(() => {
+//     let cancelled = false;
+
+//     async function loadMe() {
+//       try {
+//         setLoading(true);
+//         const res = await fetch("/api/auth/me", {
+//           method: "GET",
+//           cache: "no-store",
+//         });
+
+//         const data: MeResponse = await res.json().catch(() => ({ ok: false }));
+
+//         if (!cancelled) {
+//           if (data.ok) {
+//             setUser(data.user ?? null);
+//           } else {
+//             setUser(null);
+//           }
+//         }
+//       } catch {
+//         if (!cancelled) {
+//           setUser(null);
+//         }
+//       } finally {
+//         if (!cancelled) {
+//           setLoading(false);
+//         }
+//       }
+//     }
+
+//     loadMe();
+//     return () => {
+//       cancelled = true;
+//     };
+//   }, [pathname]);
+
+//   const isLoggedIn = !!user;
+
+//   const go = (path: string) => router.push(path);
+
+//   const handleLogout = async () => {
+//     try {
+//       await fetch("/api/auth/logout", { method: "POST" });
+//     } catch {}
+//     setUser(null);
+//     router.push("/");
+//     router.refresh();
+//   };
+
+//   return (
+//     <DropdownMenu>
+//       <DropdownMenuTrigger asChild>
+//         <Button
+//           variant="ghost"
+//           size="sm"
+//           className="text-white hover:bg-white/20 flex items-center px-2 sm:px-3"
+//         >
+//           <User className="h-4 w-4 lg:h-5 lg:w-5" />
+
+//           {/* ชื่อจริงถูกตัดออก → โชว์เฉพาะ email บนจอใหญ่ */}
+//           {isLoggedIn && (
+//             <span className="ml-2 hidden lg:block text-xs max-w-[160px] truncate">
+//               {user?.email}
+//             </span>
+//           )}
+
+//           <ChevronDown className="h-3 w-3 ml-1 hidden lg:block" />
+//         </Button>
+//       </DropdownMenuTrigger>
+
+//       <DropdownMenuContent
+//         align="end"
+//         className="w-48 bg-white text-foreground shadow-lg border border-primary/10"
+//       >
+//         {isLoggedIn ? (
+//           <>
+//             {/* 🔥 แสดงเฉพาะอีเมลด้านบนเมนู */}
+//             <DropdownMenuLabel className="text-xs leading-tight">
+//               <div className="font-semibold truncate">
+//                 {user?.email}
+//               </div>
+//             </DropdownMenuLabel>
+
+//             <DropdownMenuSeparator />
+
+//             <DropdownMenuItem onClick={() => go("/profile")}>
+//               โปรไฟล์
+//             </DropdownMenuItem>
+
+//             <DropdownMenuItem onClick={() => go("/orders")}>
+//               ประวัติการสั่งซื้อ
+//             </DropdownMenuItem>
+
+//             <DropdownMenuSeparator />
+
+//             <DropdownMenuItem
+//               onClick={handleLogout}
+//               className="text-red-600 focus:text-red-600"
+//             >
+//               ออกจากระบบ
+//             </DropdownMenuItem>
+//           </>
+//         ) : (
+//           <>
+//             <DropdownMenuItem
+//               onClick={() =>
+//                 router.push(
+//                   `/login?redirect=${encodeURIComponent(
+//                     window.location.pathname + window.location.search
+//                   )}`
+//                 )
+//               }
+//             >
+//               เข้าสู่ระบบ
+//             </DropdownMenuItem>
+
+//             <DropdownMenuItem onClick={() => go("/register")}>
+//               สมัครสมาชิกใหม่
+//             </DropdownMenuItem>
+//           </>
+//         )}
+//       </DropdownMenuContent>
+//     </DropdownMenu>
+//   );
+// }
 
 
 // v.1.1.6 ===================================================================
