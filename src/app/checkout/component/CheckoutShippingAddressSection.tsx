@@ -1,4 +1,4 @@
-// v.1.1.3 ===============================================================
+// v.1.1.4 ===============================================================
 // src/app/checkout/component/CheckoutShippingAddressSection.tsx
 
 "use client";
@@ -19,25 +19,46 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-import type { CheckoutAddress } from "../checkout.types";
+import type { CheckoutAddress } from "@/types/checkout";
 import CheckoutAddressSheet from "./CheckoutAddressSheet";
 import CheckoutAddressSummary from "./CheckoutAddressSummary";
 
+/**
+ * Mock ข้อมูลที่อยู่จาก Profile
+ * - แถวแรก: บุคคลธรรมดา (HOME)
+ * - แถวสอง: นิติบุคคล (OFFICE)
+ * ตอนนี้ยังเป็น mock อยู่ แต่ structure รองรับ profileMode/purpose แล้ว
+ */
 const initialAddresses: CheckoutAddress[] = [
   {
     id: 1,
     type: "HOME",
-    name: "สิรดา ธำรำ",
-    phone: "0863527663",
+    name: "สิรดา ถวิก",
+    phone: "086-352-7663",
     address:
-      "สบปิดิ์ ร้ำปี ร่ำวชำกระก๊วยิดส เคลส์ 50/37 ซอย 8 ซิ์ง อ.สิ่ง ลิ. สะหมำเชม/ Saphan Song, 10310, วำงห่องส่ำม/ Wang Thonglang, กรุงเทพมหำนคร/ Bangkok",
+      "บ้านเลขที่ 50/37 ซอย 8 แขวงสะพานสอง เขตวังทองหลาง กรุงเทพมหานคร 10310",
     isDefault: true,
+    profileMode: "person",
+    purpose: "shipping",
+  },
+  {
+    id: 2,
+    type: "OFFICE",
+    name: "บจก. อินเตอร์ลิ้งค์ คอมมิวนิเคชั่น",
+    phone: "02-123-4567",
+    address:
+      "สำนักงานใหญ่ 65 ถนนตัวอย่าง แขวงตัวอย่าง เขตตัวอย่าง กรุงเทพมหานคร 10110",
+    isDefault: false,
+    profileMode: "entity",
+    purpose: "shipping",
   },
 ];
 
 export default function CheckoutShippingAddressSection() {
   const [addresses, setAddresses] =
     useState<CheckoutAddress[]>(initialAddresses);
+
+  // address ที่ใช้สำหรับ order นี้ (default = แถวแรก = บุคคลธรรมดา)
   const [selectedAddress, setSelectedAddress] = useState<CheckoutAddress>(
     initialAddresses[0]
   );
@@ -83,6 +104,94 @@ export default function CheckoutShippingAddressSection() {
     </Card>
   );
 }
+
+// v.1.1.4 ===============================================================
+
+// v.1.1.3 ===============================================================
+// // src/app/checkout/component/CheckoutShippingAddressSection.tsx
+
+// "use client";
+
+// import { useState } from "react";
+// import { MapPin } from "lucide-react";
+
+// import {
+//   Card,
+//   CardHeader,
+//   CardTitle,
+//   CardContent,
+// } from "@/components/ui/card";
+// import { Button } from "@/components/ui/button";
+// import {
+//   Sheet,
+//   SheetContent,
+//   SheetTrigger,
+// } from "@/components/ui/sheet";
+
+// import type { CheckoutAddress } from "@/types/checkout";
+// import CheckoutAddressSheet from "./CheckoutAddressSheet";
+// import CheckoutAddressSummary from "./CheckoutAddressSummary";
+
+// const initialAddresses: CheckoutAddress[] = [
+//   {
+//     id: 1,
+//     type: "HOME",
+//     name: "สิรดา ธำรำ",
+//     phone: "0863527663",
+//     address:
+//       "สบปิดิ์ ร้ำปี ร่ำวชำกระก๊วยิดส เคลส์ 50/37 ซอย 8 ซิ์ง อ.สิ่ง ลิ. สะหมำเชม/ Saphan Song, 10310, วำงห่องส่ำม/ Wang Thonglang, กรุงเทพมหำนคร/ Bangkok",
+//     isDefault: true,
+//   },
+// ];
+
+// export default function CheckoutShippingAddressSection() {
+//   const [addresses, setAddresses] =
+//     useState<CheckoutAddress[]>(initialAddresses);
+//   const [selectedAddress, setSelectedAddress] = useState<CheckoutAddress>(
+//     initialAddresses[0]
+//   );
+
+//   const [isAddressSheetOpen, setIsAddressSheetOpen] = useState(false);
+
+//   return (
+//     <Card>
+//       <CardHeader className="pb-3">
+//         <CardTitle className="flex items-center gap-2 text-lg">
+//           <MapPin className="h-5 w-5" />
+//           ที่อยู่จัดส่ง
+//           <Sheet
+//             open={isAddressSheetOpen}
+//             onOpenChange={setIsAddressSheetOpen}
+//           >
+//             <SheetTrigger asChild>
+//               <Button
+//                 variant="ghost"
+//                 size="sm"
+//                 className="ml-auto text-primary"
+//               >
+//                 แก้ไข
+//               </Button>
+//             </SheetTrigger>
+
+//             <SheetContent className="w-[400px] sm:w-[540px] max-w-full overflow-hidden">
+//               <CheckoutAddressSheet
+//                 addresses={addresses}
+//                 selectedAddress={selectedAddress}
+//                 setAddresses={setAddresses}
+//                 setSelectedAddress={setSelectedAddress}
+//                 onClose={() => setIsAddressSheetOpen(false)}
+//               />
+//             </SheetContent>
+//           </Sheet>
+//         </CardTitle>
+//       </CardHeader>
+
+//       <CardContent>
+//         <CheckoutAddressSummary selectedAddress={selectedAddress} />
+//       </CardContent>
+//     </Card>
+//   );
+// }
 
 // v.1.1.3 ===============================================================
 

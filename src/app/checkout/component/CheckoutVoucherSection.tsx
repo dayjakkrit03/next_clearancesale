@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Check, Trash2 } from "lucide-react";
 
 // ⬇️ ใช้ type กลาง
-import type { CheckoutVoucher } from "../checkout.types";
+import type { CheckoutVoucher } from "@/types/checkout";
 
 type Props = {
   voucherCode: string;

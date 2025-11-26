@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 // ⬇️ ใช้ type กลาง
-import type { CheckoutInvoiceInfo } from "../checkout.types";
+import type { CheckoutInvoiceInfo } from "@/types/checkout";
 
 export default function CheckoutInvoiceSection() {
   const [isInvoiceSheetOpen, setIsInvoiceSheetOpen] = useState(false);

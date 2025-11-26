@@ -1,212 +1,2029 @@
-// src/app/checkout/CheckoutClient.tsx
+// v.1.1.2 ===============================================================
+// // src/app/checkout/CheckoutClient.tsx
+// "use client";
 
-"use client";
+// import { useEffect, useMemo, useState } from "react";
+// import Link from "next/link";
+// import { useRouter } from "next/navigation";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+// import {
+//   ArrowLeft,
+//   MapPin,
+//   CreditCard,
+//   Wallet,
+//   Check,
+//   QrCode,
+//   Trash2,
+//   Smartphone,
+//   Building2,
+//   ArrowLeftRight,
+// } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
+// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// import { Input } from "@/components/ui/input";
+// import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+// import { Label } from "@/components/ui/label";
+// import { Separator } from "@/components/ui/separator";
+// import {
+//   Sheet,
+//   SheetContent,
+//   SheetHeader,
+//   SheetTitle,
+//   SheetTrigger,
+// } from "@/components/ui/sheet";
+// import {
+//   AlertDialog,
+//   AlertDialogAction,
+//   AlertDialogCancel,
+//   AlertDialogContent,
+//   AlertDialogDescription,
+//   AlertDialogFooter,
+//   AlertDialogHeader,
+//   AlertDialogTitle,
+//   AlertDialogTrigger,
+// } from "@/components/ui/alert-dialog";
+// import { Textarea } from "@/components/ui/textarea";
 
-import CheckoutShippingAddressSection from "./component/CheckoutShippingAddressSection";
-import CheckoutPackagesSection from "./component/CheckoutPackagesSection";
-import CheckoutPaymentSection from "./component/CheckoutPaymentSection";
-import CheckoutVoucherSection from "./component/CheckoutVoucherSection";
-import CheckoutInvoiceSection from "./component/CheckoutInvoiceSection";
-import CheckoutSummarySection from "./component/CheckoutSummarySection";
+// import type {
+//   CheckoutItem,
+//   CheckoutSummary,
+//   CheckoutAddress,
+//   CheckoutProfileInfo,
+// } from "@/types/checkout";
 
-import type {
-  CheckoutItem,
-  CheckoutVoucher,
-  DeliveryOption,
-  PaymentMethod,
-  CheckoutPaymentData,
-} from "./checkout.types";
+// type Props = {
+//   items: CheckoutItem[];
+//   summary: CheckoutSummary;
+//   shippingAddress: CheckoutAddress | null;
+//   billingAddress: CheckoutAddress | null;
+//   profileInfo?: CheckoutProfileInfo;
+// };
 
-import type { CheckoutPageData } from "@/services/checkout";
+// /** shape ที่จะใช้ใน UI (ให้เหมือน UICartItem แต่ไม่มี checkbox / edit) */
+// type UICheckoutItem = {
+//   id: number;
+//   name: string;
+//   sku: string;
+//   brand?: string;
+//   price: number;
+//   quantity: number;
+//   uom?: string;
+//   lineTotal: number;
+//   image: string;
+// };
 
-type Props = {
-  initialData: CheckoutPageData;
-};
+// /**
+//  * แปลง CheckoutItem → UICheckoutItem
+//  */
+// function mapItemsForUI(items: CheckoutItem[]): UICheckoutItem[] {
+//   return items.map((i) => ({
+//     id: i.cartId,
+//     name: i.name,
+//     sku: i.product,
+//     brand: i.brand,
+//     price: i.unitPrice,
+//     quantity: i.quantity,
+//     uom: i.uom || undefined,
+//     lineTotal: i.lineTotal,
+//     image: i.imageUrl || "/assets/placeholder-product.png",
+//   }));
+// }
 
-export default function CheckoutClient({ initialData }: Props) {
-  const router = useRouter();
+// export default function CheckoutClient({
+//   items,
+//   summary,
+//   shippingAddress,
+//   billingAddress,
+//   profileInfo,
+// }: Props) {
+//   const router = useRouter();
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+//   useEffect(() => {
+//     window.scrollTo(0, 0);
+//   }, []);
 
-  // ===== State หลักที่มีผลหลายส่วน =====
+//   // ====== สินค้าในคำสั่งซื้อ (จาก props) ======
+//   const [checkoutItems, setCheckoutItems] = useState<UICheckoutItem[]>(() =>
+//     mapItemsForUI(items)
+//   );
 
-  // สินค้า ใช้จาก service layer
-  const [checkoutItems, setCheckoutItems] = useState<CheckoutItem[]>(
-    initialData.items,
-  );
+//   // ====== วิธีชำระเงิน / voucher / etc. (ยังเป็น UI-only) ======
+//   const [paymentMethod, setPaymentMethod] = useState<"card" | "qr" | string>(
+//     "card"
+//   );
+//   const [voucherCode, setVoucherCode] = useState("");
+//   const [appliedVouchers, setAppliedVouchers] = useState<
+//     { code: string; discount: number }[]
+//   >([]);
+//   const [voucherError, setVoucherError] = useState("");
+//   const [isPaymentMethodsOpen, setIsPaymentMethodsOpen] = useState(false);
+//   const [additionalPaymentMethods, setAdditionalPaymentMethods] = useState<
+//     string[]
+//   >([]);
 
-  // วิธีจัดส่ง ปัจจุบันยังใช้ mock logic แบบเดิม
-  const [deliveryOption, setDeliveryOption] =
-    useState<DeliveryOption>("standard");
+//   // ====== ข้อมูล invoice ======
+//   const initialEmail = profileInfo?.email || "example@email.com";
 
-  // วิธีชำระเงิน เริ่มจากตัวแรกที่ service ส่งมา หรือ "card"
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
-    initialData.availablePaymentMethods[0] ?? "card",
-  );
+//   const initialBillingText =
+//     billingAddress?.address || shippingAddress?.address || "";
 
-  // Voucher state
-  const [voucherCode, setVoucherCode] = useState("");
-  const [appliedVouchers, setAppliedVouchers] = useState<CheckoutVoucher[]>(
-    initialData.appliedVouchers ?? [],
-  );
-  const [voucherError, setVoucherError] = useState("");
+//   const [invoiceInfo, setInvoiceInfo] = useState({
+//     email: initialEmail,
+//     billingAddress: initialBillingText,
+//     taxId: profileInfo?.taxId ?? "",
+//     headOfficeBranch: "",
+//   });
+//   const [isInvoiceSheetOpen, setIsInvoiceSheetOpen] = useState(false);
 
-  // ===== คำนวณราคา (ฝั่ง client) =====
+//   // ====== ที่อยู่จัดส่ง (read-only) ======
+//   const addressDisplay = shippingAddress
+//     ? {
+//         tag: shippingAddress.type,
+//         name: shippingAddress.name,
+//         phone: shippingAddress.phone,
+//         address: shippingAddress.address,
+//       }
+//     : null;
 
-  const subtotal = checkoutItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0,
-  );
+//   // ====== Summary คำนวณซ้ำจาก state ปัจจุบัน (รองรับลบสินค้า/ voucher) ======
+//   const subtotal = useMemo(
+//     () =>
+//       checkoutItems.reduce(
+//         (sum, item) => sum + item.price * item.quantity,
+//         0
+//       ),
+//     [checkoutItems]
+//   );
 
-  // ตาม logic เดิมของหน้า checkout:
-  // - ถ้า standard => shippingFee = 0 (แต่อยู่ใน UI จะโชว์ 65 + ส่วนลด 65 แยก)
-  // - ถ้า express => shippingFee = 65
-  const shippingFee = deliveryOption === "standard" ? 0 : 65;
+//   const shippingFee = summary.shippingFee ?? 0; // ตอนนี้ 0 ไว้ก่อน
+//   const voucherDiscount = appliedVouchers.reduce(
+//     (sum, v) => sum + v.discount,
+//     0
+//   );
+//   const total = subtotal + shippingFee - voucherDiscount;
 
-  const voucherDiscount = appliedVouchers.reduce(
-    (sum, voucher) => sum + voucher.discount,
-    0,
-  );
+//   // ====== handlers ======
 
-  const total = subtotal + shippingFee - voucherDiscount;
+//   const handleRemoveItem = (id: number) => {
+//     setCheckoutItems((prev) => prev.filter((it) => it.id !== id));
+//     // TODO: ผูกกับ API ลบจาก carts จริง เช่น /api/cart/remove
+//   };
 
-  // ===== Logic Voucher =====
+//   const handleApplyVoucher = () => {
+//     if (!voucherCode.trim()) return;
+//     setVoucherError("");
 
-  const handleApplyVoucher = () => {
-    if (!voucherCode.trim()) return;
+//     const mockVouchers: Record<string, { code: string; discount: number }> = {
+//       SAVE100: { code: "SAVE100", discount: 100 },
+//       DISCOUNT50: { code: "DISCOUNT50", discount: 50 },
+//       FREESHIP: { code: "FREESHIP", discount: 65 },
+//       VC0001: { code: "VC0001", discount: 100 },
+//       VC0002: { code: "VC0002", discount: 200 },
+//     };
 
-    setVoucherError("");
+//     const code = voucherCode.toUpperCase();
+//     const voucher = mockVouchers[code];
 
-    const mockVouchers: Record<string, CheckoutVoucher> = {
-      SAVE100: { code: "SAVE100", discount: 100 },
-      DISCOUNT50: { code: "DISCOUNT50", discount: 50 },
-      FREESHIP: { code: "FREESHIP", discount: 65 },
-      VC0001: { code: "VC0001", discount: 100 },
-      VC0002: { code: "VC0002", discount: 200 },
-    };
+//     if (!voucher) {
+//       setVoucherError("โค้ดส่วนลดไม่ถูกต้อง");
+//       return;
+//     }
 
-    const key = voucherCode.toUpperCase();
-    const voucher = mockVouchers[key];
+//     const already = appliedVouchers.some((v) => v.code === code);
+//     if (already) {
+//       setVoucherError("โค้ดนี้ถูกใช้แล้ว");
+//       return;
+//     }
 
-    if (!voucher) {
-      setVoucherError("โค้ดส่วนลดไม่ถูกต้อง");
-      return;
-    }
+//     setAppliedVouchers((prev) => [...prev, voucher]);
+//     setVoucherCode("");
+//   };
 
-    const isAlreadyApplied = appliedVouchers.some(
-      (v) => v.code === voucher.code,
-    );
-    if (isAlreadyApplied) {
-      setVoucherError("โค้ดนี้ถูกใช้แล้ว");
-      return;
-    }
+//   const handleRemoveVoucher = (code: string) => {
+//     setAppliedVouchers((prev) => prev.filter((v) => v.code !== code));
+//   };
 
-    setAppliedVouchers((prev) => [...prev, voucher]);
-    setVoucherCode("");
-  };
+//   const handleConfirmPaymentMethods = () => {
+//     const methodsToAdd: string[] = [];
+//     if (
+//       paymentMethod === "linepay" &&
+//       !additionalPaymentMethods.includes("linepay")
+//     )
+//       methodsToAdd.push("linepay");
+//     if (
+//       paymentMethod === "internetbanking" &&
+//       !additionalPaymentMethods.includes("internetbanking")
+//     )
+//       methodsToAdd.push("internetbanking");
+//     if (
+//       paymentMethod === "banktransfer" &&
+//       !additionalPaymentMethods.includes("banktransfer")
+//     )
+//       methodsToAdd.push("banktransfer");
+//     if (paymentMethod === "cash" && !additionalPaymentMethods.includes("cod"))
+//       methodsToAdd.push("cod");
 
-  const handleRemoveVoucher = (codeToRemove: string) => {
-    setAppliedVouchers((prev) => prev.filter((v) => v.code !== codeToRemove));
-  };
+//     setAdditionalPaymentMethods((prev) => [...prev, ...methodsToAdd]);
+//     setIsPaymentMethodsOpen(false);
+//   };
 
-  // ===== Logic Cart Item =====
+//   const handleRemovePaymentMethod = (method: string) => {
+//     setAdditionalPaymentMethods((prev) => prev.filter((m) => m !== method));
+//     if (paymentMethod === method) setPaymentMethod("card");
+//   };
 
-  const handleRemoveItem = (itemId: number) => {
-    setCheckoutItems((items) => items.filter((item) => item.id !== itemId));
-  };
+//   const handleSaveInvoiceInfo = () => {
+//     setIsInvoiceSheetOpen(false);
+//   };
 
-  // ===== Place Order =====
+//   const handlePlaceOrder = () => {
+//     const paymentData = {
+//       amount: total,
+//       orderId: `ORDER-${Date.now()}`,
+//       items: checkoutItems,
+//       subtotal,
+//       shippingFee,
+//       voucherDiscount,
+//       appliedVouchers,
+//     };
 
-  const handlePlaceOrder = () => {
-    const paymentData: CheckoutPaymentData = {
-      amount: total,
-      orderId: `ORDER-${Date.now()}`,
-      items: checkoutItems,
-      subtotal,
-      shippingFee,
-      shippingDiscount: 65, // ตอนนี้ยัง fix ตาม UI เดิม
-      voucherDiscount,
-      appliedVouchers,
-    };
+//     if (typeof window !== "undefined") {
+//       sessionStorage.setItem("paymentData", JSON.stringify(paymentData));
+//     }
 
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("paymentData", JSON.stringify(paymentData));
-    }
+//     if (paymentMethod === "card") {
+//       router.push("/payment/card");
+//     } else if (paymentMethod === "qr") {
+//       router.push("/payment/qr");
+//     } else {
+//       router.push("/payment/card");
+//     }
+//   };
 
-    if (paymentMethod === "card") {
-      router.push("/payment/card");
-    } else if (paymentMethod === "qr") {
-      router.push("/payment/qr");
-    } else {
-      // ยังไม่มี route แยกสำหรับวิธีอื่น ใช้ card เป็น default
-      router.push("/payment/card");
-    }
-  };
+//   const getPaymentMethodInfo = (method: string) => {
+//     const methodsMap = {
+//       linepay: {
+//         icon: <Smartphone className="h-6 w-6 text-green-600" />,
+//         bgColor: "bg-green-100",
+//         name: "LINE Pay",
+//         description: "เชื่อมต่อบัตรหรือเติมเงินก่อนช้อปปิ้ง",
+//       },
+//       internetbanking: {
+//         icon: <Building2 className="h-6 w-6 text-blue-600" />,
+//         bgColor: "bg-blue-100",
+//         name: "Internet banking",
+//         description: "เข้าสู่ระบบด้วยบัญชีธนาคารเพื่อชำระเงิน",
+//       },
+//       banktransfer: {
+//         icon: <ArrowLeftRight className="h-6 w-6 text-purple-600" />,
+//         bgColor: "bg-purple-100",
+//         name: "โอนเงินผ่านธนาคาร",
+//         description: "โอนเงินโดยตรงไปยังบัญชีของผู้ขาย",
+//       },
+//       cod: {
+//         icon: <Wallet className="h-6 w-6 text-orange-600" />,
+//         bgColor: "bg-orange-100",
+//         name: "เก็บเงินปลายทาง",
+//         description: "ชำระเมื่อสินค้าจัดส่งถึงปลายทาง",
+//       },
+//     } as const;
 
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6 max-w-6xl">
-        <div className="flex items-center gap-4 mb-6">
-          <Link href="/cart">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <h1 className="text-2xl font-bold">ชำระเงิน</h1>
-        </div>
+//     return methodsMap[method as keyof typeof methodsMap];
+//   };
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* ซ้าย: ที่อยู่ + แพ็กเกจสินค้า */}
-          <div className="lg:col-span-2 space-y-6">
-            <CheckoutShippingAddressSection />
+//   return (
+//     <div className="min-h-screen bg-background">
+//       <div className="container mx-auto px-4 py-6 max-w-6xl">
+//         <div className="flex items-center gap-4 mb-6">
+//           <Link href="/cart">
+//             <Button variant="ghost" size="icon">
+//               <ArrowLeft className="h-5 w-5" />
+//             </Button>
+//           </Link>
+//           <h1 className="text-2xl font-bold">ชำระเงิน</h1>
+//         </div>
 
-            <CheckoutPackagesSection
-              checkoutItems={checkoutItems}
-              deliveryOption={deliveryOption}
-              onChangeDeliveryOption={setDeliveryOption}
-              onRemoveItem={handleRemoveItem}
-            />
-          </div>
+//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+//           {/* ====== ซ้าย: ที่อยู่ + รายการสินค้า ====== */}
+//           <div className="lg:col-span-2 space-y-6">
+//             {/* ที่อยู่จัดส่ง */}
+//             <Card>
+//               <CardHeader className="pb-3">
+//                 <CardTitle className="flex items-center gap-2 text-lg">
+//                   <MapPin className="h-5 w-5" />
+//                   ที่อยู่จัดส่ง
+//                   <Link href="/profile" className="ml-auto">
+//                     <Button
+//                       variant="ghost"
+//                       size="sm"
+//                       className="text-primary"
+//                     >
+//                       แก้ไข
+//                     </Button>
+//                   </Link>
+//                 </CardTitle>
+//               </CardHeader>
+//               <CardContent>
+//                 {addressDisplay ? (
+//                   <div className="bg-orange-50 p-3 rounded border border-orange-200">
+//                     <div className="flex items-center gap-2 mb-1">
+//                       <span
+//                         className={`text-white text-xs px-2 py-1 rounded ${
+//                           addressDisplay.tag === "HOME"
+//                             ? "bg-orange-500"
+//                             : "bg-blue-500"
+//                         }`}
+//                       >
+//                         {addressDisplay.tag}
+//                       </span>
+//                       <span className="font-medium">
+//                         {addressDisplay.name}
+//                       </span>
+//                       <span className="text-muted-foreground">
+//                         {addressDisplay.phone}
+//                       </span>
+//                     </div>
+//                     <p className="text-sm text-muted-foreground">
+//                       {addressDisplay.address}
+//                     </p>
+//                   </div>
+//                 ) : (
+//                   <div className="text-sm text-red-600">
+//                     ยังไม่พบข้อมูลที่อยู่จัดส่ง กรุณากรอกในหน้า{" "}
+//                     <Link href="/profile" className="underline">
+//                       โปรไฟล์
+//                     </Link>{" "}
+//                     ก่อนทำการสั่งซื้อ
+//                   </div>
+//                 )}
+//               </CardContent>
+//             </Card>
 
-          {/* ขวา: การชำระเงิน / Voucher / ใบกำกับ / สรุปยอด */}
-          <div className="space-y-6">
-            <CheckoutPaymentSection
-              paymentMethod={paymentMethod}
-              onChangePaymentMethod={setPaymentMethod}
-            />
+//             {/* รายการสินค้า – layout ตามหน้า Cart แต่ไม่มี checkbox / ปุ่มแก้ไข */}
+//             <Card>
+//               <CardHeader className="pb-3">
+//                 <CardTitle className="text-lg">
+//                   รายการสินค้าในคำสั่งซื้อ
+//                 </CardTitle>
+//               </CardHeader>
+//               <CardContent className="space-y-3">
+//                 {checkoutItems.length === 0 && (
+//                   <p className="text-sm text-muted-foreground">
+//                     ไม่มีสินค้าในคำสั่งซื้อ
+//                   </p>
+//                 )}
 
-            <CheckoutVoucherSection
-              voucherCode={voucherCode}
-              setVoucherCode={setVoucherCode}
-              voucherError={voucherError}
-              setVoucherError={setVoucherError}
-              appliedVouchers={appliedVouchers}
-              onApplyVoucher={handleApplyVoucher}
-              onRemoveVoucher={handleRemoveVoucher}
-            />
+//                 {checkoutItems.map((item) => (
+//                   <div
+//                     key={item.id}
+//                     className="p-4 bg-card rounded-lg border"
+//                   >
+//                     <div className="flex items-start gap-3">
+//                       {/* eslint-disable-next-line @next/next/no-img-element */}
+//                       <img
+//                         src={item.image}
+//                         alt={item.name}
+//                         className="w-20 h-20 object-cover rounded border"
+//                       />
 
-            <CheckoutInvoiceSection />
+//                       <div className="flex-1 min-w-0 space-y-1">
+//                         <h3 className="font-semibold text-sm line-clamp-2">
+//                           {item.name}
+//                         </h3>
 
-            <CheckoutSummarySection
-              itemCount={checkoutItems.length}
-              subtotal={subtotal}
-              shippingFee={shippingFee}
-              voucherDiscount={voucherDiscount}
-              total={total}
-              onPlaceOrder={handlePlaceOrder}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+//                         <div className="text-[11px] font-semibold text-foreground">
+//                           SKU: {item.sku}
+//                         </div>
+
+//                         {item.brand && (
+//                           <div className="text-[11px] text-muted-foreground">
+//                             Brand: {item.brand}
+//                           </div>
+//                         )}
+
+//                         <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
+//                           <div className="flex items-baseline gap-1">
+//                             <span className="text-primary font-semibold text-sm">
+//                               ฿{Number(item.price).toLocaleString()}
+//                             </span>
+//                             {item.uom && (
+//                               <span className="text-[11px] text-muted-foreground">
+//                                 / {item.uom}
+//                               </span>
+//                             )}
+//                           </div>
+//                         </div>
+
+//                         <div className="text-[11px] text-muted-foreground">
+//                           จำนวน:{" "}
+//                           <span className="font-medium text-foreground">
+//                             {Number(item.quantity).toLocaleString()}{" "}
+//                             {item.uom ? item.uom : ""}
+//                           </span>
+//                         </div>
+
+//                         <div className="text-sm flex items-center justify-between mt-1">
+//                           <div>
+//                             ราคารวม:{" "}
+//                             <span className="font-bold text-red-600 text-base">
+//                               ฿{Number(item.lineTotal).toLocaleString()}
+//                             </span>
+//                           </div>
+//                         </div>
+//                       </div>
+
+//                       {/* ปุ่มลบ */}
+//                       <AlertDialog>
+//                         <AlertDialogTrigger asChild>
+//                           <Button
+//                             variant="ghost"
+//                             size="sm"
+//                             className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
+//                           >
+//                             <Trash2 className="h-4 w-4" />
+//                           </Button>
+//                         </AlertDialogTrigger>
+//                         <AlertDialogContent>
+//                           <AlertDialogHeader>
+//                             <AlertDialogTitle>
+//                               ยืนยันการลบสินค้า
+//                             </AlertDialogTitle>
+//                             <AlertDialogDescription>
+//                               คุณต้องการลบ "{item.name}" ออกจากรายการสั่งซื้อหรือไม่?
+//                             </AlertDialogDescription>
+//                           </AlertDialogHeader>
+//                           <AlertDialogFooter>
+//                             <AlertDialogCancel>
+//                               ยกเลิก
+//                             </AlertDialogCancel>
+//                             <AlertDialogAction
+//                               onClick={() => handleRemoveItem(item.id)}
+//                               className="bg-red-600 hover:bg-red-700"
+//                             >
+//                               ลบ
+//                             </AlertDialogAction>
+//                           </AlertDialogFooter>
+//                         </AlertDialogContent>
+//                       </AlertDialog>
+//                     </div>
+//                   </div>
+//                 ))}
+//               </CardContent>
+//             </Card>
+//           </div>
+
+//           {/* ====== ขวา: Payment + Voucher + Invoice + Summary ====== */}
+//           <div className="space-y-6">
+//             {/* วิธีชำระเงิน */}
+//             <Card>
+//               <CardHeader className="pb-3">
+//                 <CardTitle className="text-lg">เลือกวิธีชำระเงิน</CardTitle>
+//                 <Sheet
+//                   open={isPaymentMethodsOpen}
+//                   onOpenChange={setIsPaymentMethodsOpen}
+//                 >
+//                   <SheetTrigger asChild>
+//                     <Button
+//                       variant="ghost"
+//                       size="sm"
+//                       className="text-primary self-start p-0 h-auto"
+//                     >
+//                       ดูวิธีการทั้งหมด »
+//                     </Button>
+//                   </SheetTrigger>
+//                   <SheetContent
+//                     side="right"
+//                     className="w-[500px] max-w-full overflow-hidden"
+//                   >
+//                     <SheetHeader>
+//                       <SheetTitle>เลือกวิธีชำระเงิน</SheetTitle>
+//                     </SheetHeader>
+
+//                     <div className="mt-4 space-y-3 overflow-y-auto max-h-[calc(100vh-120px)]">
+//                       <h3 className="text-sm font-medium text-gray-700">
+//                         วิธีที่แนะนำ
+//                       </h3>
+
+//                       {/* แนะนำ: บัตรเครดิต/เดบิต */}
+//                       <div
+//                         className={`flex items-center space-x-3 p-4 border-2 rounded-lg hover:border-primary/50 transition-colors cursor-pointer ${
+//                           paymentMethod === "card"
+//                             ? "border-primary bg-primary/5"
+//                             : "border-gray-200"
+//                         }`}
+//                         onClick={() => setPaymentMethod("card")}
+//                       >
+//                         <div className="bg-blue-100 p-2 rounded-lg">
+//                           <CreditCard className="h-6 w-6 text-blue-600" />
+//                         </div>
+//                         <div className="flex-1">
+//                           <div className="font-medium text-gray-900">
+//                             บัตรเครดิต/เดบิต
+//                           </div>
+//                           <div className="text-sm text-gray-500">
+//                             บัตรเครดิต/เดบิต
+//                           </div>
+//                           <div className="flex items-center gap-1 mt-1">
+//                             <img
+//                               src="/assets/mastercard-logo.svg"
+//                               alt="Mastercard"
+//                               className="h-4 w-auto"
+//                             />
+//                             <img
+//                               src="/assets/jcb-logo.svg"
+//                               alt="JCB"
+//                               className="h-4 w-auto"
+//                             />
+//                             <img
+//                               src="/assets/visa-logo.svg"
+//                               alt="Visa"
+//                               className="h-4 w-auto"
+//                             />
+//                           </div>
+//                         </div>
+//                         {paymentMethod === "card" && (
+//                           <Check className="h-5 w-5 text-green-500" />
+//                         )}
+//                       </div>
+
+//                       <Separator />
+
+//                       <h3 className="text-sm font-medium text-gray-700">
+//                         วิธีชำระเงินอื่น ๆ
+//                       </h3>
+
+//                       {/* เก็บเงินปลายทาง */}
+//                       <div
+//                         className={`flex items-center space-x-3 p-4 border-2 rounded-lg hover:border-primary/50 transition-colors cursor-pointer ${
+//                           paymentMethod === "cash"
+//                             ? "border-primary bg-primary/5"
+//                             : "border-gray-200"
+//                         }`}
+//                         onClick={() => setPaymentMethod("cash")}
+//                       >
+//                         <div className="bg-green-100 p-2 rounded-lg">
+//                           <Wallet className="h-6 w-6 text-green-600" />
+//                         </div>
+//                         <div className="flex-1">
+//                           <div className="font-medium text-gray-900">
+//                             เก็บเงินปลายทาง
+//                           </div>
+//                           <div className="text-sm text-gray-500">
+//                             เก็บเงินปลายทาง
+//                           </div>
+//                         </div>
+//                         {paymentMethod === "cash" && (
+//                           <Check className="h-5 w-5 text-green-500" />
+//                         )}
+//                       </div>
+
+//                       {/* QR PromptPay */}
+//                       <div
+//                         className={`flex items-center space-x-3 p-4 border-2 rounded-lg hover:border-primary/50 transition-colors cursor-pointer ${
+//                           paymentMethod === "qr"
+//                             ? "border-primary bg-primary/5"
+//                             : "border-gray-200"
+//                         }`}
+//                         onClick={() => setPaymentMethod("qr")}
+//                       >
+//                         <div className="bg-blue-100 p-2 rounded-lg">
+//                           <QrCode className="h-6 w-6 text-blue-600" />
+//                         </div>
+//                         <div className="flex-1">
+//                           <div className="font-medium text-gray-900">
+//                             QR PromptPay
+//                           </div>
+//                           <div className="text-sm text-gray-500">
+//                             สแกน QR Code เพื่อชำระเงิน
+//                           </div>
+//                         </div>
+//                         {paymentMethod === "qr" && (
+//                           <Check className="h-5 w-5 text-green-500" />
+//                         )}
+//                       </div>
+
+//                       {/* LINE Pay */}
+//                       <div
+//                         className={`flex items-center space-x-3 p-4 border-2 rounded-lg hover:border-primary/50 transition-colors cursor-pointer ${
+//                           paymentMethod === "linepay"
+//                             ? "border-primary bg-primary/5"
+//                             : "border-gray-200"
+//                         }`}
+//                         onClick={() => setPaymentMethod("linepay")}
+//                       >
+//                         <div className="bg-green-100 p-2 rounded-lg">
+//                           <Smartphone className="h-6 w-6 text-green-600" />
+//                         </div>
+//                         <div className="flex-1">
+//                           <div className="font-medium text-gray-900">
+//                             LINE Pay
+//                           </div>
+//                           <div className="text-sm text-gray-500">
+//                             เชื่อมต่อบัตรหรือเติมเงินก่อนช้อปปิ้ง
+//                           </div>
+//                         </div>
+//                         {paymentMethod === "linepay" && (
+//                           <Check className="h-5 w-5 text-green-500" />
+//                         )}
+//                       </div>
+
+//                       {/* Internet Banking */}
+//                       <div
+//                         className={`flex items-center space-x-3 p-4 border-2 rounded-lg hover:border-primary/50 transition-colors cursor-pointer ${
+//                           paymentMethod === "internetbanking"
+//                             ? "border-primary bg-primary/5"
+//                             : "border-gray-200"
+//                         }`}
+//                         onClick={() => setPaymentMethod("internetbanking")}
+//                       >
+//                         <div className="bg-blue-100 p-2 rounded-lg">
+//                           <Building2 className="h-6 w-6 text-blue-600" />
+//                         </div>
+//                         <div className="flex-1">
+//                           <div className="font-medium text-gray-900">
+//                             Internet Banking
+//                           </div>
+//                           <div className="text-sm text-gray-500">
+//                             เข้าสู่ระบบด้วยบัญชีธนาคารเพื่อชำระเงิน
+//                           </div>
+//                         </div>
+//                         {paymentMethod === "internetbanking" && (
+//                           <Check className="h-5 w-5 text-green-500" />
+//                         )}
+//                       </div>
+
+//                       {/* โอนเงินผ่านธนาคาร */}
+//                       <div
+//                         className={`flex items-center space-x-3 p-4 border-2 rounded-lg hover:border-primary/50 transition-colors cursor-pointer ${
+//                           paymentMethod === "banktransfer"
+//                             ? "border-primary bg-primary/5"
+//                             : "border-gray-200"
+//                         }`}
+//                         onClick={() => setPaymentMethod("banktransfer")}
+//                       >
+//                         <div className="bg-purple-100 p-2 rounded-lg">
+//                           <ArrowLeftRight className="h-6 w-6 text-purple-600" />
+//                         </div>
+//                         <div className="flex-1">
+//                           <div className="font-medium text-gray-900">
+//                             โอนเงินผ่านธนาคาร
+//                           </div>
+//                           <div className="text-sm text-gray-500">
+//                             โอนเงินโดยตรงไปยังบัญชีของผู้ขาย
+//                           </div>
+//                         </div>
+//                         {paymentMethod === "banktransfer" && (
+//                           <Check className="h-5 w-5 text-green-500" />
+//                         )}
+//                       </div>
+//                     </div>
+
+//                     <div className="flex justify-end gap-2 mt-6">
+//                       <Button
+//                         variant="outline"
+//                         onClick={() => setIsPaymentMethodsOpen(false)}
+//                       >
+//                         ยกเลิก
+//                       </Button>
+//                       <Button
+//                         className="bg-orange-500 hover:bg-orange-600 text-white"
+//                         onClick={handleConfirmPaymentMethods}
+//                       >
+//                         ยืนยัน
+//                       </Button>
+//                     </div>
+//                   </SheetContent>
+//                 </Sheet>
+//               </CardHeader>
+
+//               {/* กล่องวิธีหลัก (card / qr / etc) */}
+//               <CardContent className="space-y-3">
+//                 <RadioGroup
+//                   value={paymentMethod}
+//                   onValueChange={setPaymentMethod}
+//                 >
+//                   {/* บัตรเครดิต/เดบิต */}
+//                   <div
+//                     className={`flex items-center space-x-2 p-4 border-2 rounded-lg hover:border-primary/50 transition-colors ${
+//                       paymentMethod === "card"
+//                         ? "border-primary bg-primary/5"
+//                         : "border-gray-200"
+//                     }`}
+//                   >
+//                     <RadioGroupItem value="card" id="card" />
+//                     <div className="bg-blue-100 p-2 rounded-lg">
+//                       <CreditCard className="h-6 w-6 text-blue-600" />
+//                     </div>
+//                     <div className="flex-1">
+//                       <Label htmlFor="card" className="cursor-pointer">
+//                         <div className="font-semibold text-gray-900">
+//                           บัตรเครดิต/เดบิต
+//                         </div>
+//                         <div className="text-sm text-gray-500">
+//                           บัตรเครดิต/เดบิต
+//                         </div>
+//                       </Label>
+//                       <div className="flex items-center gap-1 mt-2">
+//                         <img
+//                           src="/assets/mastercard-logo.svg"
+//                           alt="Mastercard"
+//                           className="h-4 w-auto"
+//                         />
+//                         <img
+//                           src="/assets/jcb-logo.svg"
+//                           alt="JCB"
+//                           className="h-4 w-auto"
+//                         />
+//                         <img
+//                           src="/assets/visa-logo.svg"
+//                           alt="Visa"
+//                           className="h-4 w-auto"
+//                         />
+//                       </div>
+//                     </div>
+//                     {paymentMethod === "card" && (
+//                       <Check className="h-5 w-5 text-green-500" />
+//                     )}
+//                   </div>
+
+//                   {/* QR PromptPay */}
+//                   <div
+//                     className={`flex items-center space-x-2 p-4 border-2 rounded-lg hover:border-primary/50 transition-colors ${
+//                       paymentMethod === "qr"
+//                         ? "border-primary bg-primary/5"
+//                         : "border-gray-200"
+//                     }`}
+//                   >
+//                     <RadioGroupItem value="qr" id="qr" />
+//                     <div className="bg-blue-100 p-2 rounded-lg">
+//                       <QrCode className="h-6 w-6 text-blue-600" />
+//                     </div>
+//                     <Label
+//                       htmlFor="qr"
+//                       className="flex-1 cursor-pointer"
+//                     >
+//                       <div className="font-semibold text-gray-900">
+//                         QR PromptPay
+//                       </div>
+//                       <div className="text-sm text-gray-500">
+//                         สแกน QR Code เพื่อชำระเงิน
+//                       </div>
+//                     </Label>
+//                     {paymentMethod === "qr" && (
+//                       <Check className="h-5 w-5 text-green-500" />
+//                     )}
+//                   </div>
+
+//                   {/* วิธีชำระเงินอื่นที่ user เพิ่มจาก sheet */}
+//                   {additionalPaymentMethods.map((method) => {
+//                     const methodInfo = getPaymentMethodInfo(method);
+//                     if (!methodInfo) return null;
+
+//                     return (
+//                       <div
+//                         key={method}
+//                         className={`flex items-center space-x-2 p-4 border-2 rounded-lg hover:border-primary/50 transition-colors ${
+//                           paymentMethod === method
+//                             ? "border-primary bg-primary/5"
+//                             : "border-gray-200"
+//                         }`}
+//                       >
+//                         <RadioGroupItem value={method} id={method} />
+//                         <div className={`${methodInfo.bgColor} p-2 rounded-lg`}>
+//                           {methodInfo.icon}
+//                         </div>
+//                         <Label
+//                           htmlFor={method}
+//                           className="flex-1 cursor-pointer"
+//                         >
+//                           <div className="font-semibold text-gray-900">
+//                             {methodInfo.name}
+//                           </div>
+//                           <div className="text-sm text-gray-500">
+//                             {methodInfo.description}
+//                           </div>
+//                         </Label>
+//                         {paymentMethod === method && (
+//                           <Check className="h-5 w-5 text-green-500" />
+//                         )}
+//                         <Button
+//                           variant="ghost"
+//                           size="sm"
+//                           onClick={(e) => {
+//                             e.preventDefault();
+//                             e.stopPropagation();
+//                             handleRemovePaymentMethod(method);
+//                           }}
+//                           className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
+//                         >
+//                           <Trash2 className="h-4 w-4" />
+//                         </Button>
+//                       </div>
+//                     );
+//                   })}
+//                 </RadioGroup>
+//               </CardContent>
+//             </Card>
+
+//             {/* ใบกำกับภาษีและข้อมูลติดต่อ */}
+//             <Card>
+//               <CardHeader className="pb-3">
+//                 <CardTitle className="flex items-center justify-between text-lg">
+//                   ใบกำกับภาษีและข้อมูลติดต่อ
+//                   <Sheet
+//                     open={isInvoiceSheetOpen}
+//                     onOpenChange={setIsInvoiceSheetOpen}
+//                   >
+//                     <SheetTrigger asChild>
+//                       <Button variant="ghost" size="sm" className="text-primary">
+//                         แก้ไข
+//                       </Button>
+//                     </SheetTrigger>
+//                     <SheetContent
+//                       side="right"
+//                       className="w-[500px] max-w-full overflow-hidden"
+//                     >
+//                       <SheetHeader>
+//                         <SheetTitle>ใบกำกับภาษีและข้อมูลติดต่อ</SheetTitle>
+//                       </SheetHeader>
+
+//                       <div className="mt-6 space-y-6 overflow-y-auto max-h-[calc(100vh-120px)]">
+//                         {/* Email */}
+//                         <div className="space-y-2">
+//                           <Label
+//                             htmlFor="invoice-email"
+//                             className="text-sm font-medium"
+//                           >
+//                             * อีเมล
+//                           </Label>
+//                           <Input
+//                             id="invoice-email"
+//                             type="email"
+//                             value={invoiceInfo.email}
+//                             onChange={(e) =>
+//                               setInvoiceInfo((prev) => ({
+//                                 ...prev,
+//                                 email: e.target.value,
+//                               }))
+//                             }
+//                             placeholder="กรอกอีเมลเพื่อรับการอัปเดตสถานะการจัดส่ง"
+//                           />
+//                         </div>
+
+//                         {/* Billing address */}
+//                         <div className="space-y-2">
+//                           <Label
+//                             htmlFor="invoice-address"
+//                             className="text-sm font-medium"
+//                           >
+//                             * ที่อยู่ในการออกใบกำกับภาษี
+//                           </Label>
+//                           <Textarea
+//                             id="invoice-address"
+//                             value={invoiceInfo.billingAddress}
+//                             onChange={(e) =>
+//                               setInvoiceInfo((prev) => ({
+//                                 ...prev,
+//                                 billingAddress: e.target.value,
+//                               }))
+//                             }
+//                             rows={4}
+//                             className="resize-none"
+//                           />
+//                           <p className="text-xs text-gray-500">
+//                             คลิกเพื่อแก้ไขข้อมูลการเรียกเก็บเงินสำหรับการออกใบกำกับภาษี
+//                             *กรุณา กรอกชื่อเต็มในช่องที่จำเป็น
+//                           </p>
+//                         </div>
+
+//                         {/* Tax ID */}
+//                         <div className="space-y-2">
+//                           <Label
+//                             htmlFor="invoice-taxId"
+//                             className="text-sm font-medium"
+//                           >
+//                             เลขประจำตัวผู้เสียภาษี
+//                           </Label>
+//                           <Input
+//                             id="invoice-taxId"
+//                             value={invoiceInfo.taxId}
+//                             onChange={(e) =>
+//                               setInvoiceInfo((prev) => ({
+//                                 ...prev,
+//                                 taxId: e.target.value,
+//                               }))
+//                             }
+//                             placeholder="กรุณากรอกเลขประจำตัวผู้เสียภาษีที่ถูกต้อง"
+//                           />
+//                           <p className="text-xs text-red-500">
+//                             กรุณากรอกเลขประจำตัวผู้เสียภาษีเพื่อรับใบกำกับภาษี
+//                           </p>
+//                         </div>
+
+//                         {/* Head office / branch */}
+//                         <div className="space-y-2">
+//                           <Label
+//                             htmlFor="invoice-branch"
+//                             className="text-sm font-medium"
+//                           >
+//                             รหัสสำนักงานใหญ่/สาขา (สำหรับบริษัท)
+//                           </Label>
+//                           <Input
+//                             id="invoice-branch"
+//                             value={invoiceInfo.headOfficeBranch}
+//                             onChange={(e) =>
+//                               setInvoiceInfo((prev) => ({
+//                                 ...prev,
+//                                 headOfficeBranch: e.target.value,
+//                               }))
+//                             }
+//                             placeholder="กรุณากรอกสำนักงานใหญ่/สาขาเพื่อรับใบกำกับภาษี"
+//                           />
+//                         </div>
+//                       </div>
+
+//                       <div className="flex gap-3 mt-8">
+//                         <Button
+//                           variant="outline"
+//                           className="flex-1"
+//                           onClick={() => setIsInvoiceSheetOpen(false)}
+//                         >
+//                           ยกเลิก
+//                         </Button>
+//                         <Button
+//                           className="flex-1 bg-teal-500 hover:bg-teal-600 text-white"
+//                           onClick={handleSaveInvoiceInfo}
+//                         >
+//                           บันทึก
+//                         </Button>
+//                       </div>
+//                     </SheetContent>
+//                   </Sheet>
+//                 </CardTitle>
+//               </CardHeader>
+//               <CardContent className="space-y-3">
+//                 <div className="text-sm">
+//                   <p className="font-medium">Email</p>
+//                   <p className="text-gray-600">{invoiceInfo.email}</p>
+//                 </div>
+//                 <div className="text-sm">
+//                   <p className="font-medium">ที่อยู่ในการออกใบกำกับภาษี</p>
+//                   <p className="text-gray-600 whitespace-pre-line">
+//                     {invoiceInfo.billingAddress}
+//                   </p>
+//                 </div>
+//                 {invoiceInfo.taxId && (
+//                   <div className="text-sm">
+//                     <p className="font-medium">เลขประจำตัวผู้เสียภาษี</p>
+//                     <p className="text-gray-600">{invoiceInfo.taxId}</p>
+//                   </div>
+//                 )}
+//                 {invoiceInfo.headOfficeBranch && (
+//                   <div className="text-sm">
+//                     <p className="font-medium">รหัสสำนักงานใหญ่/สาขา</p>
+//                     <p className="text-gray-600">
+//                       {invoiceInfo.headOfficeBranch}
+//                     </p>
+//                   </div>
+//                 )}
+//               </CardContent>
+//             </Card>
+
+//             {/* Summary */}
+//             <Card>
+//               <CardHeader className="pb-3">
+//                 <CardTitle className="text-lg">
+//                   รายละเอียดคำสั่งซื้อ
+//                 </CardTitle>
+//               </CardHeader>
+//               <CardContent className="space-y-3">
+//                 <div className="flex justify-between text-sm">
+//                   <span>ราคาสินค้า ({checkoutItems.length} รายการ)</span>
+//                   <span>฿{subtotal.toLocaleString()}</span>
+//                 </div>
+//                 <div className="flex justify-between text-sm">
+//                   <span>ค่าจัดส่ง</span>
+//                   <span className={shippingFee === 0 ? "text-green-600" : ""}>
+//                     {shippingFee === 0
+//                       ? "ฟรี"
+//                       : `฿${shippingFee.toLocaleString()}`}
+//                   </span>
+//                 </div>
+//                 {voucherDiscount > 0 && (
+//                   <div className="flex justify-between text-sm">
+//                     <span>ส่วนลดจากโค้ด</span>
+//                     <span className="text-green-600">
+//                       -฿{voucherDiscount.toLocaleString()}
+//                     </span>
+//                   </div>
+//                 )}
+//                 <Separator />
+//                 <div className="flex justify-between font-bold text-lg">
+//                   <span>ยอดรวมทั้งหมด</span>
+//                   <span className="text-orange-600">
+//                     ฿{total.toLocaleString()}
+//                   </span>
+//                 </div>
+//                 <Button
+//                   className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white"
+//                   size="lg"
+//                   onClick={handlePlaceOrder}
+//                 >
+//                   สั่งซื้อสินค้า
+//                 </Button>
+//               </CardContent>
+//             </Card>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+// v.1.1.2 ===============================================================
+
+// // src/app/checkout/CheckoutClient.tsx
+// "use client";
+
+// import { useEffect, useMemo, useState } from "react";
+// import Link from "next/link";
+// import { useRouter } from "next/navigation";
+
+// import {
+//   ArrowLeft,
+//   MapPin,
+//   CreditCard,
+//   Wallet,
+//   Check,
+//   QrCode,
+//   Trash2,
+//   Smartphone,
+//   Building2,
+//   ArrowLeftRight,
+// } from "lucide-react";
+
+// import { Button } from "@/components/ui/button";
+// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// import { Input } from "@/components/ui/input";
+// import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+// import { Label } from "@/components/ui/label";
+// import { Separator } from "@/components/ui/separator";
+// import {
+//   Sheet,
+//   SheetContent,
+//   SheetHeader,
+//   SheetTitle,
+//   SheetTrigger,
+// } from "@/components/ui/sheet";
+// import {
+//   AlertDialog,
+//   AlertDialogAction,
+//   AlertDialogCancel,
+//   AlertDialogContent,
+//   AlertDialogDescription,
+//   AlertDialogFooter,
+//   AlertDialogHeader,
+//   AlertDialogTitle,
+//   AlertDialogTrigger,
+// } from "@/components/ui/alert-dialog";
+// import { Textarea } from "@/components/ui/textarea";
+
+// import type {
+//   CheckoutItem,
+//   CheckoutSummary,
+//   CheckoutAddress,
+//   CheckoutProfileInfo,
+// } from "@/types/checkout";
+
+// type Props = {
+//   items: CheckoutItem[];
+//   summary: CheckoutSummary;
+//   shippingAddress: CheckoutAddress | null;
+//   billingAddress: CheckoutAddress | null;
+//   profileInfo?: CheckoutProfileInfo;
+// };
+
+// /**
+//  * แปลง CheckoutItem → shape ที่ UI Mock เดิมใช้ (name, price, quantity, image)
+//  */
+// function mapItemsForUI(items: CheckoutItem[]) {
+//   return items.map((i) => ({
+//     id: i.cartId,
+//     name: i.name,
+//     price: i.unitPrice,
+//     quantity: i.quantity,
+//     image: i.imageUrl || "/assets/placeholder-product.png",
+//   }));
+// }
+
+// export default function CheckoutClient({
+//   items,
+//   summary,
+//   shippingAddress,
+//   billingAddress,
+//   profileInfo,
+// }: Props) {
+//   const router = useRouter();
+
+//   useEffect(() => {
+//     window.scrollTo(0, 0);
+//   }, []);
+
+//   // ====== สินค้าในคำสั่งซื้อ (จาก props) ======
+//   const [checkoutItems, setCheckoutItems] = useState(() =>
+//     mapItemsForUI(items)
+//   );
+
+//   // ====== วิธีชำระเงิน / voucher / etc. (ยังเป็น UI-only) ======
+//   const [paymentMethod, setPaymentMethod] = useState<"card" | "qr" | string>(
+//     "card"
+//   );
+//   const [voucherCode, setVoucherCode] = useState("");
+//   const [appliedVouchers, setAppliedVouchers] = useState<
+//     { code: string; discount: number }[]
+//   >([]);
+//   const [voucherError, setVoucherError] = useState("");
+//   const [isPaymentMethodsOpen, setIsPaymentMethodsOpen] = useState(false);
+//   const [additionalPaymentMethods, setAdditionalPaymentMethods] = useState<
+//     string[]
+//   >([]);
+
+//   // ====== ข้อมูล invoice ======
+//   const initialEmail = profileInfo?.email || "example@email.com";
+
+//   const initialBillingText =
+//     billingAddress?.address || shippingAddress?.address || "";
+
+//   const [invoiceInfo, setInvoiceInfo] = useState({
+//     email: initialEmail,
+//     billingAddress: initialBillingText,
+//     taxId: profileInfo?.taxId ?? "",
+//     headOfficeBranch: "",
+//   });
+//   const [isInvoiceSheetOpen, setIsInvoiceSheetOpen] = useState(false);
+
+//   // ====== ที่อยู่จัดส่ง (read-only) ======
+//   const addressDisplay = shippingAddress
+//     ? {
+//         tag: shippingAddress.type,
+//         name: shippingAddress.name,
+//         phone: shippingAddress.phone,
+//         address: shippingAddress.address,
+//       }
+//     : null;
+
+//   // ====== Summary คำนวณซ้ำจาก state ปัจจุบัน (รองรับลบสินค้า/ voucher) ======
+//   const subtotal = useMemo(
+//     () =>
+//       checkoutItems.reduce(
+//         (sum, item) => sum + item.price * item.quantity,
+//         0
+//       ),
+//     [checkoutItems]
+//   );
+
+//   const shippingFee = summary.shippingFee ?? 0; // ตอนนี้ 0 ไว้ก่อน
+//   const voucherDiscount = appliedVouchers.reduce(
+//     (sum, v) => sum + v.discount,
+//     0
+//   );
+//   const total = subtotal + shippingFee - voucherDiscount;
+
+//   // ====== handlers ======
+
+//   const handleRemoveItem = (id: number) => {
+//     setCheckoutItems((prev) => prev.filter((it) => it.id !== id));
+//     // TODO: ผูกกับ API ลบจาก carts จริง เช่น /api/cart/remove
+//   };
+
+//   const handleApplyVoucher = () => {
+//     if (!voucherCode.trim()) return;
+//     setVoucherError("");
+
+//     const mockVouchers: Record<string, { code: string; discount: number }> = {
+//       SAVE100: { code: "SAVE100", discount: 100 },
+//       DISCOUNT50: { code: "DISCOUNT50", discount: 50 },
+//       FREESHIP: { code: "FREESHIP", discount: 65 },
+//       VC0001: { code: "VC0001", discount: 100 },
+//       VC0002: { code: "VC0002", discount: 200 },
+//     };
+
+//     const code = voucherCode.toUpperCase();
+//     const voucher = mockVouchers[code];
+
+//     if (!voucher) {
+//       setVoucherError("โค้ดส่วนลดไม่ถูกต้อง");
+//       return;
+//     }
+
+//     const already = appliedVouchers.some((v) => v.code === code);
+//     if (already) {
+//       setVoucherError("โค้ดนี้ถูกใช้แล้ว");
+//       return;
+//     }
+
+//     setAppliedVouchers((prev) => [...prev, voucher]);
+//     setVoucherCode("");
+//   };
+
+//   const handleRemoveVoucher = (code: string) => {
+//     setAppliedVouchers((prev) => prev.filter((v) => v.code !== code));
+//   };
+
+//   const handleConfirmPaymentMethods = () => {
+//     const methodsToAdd: string[] = [];
+//     if (
+//       paymentMethod === "linepay" &&
+//       !additionalPaymentMethods.includes("linepay")
+//     )
+//       methodsToAdd.push("linepay");
+//     if (
+//       paymentMethod === "internetbanking" &&
+//       !additionalPaymentMethods.includes("internetbanking")
+//     )
+//       methodsToAdd.push("internetbanking");
+//     if (
+//       paymentMethod === "banktransfer" &&
+//       !additionalPaymentMethods.includes("banktransfer")
+//     )
+//       methodsToAdd.push("banktransfer");
+//     if (paymentMethod === "cash" && !additionalPaymentMethods.includes("cod"))
+//       methodsToAdd.push("cod");
+
+//     setAdditionalPaymentMethods((prev) => [...prev, ...methodsToAdd]);
+//     setIsPaymentMethodsOpen(false);
+//   };
+
+//   const handleRemovePaymentMethod = (method: string) => {
+//     setAdditionalPaymentMethods((prev) => prev.filter((m) => m !== method));
+//     if (paymentMethod === method) setPaymentMethod("card");
+//   };
+
+//   const handleSaveInvoiceInfo = () => {
+//     setIsInvoiceSheetOpen(false);
+//   };
+
+//   const handlePlaceOrder = () => {
+//     const paymentData = {
+//       amount: total,
+//       orderId: `ORDER-${Date.now()}`,
+//       items: checkoutItems,
+//       subtotal,
+//       shippingFee,
+//       voucherDiscount,
+//       appliedVouchers,
+//     };
+
+//     if (typeof window !== "undefined") {
+//       sessionStorage.setItem("paymentData", JSON.stringify(paymentData));
+//     }
+
+//     if (paymentMethod === "card") {
+//       router.push("/payment/card");
+//     } else if (paymentMethod === "qr") {
+//       router.push("/payment/qr");
+//     } else {
+//       router.push("/payment/card");
+//     }
+//   };
+
+//   const getPaymentMethodInfo = (method: string) => {
+//     const methodsMap = {
+//       linepay: {
+//         icon: <Smartphone className="h-6 w-6 text-green-600" />,
+//         bgColor: "bg-green-100",
+//         name: "LINE Pay",
+//         description: "เชื่อมต่อบัตรหรือเติมเงินก่อนช้อปปิ้ง",
+//       },
+//       internetbanking: {
+//         icon: <Building2 className="h-6 w-6 text-blue-600" />,
+//         bgColor: "bg-blue-100",
+//         name: "Internet banking",
+//         description: "เข้าสู่ระบบด้วยบัญชีธนาคารเพื่อชำระเงิน",
+//       },
+//       banktransfer: {
+//         icon: <ArrowLeftRight className="h-6 w-6 text-purple-600" />,
+//         bgColor: "bg-purple-100",
+//         name: "โอนเงินผ่านธนาคาร",
+//         description: "โอนเงินโดยตรงไปยังบัญชีของผู้ขาย",
+//       },
+//       cod: {
+//         icon: <Wallet className="h-6 w-6 text-orange-600" />,
+//         bgColor: "bg-orange-100",
+//         name: "เก็บเงินปลายทาง",
+//         description: "ชำระเมื่อสินค้าจัดส่งถึงปลายทาง",
+//       },
+//     } as const;
+
+//     return methodsMap[method as keyof typeof methodsMap];
+//   };
+
+//   return (
+//     <div className="min-h-screen bg-background">
+//       <div className="container mx-auto px-4 py-6 max-w-6xl">
+//         <div className="flex items-center gap-4 mb-6">
+//           <Link href="/cart">
+//             <Button variant="ghost" size="icon">
+//               <ArrowLeft className="h-5 w-5" />
+//             </Button>
+//           </Link>
+//           <h1 className="text-2xl font-bold">ชำระเงิน</h1>
+//         </div>
+
+//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+//           {/* ====== ซ้าย: ที่อยู่ + รายการสินค้า ====== */}
+//           <div className="lg:col-span-2 space-y-6">
+//             {/* ที่อยู่จัดส่ง */}
+//             <Card>
+//               <CardHeader className="pb-3">
+//                 <CardTitle className="flex items-center gap-2 text-lg">
+//                   <MapPin className="h-5 w-5" />
+//                   ที่อยู่จัดส่ง
+//                   <Link href="/profile" className="ml-auto">
+//                     <Button
+//                       variant="ghost"
+//                       size="sm"
+//                       className="text-primary"
+//                     >
+//                       แก้ไข
+//                     </Button>
+//                   </Link>
+//                 </CardTitle>
+//               </CardHeader>
+//               <CardContent>
+//                 {addressDisplay ? (
+//                   <div className="bg-orange-50 p-3 rounded border border-orange-200">
+//                     <div className="flex items-center gap-2 mb-1">
+//                       <span
+//                         className={`text-white text-xs px-2 py-1 rounded ${
+//                           addressDisplay.tag === "HOME"
+//                             ? "bg-orange-500"
+//                             : "bg-blue-500"
+//                         }`}
+//                       >
+//                         {addressDisplay.tag}
+//                       </span>
+//                       <span className="font-medium">
+//                         {addressDisplay.name}
+//                       </span>
+//                       <span className="text-muted-foreground">
+//                         {addressDisplay.phone}
+//                       </span>
+//                     </div>
+//                     <p className="text-sm text-muted-foreground">
+//                       {addressDisplay.address}
+//                     </p>
+//                   </div>
+//                 ) : (
+//                   <div className="text-sm text-red-600">
+//                     ยังไม่พบข้อมูลที่อยู่จัดส่ง กรุณากรอกในหน้า{" "}
+//                     <Link href="/profile" className="underline">
+//                       โปรไฟล์
+//                     </Link>{" "}
+//                     ก่อนทำการสั่งซื้อ
+//                   </div>
+//                 )}
+//               </CardContent>
+//             </Card>
+
+//             {/* รายการสินค้า (ไม่แบ่งแพ็กเกจแล้ว) */}
+//             <Card>
+//               <CardHeader className="pb-3">
+//                 <CardTitle className="text-lg">
+//                   รายการสินค้าในคำสั่งซื้อ
+//                 </CardTitle>
+//               </CardHeader>
+//               <CardContent className="space-y-3">
+//                 {checkoutItems.length === 0 && (
+//                   <p className="text-sm text-muted-foreground">
+//                     ไม่มีสินค้าในคำสั่งซื้อ
+//                   </p>
+//                 )}
+
+//                 {checkoutItems.map((item) => (
+//                   <div
+//                     key={item.id}
+//                     className="border rounded-lg p-4 bg-gray-50"
+//                   >
+//                     <div className="flex gap-3">
+//                       <img
+//                         src={item.image}
+//                         alt={item.name}
+//                         className="w-16 h-16 object-cover rounded"
+//                       />
+//                       <div className="flex-1">
+//                         <h3 className="font-medium text-sm">
+//                           {item.name}
+//                         </h3>
+//                         <div className="flex justify-between items-center mt-2">
+//                           <div className="text-orange-600 font-bold">
+//                             ฿{item.price.toLocaleString()}
+//                           </div>
+//                           <div className="text-sm text-gray-600">
+//                             จำนวน: {item.quantity}
+//                           </div>
+//                         </div>
+//                       </div>
+
+//                       <AlertDialog>
+//                         <AlertDialogTrigger asChild>
+//                           <Button
+//                             variant="ghost"
+//                             size="sm"
+//                             className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
+//                           >
+//                             <Trash2 className="h-4 w-4" />
+//                           </Button>
+//                         </AlertDialogTrigger>
+//                         <AlertDialogContent>
+//                           <AlertDialogHeader>
+//                             <AlertDialogTitle>
+//                               ยืนยันการลบสินค้า
+//                             </AlertDialogTitle>
+//                             <AlertDialogDescription>
+//                               คุณต้องการลบ "{item.name}" ออกจากรายการสั่งซื้อหรือไม่?
+//                             </AlertDialogDescription>
+//                           </AlertDialogHeader>
+//                           <AlertDialogFooter>
+//                             <AlertDialogCancel>
+//                               ยกเลิก
+//                             </AlertDialogCancel>
+//                             <AlertDialogAction
+//                               onClick={() => handleRemoveItem(item.id)}
+//                               className="bg-red-600 hover:bg-red-700"
+//                             >
+//                               ลบ
+//                             </AlertDialogAction>
+//                           </AlertDialogFooter>
+//                         </AlertDialogContent>
+//                       </AlertDialog>
+//                     </div>
+//                   </div>
+//                 ))}
+//               </CardContent>
+//             </Card>
+//           </div>
+
+//           {/* ====== ขวา: Payment + Voucher + Invoice + Summary ====== */}
+//           <div className="space-y-6">
+//             {/* วิธีชำระเงิน */}
+//             <Card>
+//               <CardHeader className="pb-3">
+//                 <CardTitle className="text-lg">เลือกวิธีชำระเงิน</CardTitle>
+//                 <Sheet
+//                   open={isPaymentMethodsOpen}
+//                   onOpenChange={setIsPaymentMethodsOpen}
+//                 >
+//                   <SheetTrigger asChild>
+                    
+//                   </SheetTrigger>
+//                   <SheetContent
+//                     side="right"
+//                     className="w-[500px] max-w-full overflow-hidden"
+//                   >
+//                     <SheetHeader>
+//                       <SheetTitle>เลือกวิธีชำระเงิน</SheetTitle>
+//                     </SheetHeader>
+
+//                     <div className="mt-4 space-y-3 overflow-y-auto max-h-[calc(100vh-120px)]">
+//                       <h3 className="text-sm font-medium text-gray-700">
+//                         วิธีที่แนะนำ
+//                       </h3>
+
+//                       {/* แนะนำ: บัตรเครดิต/เดบิต */}
+//                       <div
+//                         className={`flex items-center space-x-3 p-4 border-2 rounded-lg hover:border-primary/50 transition-colors cursor-pointer ${
+//                           paymentMethod === "card"
+//                             ? "border-primary bg-primary/5"
+//                             : "border-gray-200"
+//                         }`}
+//                         onClick={() => setPaymentMethod("card")}
+//                       >
+//                         <div className="bg-blue-100 p-2 rounded-lg">
+//                           <CreditCard className="h-6 w-6 text-blue-600" />
+//                         </div>
+//                         <div className="flex-1">
+//                           <div className="font-medium text-gray-900">
+//                             บัตรเครดิต/เดบิต
+//                           </div>
+//                           <div className="text-sm text-gray-500">
+//                             บัตรเครดิต/เดบิต
+//                           </div>
+//                           <div className="flex items-center gap-1 mt-1">
+//                             <img
+//                               src="/assets/mastercard-logo.svg"
+//                               alt="Mastercard"
+//                               className="h-4 w-auto"
+//                             />
+//                             <img
+//                               src="/assets/jcb-logo.svg"
+//                               alt="JCB"
+//                               className="h-4 w-auto"
+//                             />
+//                             <img
+//                               src="/assets/visa-logo.svg"
+//                               alt="Visa"
+//                               className="h-4 w-auto"
+//                             />
+//                           </div>
+//                         </div>
+//                         {paymentMethod === "card" && (
+//                           <Check className="h-5 w-5 text-green-500" />
+//                         )}
+//                       </div>
+
+//                       <Separator />
+
+//                       <h3 className="text-sm font-medium text-gray-700">
+//                         วิธีชำระเงินอื่น ๆ
+//                       </h3>
+
+//                       {/* เก็บเงินปลายทาง */}
+//                       <div
+//                         className={`flex items-center space-x-3 p-4 border-2 rounded-lg hover:border-primary/50 transition-colors cursor-pointer ${
+//                           paymentMethod === "cash"
+//                             ? "border-primary bg-primary/5"
+//                             : "border-gray-200"
+//                         }`}
+//                         onClick={() => setPaymentMethod("cash")}
+//                       >
+//                         <div className="bg-green-100 p-2 rounded-lg">
+//                           <Wallet className="h-6 w-6 text-green-600" />
+//                         </div>
+//                         <div className="flex-1">
+//                           <div className="font-medium text-gray-900">
+//                             เก็บเงินปลายทาง
+//                           </div>
+//                           <div className="text-sm text-gray-500">
+//                             เก็บเงินปลายทาง
+//                           </div>
+//                         </div>
+//                         {paymentMethod === "cash" && (
+//                           <Check className="h-5 w-5 text-green-500" />
+//                         )}
+//                       </div>
+
+//                       {/* QR PromptPay */}
+//                       <div
+//                         className={`flex items-center space-x-3 p-4 border-2 rounded-lg hover:border-primary/50 transition-colors cursor-pointer ${
+//                           paymentMethod === "qr"
+//                             ? "border-primary bg-primary/5"
+//                             : "border-gray-200"
+//                         }`}
+//                         onClick={() => setPaymentMethod("qr")}
+//                       >
+//                         <div className="bg-blue-100 p-2 rounded-lg">
+//                           <QrCode className="h-6 w-6 text-blue-600" />
+//                         </div>
+//                         <div className="flex-1">
+//                           <div className="font-medium text-gray-900">
+//                             QR PromptPay
+//                           </div>
+//                           <div className="text-sm text-gray-500">
+//                             สแกน QR Code เพื่อชำระเงิน
+//                           </div>
+//                         </div>
+//                         {paymentMethod === "qr" && (
+//                           <Check className="h-5 w-5 text-green-500" />
+//                         )}
+//                       </div>
+
+//                       {/* LINE Pay */}
+//                       <div
+//                         className={`flex items-center space-x-3 p-4 border-2 rounded-lg hover:border-primary/50 transition-colors cursor-pointer ${
+//                           paymentMethod === "linepay"
+//                             ? "border-primary bg-primary/5"
+//                             : "border-gray-200"
+//                         }`}
+//                         onClick={() => setPaymentMethod("linepay")}
+//                       >
+//                         <div className="bg-green-100 p-2 rounded-lg">
+//                           <Smartphone className="h-6 w-6 text-green-600" />
+//                         </div>
+//                         <div className="flex-1">
+//                           <div className="font-medium text-gray-900">
+//                             LINE Pay
+//                           </div>
+//                           <div className="text-sm text-gray-500">
+//                             เชื่อมต่อบัตรหรือเติมเงินก่อนช้อปปิ้ง
+//                           </div>
+//                         </div>
+//                         {paymentMethod === "linepay" && (
+//                           <Check className="h-5 w-5 text-green-500" />
+//                         )}
+//                       </div>
+
+//                       {/* Internet Banking */}
+//                       <div
+//                         className={`flex items-center space-x-3 p-4 border-2 rounded-lg hover:border-primary/50 transition-colors cursor-pointer ${
+//                           paymentMethod === "internetbanking"
+//                             ? "border-primary bg-primary/5"
+//                             : "border-gray-200"
+//                         }`}
+//                         onClick={() => setPaymentMethod("internetbanking")}
+//                       >
+//                         <div className="bg-blue-100 p-2 rounded-lg">
+//                           <Building2 className="h-6 w-6 text-blue-600" />
+//                         </div>
+//                         <div className="flex-1">
+//                           <div className="font-medium text-gray-900">
+//                             Internet Banking
+//                           </div>
+//                           <div className="text-sm text-gray-500">
+//                             เข้าสู่ระบบด้วยบัญชีธนาคารเพื่อชำระเงิน
+//                           </div>
+//                         </div>
+//                         {paymentMethod === "internetbanking" && (
+//                           <Check className="h-5 w-5 text-green-500" />
+//                         )}
+//                       </div>
+
+//                       {/* โอนเงินผ่านธนาคาร */}
+//                       <div
+//                         className={`flex items-center space-x-3 p-4 border-2 rounded-lg hover:border-primary/50 transition-colors cursor-pointer ${
+//                           paymentMethod === "banktransfer"
+//                             ? "border-primary bg-primary/5"
+//                             : "border-gray-200"
+//                         }`}
+//                         onClick={() => setPaymentMethod("banktransfer")}
+//                       >
+//                         <div className="bg-purple-100 p-2 rounded-lg">
+//                           <ArrowLeftRight className="h-6 w-6 text-purple-600" />
+//                         </div>
+//                         <div className="flex-1">
+//                           <div className="font-medium text-gray-900">
+//                             โอนเงินผ่านธนาคาร
+//                           </div>
+//                           <div className="text-sm text-gray-500">
+//                             โอนเงินโดยตรงไปยังบัญชีของผู้ขาย
+//                           </div>
+//                         </div>
+//                         {paymentMethod === "banktransfer" && (
+//                           <Check className="h-5 w-5 text-green-500" />
+//                         )}
+//                       </div>
+//                     </div>
+
+//                     <div className="flex justify-end gap-2 mt-6">
+//                       <Button
+//                         variant="outline"
+//                         onClick={() => setIsPaymentMethodsOpen(false)}
+//                       >
+//                         ยกเลิก
+//                       </Button>
+//                       <Button
+//                         className="bg-orange-500 hover:bg-orange-600 text-white"
+//                         onClick={handleConfirmPaymentMethods}
+//                       >
+//                         ยืนยัน
+//                       </Button>
+//                     </div>
+//                   </SheetContent>
+//                 </Sheet>
+//               </CardHeader>
+
+//               {/* กล่องวิธีหลัก (card / qr / etc) */}
+//               <CardContent className="space-y-3">
+//                 <RadioGroup
+//                   value={paymentMethod}
+//                   onValueChange={setPaymentMethod}
+//                 >
+//                   {/* บัตรเครดิต/เดบิต */}
+//                   <div
+//                     className={`flex items-center space-x-2 p-4 border-2 rounded-lg hover:border-primary/50 transition-colors ${
+//                       paymentMethod === "card"
+//                         ? "border-primary bg-primary/5"
+//                         : "border-gray-200"
+//                     }`}
+//                   >
+//                     <RadioGroupItem value="card" id="card" />
+//                     <div className="bg-blue-100 p-2 rounded-lg">
+//                       <CreditCard className="h-6 w-6 text-blue-600" />
+//                     </div>
+//                     <div className="flex-1">
+//                       <Label htmlFor="card" className="cursor-pointer">
+//                         <div className="font-semibold text-gray-900">
+//                           บัตรเครดิต/เดบิต
+//                         </div>
+//                         <div className="text-sm text-gray-500">
+//                           บัตรเครดิต/เดบิต
+//                         </div>
+//                       </Label>
+//                       <div className="flex items-center gap-1 mt-2">
+//                         <img
+//                           src="/assets/mastercard-logo.svg"
+//                           alt="Mastercard"
+//                           className="h-4 w-auto"
+//                         />
+//                         <img
+//                           src="/assets/jcb-logo.svg"
+//                           alt="JCB"
+//                           className="h-4 w-auto"
+//                         />
+//                         <img
+//                           src="/assets/visa-logo.svg"
+//                           alt="Visa"
+//                           className="h-4 w-auto"
+//                         />
+//                       </div>
+//                     </div>
+//                     {paymentMethod === "card" && (
+//                       <Check className="h-5 w-5 text-green-500" />
+//                     )}
+//                   </div>
+
+//                   {/* QR PromptPay */}
+//                   <div
+//                     className={`flex items-center space-x-2 p-4 border-2 rounded-lg hover:border-primary/50 transition-colors ${
+//                       paymentMethod === "qr"
+//                         ? "border-primary bg-primary/5"
+//                         : "border-gray-200"
+//                     }`}
+//                   >
+//                     <RadioGroupItem value="qr" id="qr" />
+//                     <div className="bg-blue-100 p-2 rounded-lg">
+//                       <QrCode className="h-6 w-6 text-blue-600" />
+//                     </div>
+//                     <Label
+//                       htmlFor="qr"
+//                       className="flex-1 cursor-pointer"
+//                     >
+//                       <div className="font-semibold text-gray-900">
+//                         QR PromptPay
+//                       </div>
+//                       <div className="text-sm text-gray-500">
+//                         สแกน QR Code เพื่อชำระเงิน
+//                       </div>
+//                     </Label>
+//                     {paymentMethod === "qr" && (
+//                       <Check className="h-5 w-5 text-green-500" />
+//                     )}
+//                   </div>
+
+//                   {/* วิธีชำระเงินอื่นที่ user เพิ่มจาก sheet */}
+//                   {additionalPaymentMethods.map((method) => {
+//                     const methodInfo = getPaymentMethodInfo(method);
+//                     if (!methodInfo) return null;
+
+//                     return (
+//                       <div
+//                         key={method}
+//                         className={`flex items-center space-x-2 p-4 border-2 rounded-lg hover:border-primary/50 transition-colors ${
+//                           paymentMethod === method
+//                             ? "border-primary bg-primary/5"
+//                             : "border-gray-200"
+//                         }`}
+//                       >
+//                         <RadioGroupItem value={method} id={method} />
+//                         <div className={`${methodInfo.bgColor} p-2 rounded-lg`}>
+//                           {methodInfo.icon}
+//                         </div>
+//                         <Label
+//                           htmlFor={method}
+//                           className="flex-1 cursor-pointer"
+//                         >
+//                           <div className="font-semibold text-gray-900">
+//                             {methodInfo.name}
+//                           </div>
+//                           <div className="text-sm text-gray-500">
+//                             {methodInfo.description}
+//                           </div>
+//                         </Label>
+//                         {paymentMethod === method && (
+//                           <Check className="h-5 w-5 text-green-500" />
+//                         )}
+//                         <Button
+//                           variant="ghost"
+//                           size="sm"
+//                           onClick={(e) => {
+//                             e.preventDefault();
+//                             e.stopPropagation();
+//                             handleRemovePaymentMethod(method);
+//                           }}
+//                           className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
+//                         >
+//                           <Trash2 className="h-4 w-4" />
+//                         </Button>
+//                       </div>
+//                     );
+//                   })}
+//                 </RadioGroup>
+//               </CardContent>
+//             </Card>
+
+//             {/* ใบกำกับภาษีและข้อมูลติดต่อ */}
+//             <Card>
+//               <CardHeader className="pb-3">
+//                 <CardTitle className="flex items-center justify-between text-lg">
+//                   ใบกำกับภาษีและข้อมูลติดต่อ
+//                   <Sheet
+//                     open={isInvoiceSheetOpen}
+//                     onOpenChange={setIsInvoiceSheetOpen}
+//                   >
+//                     <SheetTrigger asChild>
+//                       <Button variant="ghost" size="sm" className="text-primary">
+//                         แก้ไข
+//                       </Button>
+//                     </SheetTrigger>
+//                     <SheetContent
+//                       side="right"
+//                       className="w-[500px] max-w-full overflow-hidden"
+//                     >
+//                       <SheetHeader>
+//                         <SheetTitle>ใบกำกับภาษีและข้อมูลติดต่อ</SheetTitle>
+//                       </SheetHeader>
+
+//                       <div className="mt-6 space-y-6 overflow-y-auto max-h-[calc(100vh-120px)]">
+//                         {/* Email */}
+//                         <div className="space-y-2">
+//                           <Label
+//                             htmlFor="invoice-email"
+//                             className="text-sm font-medium"
+//                           >
+//                             * อีเมล
+//                           </Label>
+//                           <Input
+//                             id="invoice-email"
+//                             type="email"
+//                             value={invoiceInfo.email}
+//                             onChange={(e) =>
+//                               setInvoiceInfo((prev) => ({
+//                                 ...prev,
+//                                 email: e.target.value,
+//                               }))
+//                             }
+//                             placeholder="กรอกอีเมลเพื่อรับการอัปเดตสถานะการจัดส่ง"
+//                           />
+//                         </div>
+
+//                         {/* Billing address */}
+//                         <div className="space-y-2">
+//                           <Label
+//                             htmlFor="invoice-address"
+//                             className="text-sm font-medium"
+//                           >
+//                             * ที่อยู่ในการออกใบกำกับภาษี
+//                           </Label>
+//                           <Textarea
+//                             id="invoice-address"
+//                             value={invoiceInfo.billingAddress}
+//                             onChange={(e) =>
+//                               setInvoiceInfo((prev) => ({
+//                                 ...prev,
+//                                 billingAddress: e.target.value,
+//                               }))
+//                             }
+//                             rows={4}
+//                             className="resize-none"
+//                           />
+//                           <p className="text-xs text-gray-500">
+//                             คลิกเพื่อแก้ไขข้อมูลการเรียกเก็บเงินสำหรับการออกใบกำกับภาษี
+//                             *กรุณา กรอกชื่อเต็มในช่องที่จำเป็น
+//                           </p>
+//                         </div>
+
+//                         {/* Tax ID */}
+//                         <div className="space-y-2">
+//                           <Label
+//                             htmlFor="invoice-taxId"
+//                             className="text-sm font-medium"
+//                           >
+//                             เลขประจำตัวผู้เสียภาษี
+//                           </Label>
+//                           <Input
+//                             id="invoice-taxId"
+//                             value={invoiceInfo.taxId}
+//                             onChange={(e) =>
+//                               setInvoiceInfo((prev) => ({
+//                                 ...prev,
+//                                 taxId: e.target.value,
+//                               }))
+//                             }
+//                             placeholder="กรุณากรอกเลขประจำตัวผู้เสียภาษีที่ถูกต้อง"
+//                           />
+//                           <p className="text-xs text-red-500">
+//                             กรุณากรอกเลขประจำตัวผู้เสียภาษีเพื่อรับใบกำกับภาษี
+//                           </p>
+//                         </div>
+
+//                         {/* Head office / branch */}
+//                         <div className="space-y-2">
+//                           <Label
+//                             htmlFor="invoice-branch"
+//                             className="text-sm font-medium"
+//                           >
+//                             รหัสสำนักงานใหญ่/สาขา (สำหรับบริษัท)
+//                           </Label>
+//                           <Input
+//                             id="invoice-branch"
+//                             value={invoiceInfo.headOfficeBranch}
+//                             onChange={(e) =>
+//                               setInvoiceInfo((prev) => ({
+//                                 ...prev,
+//                                 headOfficeBranch: e.target.value,
+//                               }))
+//                             }
+//                             placeholder="กรุณากรอกสำนักงานใหญ่/สาขาเพื่อรับใบกำกับภาษี"
+//                           />
+//                         </div>
+//                       </div>
+
+//                       <div className="flex gap-3 mt-8">
+//                         <Button
+//                           variant="outline"
+//                           className="flex-1"
+//                           onClick={() => setIsInvoiceSheetOpen(false)}
+//                         >
+//                           ยกเลิก
+//                         </Button>
+//                         <Button
+//                           className="flex-1 bg-teal-500 hover:bg-teal-600 text-white"
+//                           onClick={handleSaveInvoiceInfo}
+//                         >
+//                           บันทึก
+//                         </Button>
+//                       </div>
+//                     </SheetContent>
+//                   </Sheet>
+//                 </CardTitle>
+//               </CardHeader>
+//               <CardContent className="space-y-3">
+//                 <div className="text-sm">
+//                   <p className="font-medium">Email</p>
+//                   <p className="text-gray-600">{invoiceInfo.email}</p>
+//                 </div>
+//                 <div className="text-sm">
+//                   <p className="font-medium">ที่อยู่ในการออกใบกำกับภาษี</p>
+//                   <p className="text-gray-600 whitespace-pre-line">
+//                     {invoiceInfo.billingAddress}
+//                   </p>
+//                 </div>
+//                 {invoiceInfo.taxId && (
+//                   <div className="text-sm">
+//                     <p className="font-medium">เลขประจำตัวผู้เสียภาษี</p>
+//                     <p className="text-gray-600">{invoiceInfo.taxId}</p>
+//                   </div>
+//                 )}
+//                 {invoiceInfo.headOfficeBranch && (
+//                   <div className="text-sm">
+//                     <p className="font-medium">รหัสสำนักงานใหญ่/สาขา</p>
+//                     <p className="text-gray-600">
+//                       {invoiceInfo.headOfficeBranch}
+//                     </p>
+//                   </div>
+//                 )}
+//               </CardContent>
+//             </Card>
+
+//             {/* Summary */}
+//             <Card>
+//               <CardHeader className="pb-3">
+//                 <CardTitle className="text-lg">
+//                   รายละเอียดคำสั่งซื้อ
+//                 </CardTitle>
+//               </CardHeader>
+//               <CardContent className="space-y-3">
+//                 <div className="flex justify-between text-sm">
+//                   <span>ราคาสินค้า ({checkoutItems.length} รายการ)</span>
+//                   <span>฿{subtotal.toLocaleString()}</span>
+//                 </div>
+//                 <div className="flex justify-between text-sm">
+//                   <span>ค่าจัดส่ง</span>
+//                   <span className={shippingFee === 0 ? "text-green-600" : ""}>
+//                     {shippingFee === 0
+//                       ? "ฟรี"
+//                       : `฿${shippingFee.toLocaleString()}`}
+//                   </span>
+//                 </div>
+//                 {voucherDiscount > 0 && (
+//                   <div className="flex justify-between text-sm">
+//                     <span>ส่วนลดจากโค้ด</span>
+//                     <span className="text-green-600">
+//                       -฿{voucherDiscount.toLocaleString()}
+//                     </span>
+//                   </div>
+//                 )}
+//                 <Separator />
+//                 <div className="flex justify-between font-bold text-lg">
+//                   <span>ยอดรวมทั้งหมด</span>
+//                   <span className="text-orange-600">
+//                     ฿{total.toLocaleString()}
+//                   </span>
+//                 </div>
+//                 <Button
+//                   className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white"
+//                   size="lg"
+//                   onClick={handlePlaceOrder}
+//                 >
+//                   สั่งซื้อสินค้า
+//                 </Button>
+//               </CardContent>
+//             </Card>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+

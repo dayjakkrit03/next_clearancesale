@@ -1,110 +1,90 @@
+// v.1.1.3 ====================================================
 // src/app/checkout/component/CheckoutAddressList.tsx
 
 "use client";
 
-import type {
-  CheckoutAddress,
-  CheckoutAddressTag,
-} from "../checkout.types";
+import type { CheckoutAddress } from "@/types/checkout";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Edit, Check, Home, Building } from "lucide-react";
+import { Edit, Check } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
-
-type NewAddressFormState = {
-  type: CheckoutAddressTag;
-  name: string;
-  phone: string;
-  address: string;
-  province: string;
-  district: string;
-  subdistrict: string;
-  zipcode: string;
-};
 
 type Props = {
   addresses: CheckoutAddress[];
   selectedAddress: CheckoutAddress;
-  newAddress: NewAddressFormState;
-  setNewAddress: Dispatch<SetStateAction<NewAddressFormState>>;
-  isEditDialogOpen: boolean;
-  setIsEditDialogOpen: Dispatch<SetStateAction<boolean>>;
   onSelectAddress: (address: CheckoutAddress) => void;
   onSetDefault: (id: number) => void;
-  onEditAddress: (address: CheckoutAddress) => void;
-  onSaveEditedAddress: () => void;
+  /** ให้ parent (CheckoutAddressSheet) เปิด Dialog แก้ไขโปรไฟล์ */
+  onEditProfile: (address: CheckoutAddress) => void;
 };
 
 export default function CheckoutAddressList({
   addresses,
   selectedAddress,
-  newAddress,
-  setNewAddress,
-  isEditDialogOpen,
-  setIsEditDialogOpen,
   onSelectAddress,
   onSetDefault,
-  onEditAddress,
-  onSaveEditedAddress,
+  onEditProfile,
 }: Props) {
   return (
-    <>
-      {/* Address list */}
-      <div className="space-y-4">
-        {addresses.map((address) => (
+    <div className="space-y-4">
+      {addresses.map((address) => {
+        const isSelected = selectedAddress.id === address.id;
+        const tagLabel =
+          address.type === "HOME" ? "บุคคลธรรมดา" : "นิติบุคคล";
+        const tagClass =
+          address.type === "HOME" ? "bg-orange-500" : "bg-emerald-600";
+
+        return (
           <div
             key={address.id}
             className={`border rounded-xl p-5 transition-all duration-200 hover:shadow-md ${
-              selectedAddress.id === address.id
+              isSelected
                 ? "border-teal-500 bg-teal-50 shadow-sm"
                 : "border-gray-200 hover:border-gray-300"
             }`}
           >
             <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
               <div className="flex flex-wrap items-center gap-2 min-w-0 flex-1">
+                {/* ป้ายแสดงโหมดโปรไฟล์ */}
                 <span
-                  className={`text-xs px-3 py-1 rounded-full text-white font-medium ${
-                    address.type === "HOME"
-                      ? "bg-orange-500"
-                      : "bg-blue-500"
-                  }`}
+                  className={`text-xs px-3 py-1 rounded-full text-white font-medium ${tagClass}`}
                 >
-                  {address.type}
+                  {tagLabel}
                 </span>
+
                 <span className="font-semibold text-gray-900 truncate">
                   {address.name}
                 </span>
-                <span className="text-gray-600 text-sm">
-                  {address.phone}
-                </span>
+
+                {address.phone && (
+                  <span className="text-gray-600 text-sm">
+                    {address.phone}
+                  </span>
+                )}
+
                 {address.isDefault && (
                   <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
                     ค่าเริ่มต้น
                   </span>
                 )}
               </div>
+
               <div className="flex items-center gap-1 flex-shrink-0">
+                {/* ปุ่มแก้ไข → เปิด Dialog โปรไฟล์ (Person/Entity) */}
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onEditAddress(address);
+                    onEditProfile(address);
                   }}
                   className="h-9 w-9 p-0 hover:bg-blue-100 hover:text-blue-600"
-                  title="แก้ไขที่อยู่"
+                  title="แก้ไขข้อมูลโปรไฟล์"
                 >
                   <Edit className="h-4 w-4" />
                 </Button>
+
+                {/* ปุ่มตั้งค่า default */}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -128,6 +108,7 @@ export default function CheckoutAddressList({
               </div>
             </div>
 
+            {/* คลิกตัวเนื้อ address เพื่อเลือก */}
             <div
               className="text-sm text-gray-600 leading-relaxed cursor-pointer hover:text-gray-800 transition-colors"
               onClick={() => onSelectAddress(address)}
@@ -135,192 +116,702 @@ export default function CheckoutAddressList({
               <p className="break-words">{address.address}</p>
             </div>
 
+            {/* ปุ่มเลือก สำหรับ mobile */}
             <div className="mt-4 sm:hidden">
               <Button
-                variant={
-                  selectedAddress.id === address.id ? "default" : "outline"
-                }
+                variant={isSelected ? "default" : "outline"}
                 size="sm"
                 className="w-full"
                 onClick={() => onSelectAddress(address)}
               >
-                {selectedAddress.id === address.id
-                  ? "เลือกแล้ว"
-                  : "เลือกที่อยู่นี้"}
+                {isSelected ? "เลือกแล้ว" : "เลือกที่อยู่นี้"}
               </Button>
             </div>
           </div>
-        ))}
-      </div>
-
-      {/* Edit dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>แก้ไขที่อยู่จัดส่ง</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="edit-name">ชื่อ-นามสกุล</Label>
-                <Input
-                  id="edit-name"
-                  placeholder="กรุณากรอกชื่อ-นามสกุล"
-                  value={newAddress.name}
-                  onChange={(e) =>
-                    setNewAddress({
-                      ...newAddress,
-                      name: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-phone">หมายเลขโทรศัพท์</Label>
-                <Input
-                  id="edit-phone"
-                  placeholder="กรุณากรอกหมายเลขโทรศัพท์"
-                  value={newAddress.phone}
-                  onChange={(e) =>
-                    setNewAddress({
-                      ...newAddress,
-                      phone: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="edit-address">ที่อยู่</Label>
-              <Textarea
-                id="edit-address"
-                placeholder="บ้านเลขที่ ชั้น ชื่ออาคาร ชื่อถนน"
-                value={newAddress.address}
-                onChange={(e) =>
-                  setNewAddress({
-                    ...newAddress,
-                    address: e.target.value,
-                  })
-                }
-                className="min-h-[80px]"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="edit-province">จังหวัด</Label>
-                <Input
-                  id="edit-province"
-                  placeholder="กรุณาเลือกจังหวัด"
-                  value={newAddress.province}
-                  onChange={(e) =>
-                    setNewAddress({
-                      ...newAddress,
-                      province: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-district">เขต/อำเภอ</Label>
-                <Input
-                  id="edit-district"
-                  placeholder="กรุณาเลือกเขต/อำเภอ"
-                  value={newAddress.district}
-                  onChange={(e) =>
-                    setNewAddress({
-                      ...newAddress,
-                      district: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="edit-subdistrict">แขวง/ตำบล</Label>
-                <Input
-                  id="edit-subdistrict"
-                  placeholder="กรุณาเลือกแขวง/ตำบล"
-                  value={newAddress.subdistrict}
-                  onChange={(e) =>
-                    setNewAddress({
-                      ...newAddress,
-                      subdistrict: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-zipcode">รหัสไปรษณีย์</Label>
-                <Input
-                  id="edit-zipcode"
-                  placeholder="00000"
-                  value={newAddress.zipcode}
-                  onChange={(e) =>
-                    setNewAddress({
-                      ...newAddress,
-                      zipcode: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label>เลือกป้ายกำกับสำหรับการจัดส่งที่มีประสิทธิภาพ</Label>
-              <div className="flex gap-2 mt-2">
-                <Button
-                  variant={
-                    newAddress.type === "HOME" ? "default" : "outline"
-                  }
-                  size="sm"
-                  onClick={() =>
-                    setNewAddress({ ...newAddress, type: "HOME" })
-                  }
-                >
-                  <Home className="h-4 w-4 mr-1" />
-                  บ้าน
-                </Button>
-                <Button
-                  variant={
-                    newAddress.type === "OFFICE" ? "default" : "outline"
-                  }
-                  size="sm"
-                  onClick={() =>
-                    setNewAddress({ ...newAddress, type: "OFFICE" })
-                  }
-                >
-                  <Building className="h-4 w-4 mr-1" />
-                  ออฟฟิศ
-                </Button>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => setIsEditDialogOpen(false)}
-              >
-                ยกเลิก
-              </Button>
-              <Button
-                className="bg-teal-500 hover:bg-teal-600"
-                onClick={onSaveEditedAddress}
-                disabled={
-                  !newAddress.name ||
-                  !newAddress.phone ||
-                  !newAddress.address
-                }
-              >
-                บันทึก
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+        );
+      })}
+    </div>
   );
 }
+
+// v.1.1.3 ====================================================
+
+// v.1.1.2 ====================================================
+// // src/app/checkout/component/CheckoutAddressList.tsx
+
+// "use client";
+
+// import type {
+//   CheckoutAddress,
+//   CheckoutAddressTag,
+// } from "@/types/checkout";
+
+// import { Button } from "@/components/ui/button";
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogHeader,
+//   DialogTitle,
+// } from "@/components/ui/dialog";
+// import { Label } from "@/components/ui/label";
+// import { Input } from "@/components/ui/input";
+// import { Textarea } from "@/components/ui/textarea";
+// import { Edit, Check, Home, Building } from "lucide-react";
+// import type { Dispatch, SetStateAction } from "react";
+
+// type NewAddressFormState = {
+//   type: CheckoutAddressTag;
+//   name: string;
+//   phone: string;
+//   address: string;
+//   province: string;
+//   district: string;
+//   subdistrict: string;
+//   zipcode: string;
+// };
+
+// /** helper: แปลง profileMode → label ภาษาไทย */
+// function getProfileLabel(addr: CheckoutAddress): string {
+//   if (addr.profileMode === "person") return "บุคคลธรรมดา";
+//   if (addr.profileMode === "entity") return "นิติบุคคล";
+
+//   // fallback เดิม
+//   return addr.type === "HOME" ? "HOME" : "OFFICE";
+// }
+
+// /** helper: แปลง profileMode → สีป้าย */
+// function getProfileBadgeClass(addr: CheckoutAddress): string {
+//   if (addr.profileMode === "person") {
+//     return "bg-orange-500";
+//   }
+//   if (addr.profileMode === "entity") {
+//     return "bg-emerald-600";
+//   }
+//   return addr.type === "HOME" ? "bg-orange-500" : "bg-blue-500";
+// }
+
+// type Props = {
+//   addresses: CheckoutAddress[];
+//   selectedAddress: CheckoutAddress;
+//   newAddress: NewAddressFormState;
+//   setNewAddress: Dispatch<SetStateAction<NewAddressFormState>>;
+//   isEditDialogOpen: boolean;
+//   setIsEditDialogOpen: Dispatch<SetStateAction<boolean>>;
+//   onSelectAddress: (address: CheckoutAddress) => void;
+//   onSetDefault: (id: number) => void;
+//   onEditAddress: (address: CheckoutAddress) => void;
+//   onSaveEditedAddress: () => void;
+// };
+
+// export default function CheckoutAddressList({
+//   addresses,
+//   selectedAddress,
+//   newAddress,
+//   setNewAddress,
+//   isEditDialogOpen,
+//   setIsEditDialogOpen,
+//   onSelectAddress,
+//   onSetDefault,
+//   onEditAddress,
+//   onSaveEditedAddress,
+// }: Props) {
+//   return (
+//     <>
+//       {/* Address list */}
+//       <div className="space-y-4">
+//         {addresses.map((address) => {
+//           const profileLabel = getProfileLabel(address);
+//           const badgeClass = getProfileBadgeClass(address);
+
+//           return (
+//             <div
+//               key={address.id}
+//               className={`rounded-xl border p-5 transition-all duration-200 hover:shadow-md ${
+//                 selectedAddress.id === address.id
+//                   ? "border-teal-500 bg-teal-50 shadow-sm"
+//                   : "border-gray-200 hover:border-gray-300"
+//               }`}
+//             >
+//               <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+//                 <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+//                   {/* ป้ายโหมดโปรไฟล์ */}
+//                   <span
+//                     className={`text-xs px-3 py-1 rounded-full text-white font-medium ${badgeClass}`}
+//                   >
+//                     {profileLabel}
+//                   </span>
+
+//                   <span className="truncate font-semibold text-gray-900">
+//                     {address.name}
+//                   </span>
+//                   <span className="text-sm text-gray-600">
+//                     {address.phone}
+//                   </span>
+//                   {address.isDefault && (
+//                     <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+//                       ค่าเริ่มต้น
+//                     </span>
+//                   )}
+//                 </div>
+//                 <div className="flex flex-shrink-0 items-center gap-1">
+//                   <Button
+//                     variant="ghost"
+//                     size="sm"
+//                     onClick={(e) => {
+//                       e.stopPropagation();
+//                       onEditAddress(address);
+//                     }}
+//                     className="h-9 w-9 p-0 hover:bg-blue-100 hover:text-blue-600"
+//                     title="แก้ไขที่อยู่"
+//                   >
+//                     <Edit className="h-4 w-4" />
+//                   </Button>
+//                   <Button
+//                     variant="ghost"
+//                     size="sm"
+//                     onClick={(e) => {
+//                       e.stopPropagation();
+//                       onSetDefault(address.id);
+//                     }}
+//                     className={`h-9 w-9 p-0 ${
+//                       address.isDefault
+//                         ? "text-green-600 hover:bg-green-100"
+//                         : "text-gray-400 hover:bg-gray-100 hover:text-green-600"
+//                     }`}
+//                     title={
+//                       address.isDefault
+//                         ? "ที่อยู่เริ่มต้น"
+//                         : "ตั้งเป็นค่าเริ่มต้น"
+//                     }
+//                   >
+//                     <Check className="h-4 w-4" />
+//                   </Button>
+//                 </div>
+//               </div>
+
+//               <div
+//                 className="cursor-pointer text-sm leading-relaxed text-gray-600 transition-colors hover:text-gray-800"
+//                 onClick={() => onSelectAddress(address)}
+//               >
+//                 <p className="break-words">{address.address}</p>
+//               </div>
+
+//               <div className="mt-4 sm:hidden">
+//                 <Button
+//                   variant={
+//                     selectedAddress.id === address.id ? "default" : "outline"
+//                   }
+//                   size="sm"
+//                   className="w-full"
+//                   onClick={() => onSelectAddress(address)}
+//                 >
+//                   {selectedAddress.id === address.id
+//                     ? "เลือกแล้ว"
+//                     : "เลือกที่อยู่นี้"}
+//                 </Button>
+//               </div>
+//             </div>
+//           );
+//         })}
+//       </div>
+
+//       {/* Edit dialog */}
+//       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+//         <DialogContent className="sm:max-w-[500px]">
+//           <DialogHeader>
+//             <DialogTitle>แก้ไขที่อยู่จัดส่ง</DialogTitle>
+//           </DialogHeader>
+//           <div className="grid gap-4 py-4">
+//             <div className="grid grid-cols-2 gap-4">
+//               <div>
+//                 <Label htmlFor="edit-name">ชื่อ-นามสกุล</Label>
+//                 <Input
+//                   id="edit-name"
+//                   placeholder="กรุณากรอกชื่อ-นามสกุล"
+//                   value={newAddress.name}
+//                   onChange={(e) =>
+//                     setNewAddress({
+//                       ...newAddress,
+//                       name: e.target.value,
+//                     })
+//                   }
+//                 />
+//               </div>
+//               <div>
+//                 <Label htmlFor="edit-phone">หมายเลขโทรศัพท์</Label>
+//                 <Input
+//                   id="edit-phone"
+//                   placeholder="กรุณากรอกหมายเลขโทรศัพท์"
+//                   value={newAddress.phone}
+//                   onChange={(e) =>
+//                     setNewAddress({
+//                       ...newAddress,
+//                       phone: e.target.value,
+//                     })
+//                   }
+//                 />
+//               </div>
+//             </div>
+
+//             <div>
+//               <Label htmlFor="edit-address">ที่อยู่</Label>
+//               <Textarea
+//                 id="edit-address"
+//                 placeholder="บ้านเลขที่ ชั้น ชื่ออาคาร ชื่อถนน"
+//                 value={newAddress.address}
+//                 onChange={(e) =>
+//                   setNewAddress({
+//                     ...newAddress,
+//                     address: e.target.value,
+//                   })
+//                 }
+//                 className="min-h-[80px]"
+//               />
+//             </div>
+
+//             <div className="grid grid-cols-2 gap-4">
+//               <div>
+//                 <Label htmlFor="edit-province">จังหวัด</Label>
+//                 <Input
+//                   id="edit-province"
+//                   placeholder="กรุณาเลือกจังหวัด"
+//                   value={newAddress.province}
+//                   onChange={(e) =>
+//                     setNewAddress({
+//                       ...newAddress,
+//                       province: e.target.value,
+//                     })
+//                   }
+//                 />
+//               </div>
+//               <div>
+//                 <Label htmlFor="edit-district">เขต/อำเภอ</Label>
+//                 <Input
+//                   id="edit-district"
+//                   placeholder="กรุณาเลือกเขต/อำเภอ"
+//                   value={newAddress.district}
+//                   onChange={(e) =>
+//                     setNewAddress({
+//                       ...newAddress,
+//                       district: e.target.value,
+//                     })
+//                   }
+//                 />
+//               </div>
+//             </div>
+
+//             <div className="grid grid-cols-2 gap-4">
+//               <div>
+//                 <Label htmlFor="edit-subdistrict">แขวง/ตำบล</Label>
+//                 <Input
+//                   id="edit-subdistrict"
+//                   placeholder="กรุณาเลือกแขวง/ตำบล"
+//                   value={newAddress.subdistrict}
+//                   onChange={(e) =>
+//                     setNewAddress({
+//                       ...newAddress,
+//                       subdistrict: e.target.value,
+//                     })
+//                   }
+//                 />
+//               </div>
+//               <div>
+//                 <Label htmlFor="edit-zipcode">รหัสไปรษณีย์</Label>
+//                 <Input
+//                   id="edit-zipcode"
+//                   placeholder="00000"
+//                   value={newAddress.zipcode}
+//                   onChange={(e) =>
+//                     setNewAddress({
+//                       ...newAddress,
+//                       zipcode: e.target.value,
+//                     })
+//                   }
+//                 />
+//               </div>
+//             </div>
+
+//             <div>
+//               <Label>เลือกป้ายกำกับสำหรับการจัดส่งที่มีประสิทธิภาพ</Label>
+//               <div className="mt-2 flex gap-2">
+//                 <Button
+//                   variant={
+//                     newAddress.type === "HOME" ? "default" : "outline"
+//                   }
+//                   size="sm"
+//                   onClick={() =>
+//                     setNewAddress({ ...newAddress, type: "HOME" })
+//                   }
+//                 >
+//                   <Home className="mr-1 h-4 w-4" />
+//                   บ้าน
+//                 </Button>
+//                 <Button
+//                   variant={
+//                     newAddress.type === "OFFICE" ? "default" : "outline"
+//                   }
+//                   size="sm"
+//                   onClick={() =>
+//                     setNewAddress({ ...newAddress, type: "OFFICE" })
+//                   }
+//                 >
+//                   <Building className="mr-1 h-4 w-4" />
+//                   ออฟฟิศ
+//                 </Button>
+//               </div>
+//             </div>
+
+//             <div className="flex justify-end gap-2 pt-4">
+//               <Button
+//                 variant="outline"
+//                 onClick={() => setIsEditDialogOpen(false)}
+//               >
+//                 ยกเลิก
+//               </Button>
+//               <Button
+//                 className="bg-teal-500 hover:bg-teal-600"
+//                 onClick={onSaveEditedAddress}
+//                 disabled={
+//                   !newAddress.name ||
+//                   !newAddress.phone ||
+//                   !newAddress.address
+//                 }
+//               >
+//                 บันทึก
+//               </Button>
+//             </div>
+//           </div>
+//         </DialogContent>
+//       </Dialog>
+//     </>
+//   );
+// }
+
+// v.1.1.2 ====================================================
+
+// // src/app/checkout/component/CheckoutAddressList.tsx
+
+// "use client";
+
+// import type {
+//   CheckoutAddress,
+//   CheckoutAddressTag,
+// } from "@/types/checkout";
+
+// import { Button } from "@/components/ui/button";
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogHeader,
+//   DialogTitle,
+// } from "@/components/ui/dialog";
+// import { Label } from "@/components/ui/label";
+// import { Input } from "@/components/ui/input";
+// import { Textarea } from "@/components/ui/textarea";
+// import { Edit, Check, Home, Building } from "lucide-react";
+// import type { Dispatch, SetStateAction } from "react";
+
+// type NewAddressFormState = {
+//   type: CheckoutAddressTag;
+//   name: string;
+//   phone: string;
+//   address: string;
+//   province: string;
+//   district: string;
+//   subdistrict: string;
+//   zipcode: string;
+// };
+
+// type Props = {
+//   addresses: CheckoutAddress[];
+//   selectedAddress: CheckoutAddress;
+//   newAddress: NewAddressFormState;
+//   setNewAddress: Dispatch<SetStateAction<NewAddressFormState>>;
+//   isEditDialogOpen: boolean;
+//   setIsEditDialogOpen: Dispatch<SetStateAction<boolean>>;
+//   onSelectAddress: (address: CheckoutAddress) => void;
+//   onSetDefault: (id: number) => void;
+//   onEditAddress: (address: CheckoutAddress) => void;
+//   onSaveEditedAddress: () => void;
+// };
+
+// export default function CheckoutAddressList({
+//   addresses,
+//   selectedAddress,
+//   newAddress,
+//   setNewAddress,
+//   isEditDialogOpen,
+//   setIsEditDialogOpen,
+//   onSelectAddress,
+//   onSetDefault,
+//   onEditAddress,
+//   onSaveEditedAddress,
+// }: Props) {
+//   return (
+//     <>
+//       {/* Address list */}
+//       <div className="space-y-4">
+//         {addresses.map((address) => (
+//           <div
+//             key={address.id}
+//             className={`border rounded-xl p-5 transition-all duration-200 hover:shadow-md ${
+//               selectedAddress.id === address.id
+//                 ? "border-teal-500 bg-teal-50 shadow-sm"
+//                 : "border-gray-200 hover:border-gray-300"
+//             }`}
+//           >
+//             <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+//               <div className="flex flex-wrap items-center gap-2 min-w-0 flex-1">
+//                 <span
+//                   className={`text-xs px-3 py-1 rounded-full text-white font-medium ${
+//                     address.type === "HOME"
+//                       ? "bg-orange-500"
+//                       : "bg-blue-500"
+//                   }`}
+//                 >
+//                   {address.type}
+//                 </span>
+//                 <span className="font-semibold text-gray-900 truncate">
+//                   {address.name}
+//                 </span>
+//                 <span className="text-gray-600 text-sm">
+//                   {address.phone}
+//                 </span>
+//                 {address.isDefault && (
+//                   <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+//                     ค่าเริ่มต้น
+//                   </span>
+//                 )}
+//               </div>
+//               <div className="flex items-center gap-1 flex-shrink-0">
+//                 <Button
+//                   variant="ghost"
+//                   size="sm"
+//                   onClick={(e) => {
+//                     e.stopPropagation();
+//                     onEditAddress(address);
+//                   }}
+//                   className="h-9 w-9 p-0 hover:bg-blue-100 hover:text-blue-600"
+//                   title="แก้ไขที่อยู่"
+//                 >
+//                   <Edit className="h-4 w-4" />
+//                 </Button>
+//                 <Button
+//                   variant="ghost"
+//                   size="sm"
+//                   onClick={(e) => {
+//                     e.stopPropagation();
+//                     onSetDefault(address.id);
+//                   }}
+//                   className={`h-9 w-9 p-0 ${
+//                     address.isDefault
+//                       ? "text-green-600 hover:bg-green-100"
+//                       : "text-gray-400 hover:bg-gray-100 hover:text-green-600"
+//                   }`}
+//                   title={
+//                     address.isDefault
+//                       ? "ที่อยู่เริ่มต้น"
+//                       : "ตั้งเป็นค่าเริ่มต้น"
+//                   }
+//                 >
+//                   <Check className="h-4 w-4" />
+//                 </Button>
+//               </div>
+//             </div>
+
+//             <div
+//               className="text-sm text-gray-600 leading-relaxed cursor-pointer hover:text-gray-800 transition-colors"
+//               onClick={() => onSelectAddress(address)}
+//             >
+//               <p className="break-words">{address.address}</p>
+//             </div>
+
+//             <div className="mt-4 sm:hidden">
+//               <Button
+//                 variant={
+//                   selectedAddress.id === address.id ? "default" : "outline"
+//                 }
+//                 size="sm"
+//                 className="w-full"
+//                 onClick={() => onSelectAddress(address)}
+//               >
+//                 {selectedAddress.id === address.id
+//                   ? "เลือกแล้ว"
+//                   : "เลือกที่อยู่นี้"}
+//               </Button>
+//             </div>
+//           </div>
+//         ))}
+//       </div>
+
+//       {/* Edit dialog */}
+//       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+//         <DialogContent className="sm:max-w-[500px]">
+//           <DialogHeader>
+//             <DialogTitle>แก้ไขที่อยู่จัดส่ง</DialogTitle>
+//           </DialogHeader>
+//           <div className="grid gap-4 py-4">
+//             <div className="grid grid-cols-2 gap-4">
+//               <div>
+//                 <Label htmlFor="edit-name">ชื่อ-นามสกุล</Label>
+//                 <Input
+//                   id="edit-name"
+//                   placeholder="กรุณากรอกชื่อ-นามสกุล"
+//                   value={newAddress.name}
+//                   onChange={(e) =>
+//                     setNewAddress({
+//                       ...newAddress,
+//                       name: e.target.value,
+//                     })
+//                   }
+//                 />
+//               </div>
+//               <div>
+//                 <Label htmlFor="edit-phone">หมายเลขโทรศัพท์</Label>
+//                 <Input
+//                   id="edit-phone"
+//                   placeholder="กรุณากรอกหมายเลขโทรศัพท์"
+//                   value={newAddress.phone}
+//                   onChange={(e) =>
+//                     setNewAddress({
+//                       ...newAddress,
+//                       phone: e.target.value,
+//                     })
+//                   }
+//                 />
+//               </div>
+//             </div>
+
+//             <div>
+//               <Label htmlFor="edit-address">ที่อยู่</Label>
+//               <Textarea
+//                 id="edit-address"
+//                 placeholder="บ้านเลขที่ ชั้น ชื่ออาคาร ชื่อถนน"
+//                 value={newAddress.address}
+//                 onChange={(e) =>
+//                   setNewAddress({
+//                     ...newAddress,
+//                     address: e.target.value,
+//                   })
+//                 }
+//                 className="min-h-[80px]"
+//               />
+//             </div>
+
+//             <div className="grid grid-cols-2 gap-4">
+//               <div>
+//                 <Label htmlFor="edit-province">จังหวัด</Label>
+//                 <Input
+//                   id="edit-province"
+//                   placeholder="กรุณาเลือกจังหวัด"
+//                   value={newAddress.province}
+//                   onChange={(e) =>
+//                     setNewAddress({
+//                       ...newAddress,
+//                       province: e.target.value,
+//                     })
+//                   }
+//                 />
+//               </div>
+//               <div>
+//                 <Label htmlFor="edit-district">เขต/อำเภอ</Label>
+//                 <Input
+//                   id="edit-district"
+//                   placeholder="กรุณาเลือกเขต/อำเภอ"
+//                   value={newAddress.district}
+//                   onChange={(e) =>
+//                     setNewAddress({
+//                       ...newAddress,
+//                       district: e.target.value,
+//                     })
+//                   }
+//                 />
+//               </div>
+//             </div>
+
+//             <div className="grid grid-cols-2 gap-4">
+//               <div>
+//                 <Label htmlFor="edit-subdistrict">แขวง/ตำบล</Label>
+//                 <Input
+//                   id="edit-subdistrict"
+//                   placeholder="กรุณาเลือกแขวง/ตำบล"
+//                   value={newAddress.subdistrict}
+//                   onChange={(e) =>
+//                     setNewAddress({
+//                       ...newAddress,
+//                       subdistrict: e.target.value,
+//                     })
+//                   }
+//                 />
+//               </div>
+//               <div>
+//                 <Label htmlFor="edit-zipcode">รหัสไปรษณีย์</Label>
+//                 <Input
+//                   id="edit-zipcode"
+//                   placeholder="00000"
+//                   value={newAddress.zipcode}
+//                   onChange={(e) =>
+//                     setNewAddress({
+//                       ...newAddress,
+//                       zipcode: e.target.value,
+//                     })
+//                   }
+//                 />
+//               </div>
+//             </div>
+
+//             <div>
+//               <Label>เลือกป้ายกำกับสำหรับการจัดส่งที่มีประสิทธิภาพ</Label>
+//               <div className="flex gap-2 mt-2">
+//                 <Button
+//                   variant={
+//                     newAddress.type === "HOME" ? "default" : "outline"
+//                   }
+//                   size="sm"
+//                   onClick={() =>
+//                     setNewAddress({ ...newAddress, type: "HOME" })
+//                   }
+//                 >
+//                   <Home className="h-4 w-4 mr-1" />
+//                   บ้าน
+//                 </Button>
+//                 <Button
+//                   variant={
+//                     newAddress.type === "OFFICE" ? "default" : "outline"
+//                   }
+//                   size="sm"
+//                   onClick={() =>
+//                     setNewAddress({ ...newAddress, type: "OFFICE" })
+//                   }
+//                 >
+//                   <Building className="h-4 w-4 mr-1" />
+//                   ออฟฟิศ
+//                 </Button>
+//               </div>
+//             </div>
+
+//             <div className="flex justify-end gap-2 pt-4">
+//               <Button
+//                 variant="outline"
+//                 onClick={() => setIsEditDialogOpen(false)}
+//               >
+//                 ยกเลิก
+//               </Button>
+//               <Button
+//                 className="bg-teal-500 hover:bg-teal-600"
+//                 onClick={onSaveEditedAddress}
+//                 disabled={
+//                   !newAddress.name ||
+//                   !newAddress.phone ||
+//                   !newAddress.address
+//                 }
+//               >
+//                 บันทึก
+//               </Button>
+//             </div>
+//           </div>
+//         </DialogContent>
+//       </Dialog>
+//     </>
+//   );
+// }

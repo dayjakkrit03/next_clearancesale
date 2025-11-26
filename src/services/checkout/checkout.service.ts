@@ -1,67 +1,107 @@
-// src/services/checkout/checkout.service.ts
+// // src/services/checkout/checkout.service.ts
 
-import type { CheckoutPageData } from "./checkout.types";
-import {
-  fetchCartItems,
-  fetchDefaultShippingAddress,
-} from "./checkout.repo";
-import type {
-  CheckoutVoucher,
-  PaymentMethod,
-} from "@/app/checkout/checkout.types";
+// import type { CheckoutData, CheckoutItem } from "@/types/checkout";
+// import {
+//   mapCartItemToCheckoutItem,
+//   buildCheckoutSummary,
+// } from "@/types/checkout";
+// import { fetchSelectedCartItems, fetchProductsForCart } from "./checkout.query";
+// import { ProfileService } from "@/services/profile.service";
+// import { buildCheckoutAddressesFromProfile } from "./checkout.helpers";
 
-/**
- * ฟังก์ชันหลักสำหรับเตรียม data ให้หน้า /checkout
- */
-export async function getCheckoutPageData(
-  customerId: number | null,
-): Promise<CheckoutPageData> {
-  const [items, shippingAddress] = await Promise.all([
-    fetchCartItems(customerId),
-    fetchDefaultShippingAddress(customerId),
-  ]);
+// function emptyCheckoutData(): CheckoutData {
+//   return {
+//     items: [],
+//     summary: {
+//       itemCount: 0,
+//       subtotal: 0,
+//       shippingFee: 0,
+//       discount: 0,
+//       grandTotal: 0,
+//     },
+//     shippingAddress: null,
+//     billingAddress: null,
+//     profileInfo: { mode: null },
+//   };
+// }
 
-  // ตอนนี้ยังไม่มีระบบ voucher จริง ใช้ array ว่างไปก่อน
-  const appliedVouchers: CheckoutVoucher[] = [];
+// /**
+//  * ดึงข้อมูลครบชุดสำหรับหน้า Checkout
+//  */
+// export async function getCheckoutData(
+//   customerId: number | null
+// ): Promise<CheckoutData> {
+//   if (!customerId) {
+//     return emptyCheckoutData();
+//   }
 
-  const subtotal = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0,
-  );
+//   // 1) ดึง cart items ที่ถูกเลือก
+//   const cartItems = await fetchSelectedCartItems(customerId);
+//   if (!cartItems.length) {
+//     // ถึงแม้ไม่มีสินค้า ก็ควรโหลด profile ให้
+//     const profile = await ProfileService.getProfile(BigInt(customerId));
+//     const { shippingAddress, billingAddress, profileInfo } =
+//       buildCheckoutAddressesFromProfile({
+//         person: profile.person as any,
+//         entity: profile.entity as any,
+//       });
 
-  // สมมติ logic ตอนนี้:
-  // - ถ้ามีสินค้าให้คิดค่าขนส่ง 65 แล้วมีส่วนลดค่าขนส่ง 65 (= freeship)
-  // - ภายหลังค่อยดึงจาก rules จริง
-  const shippingFee = items.length > 0 ? 65 : 0;
-  const voucherDiscount = appliedVouchers.reduce(
-    (sum, v) => sum + v.discount,
-    0,
-  );
-  const shippingDiscount = shippingFee; // freeship ทั้งหมด
+//     return {
+//       ...emptyCheckoutData(),
+//       shippingAddress,
+//       billingAddress,
+//       profileInfo,
+//     };
+//   }
 
-  const total =
-    subtotal + shippingFee - voucherDiscount - shippingDiscount;
+//   // 2) ดึง products_clearance มา map เพิ่มเติม
+//   const skus = Array.from(new Set(cartItems.map((c) => c.product)));
+//   const productMap = await fetchProductsForCart(skus);
 
-  const availablePaymentMethods: PaymentMethod[] = [
-    "card",
-    "qr",
-    "cash",
-    "linepay",
-    "internetbanking",
-    "banktransfer",
-  ];
+//   const items: CheckoutItem[] = cartItems.map((cart) => {
+//     const product =
+//       productMap[cart.product] ??
+//       ({
+//         id: 0,
+//         sku: cart.product,
+//         name: cart.product,
+//         brand: null,
+//         image_url: null,
+//         uom_default: cart.uom,
+//       } as any);
 
-  return {
-    items,
-    shippingAddress,
-    invoiceInfo: null, // ภายหลังค่อยไปดึงจาก profile/invoice table
-    appliedVouchers,
-    availablePaymentMethods,
+//     return mapCartItemToCheckoutItem(cart, product);
+//   });
 
-    subtotal,
-    shippingFee,
-    voucherDiscount,
-    shippingDiscount,
-    total,
-  };
-}
+//   // 3) summary (ตอนนี้ shippingFee / discount = 0 ไว้ก่อน)
+//   const summary = buildCheckoutSummary(items, {
+//     shippingFee: 0,
+//     discount: 0,
+//   });
+
+//   // 4) profile + address
+//   const profile = await ProfileService.getProfile(BigInt(customerId));
+//   const { shippingAddress, billingAddress, profileInfo } =
+//     buildCheckoutAddressesFromProfile({
+//       person: profile.person as any,
+//       entity: profile.entity as any,
+//     });
+
+//   return {
+//     items,
+//     summary,
+//     shippingAddress,
+//     billingAddress,
+//     profileInfo,
+//   };
+// }
+
+// /**
+//  * ดึงเฉพาะ list item (เผื่อหน้าอื่นอยากใช้)
+//  */
+// export async function getCheckoutItems(
+//   customerId: number | null
+// ): Promise<CheckoutItem[]> {
+//   const data = await getCheckoutData(customerId);
+//   return data.items;
+// }

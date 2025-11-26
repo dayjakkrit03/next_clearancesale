@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 
 // ⬇️ ใช้ type กลาง
-import type { CheckoutSummaryProps } from "../checkout.types";
+import type { CheckoutSummaryProps } from "@/types/checkout";
 
 export default function CheckoutSummarySection({
   itemCount,
@@ -35,26 +35,11 @@ export default function CheckoutSummarySection({
         <div className="flex justify-between text-sm">
           <span>ค่าจัดส่ง</span>
           <span className={shippingFee === 0 ? "text-green-600" : ""}>
-            {shippingFee === 0 ? "฿65.00" : `฿${shippingFee}`}
+            {shippingFee === 0 ? "ฟรี" : `฿${shippingFee}`}
           </span>
         </div>
-
-        {/* Voucher Discount */}
-        {voucherDiscount > 0 && (
-          <div className="flex justify-between text-sm">
-            <span>ส่วนลดจากโค้ด</span>
-            <span className="text-green-600">
-              -฿{voucherDiscount.toLocaleString()}
-            </span>
-          </div>
-        )}
-
-        {/* Shipping Discount */}
-        <div className="flex justify-between text-sm">
-          <span>ส่วนลดค่าจัดส่ง</span>
-          <span className="text-green-600">-฿65.00</span>
-        </div>
-
+        
+        
         <Separator />
 
         {/* Total */}
