@@ -1,4 +1,4 @@
-// v.1.1.4 =====================================================================
+// v.1.1.5 =====================================================================
 // src/app/login/page.tsx
 import { Metadata } from "next";
 import LoginForm from "./LoginForm";
@@ -8,9 +8,25 @@ export const metadata: Metadata = {
 };
 
 export default function LoginPage() {
-  // ถ้าอยากรองรับ ?redirect=/xxx เพิ่ม props ทีหลังได้
+  // ให้หน้า layout จัด container เองเหมือนเดิม
   return <LoginForm />;
 }
+
+// v.1.1.5 =====================================================================
+
+// v.1.1.4 =====================================================================
+// // src/app/login/page.tsx
+// import { Metadata } from "next";
+// import LoginForm from "./LoginForm";
+
+// export const metadata: Metadata = {
+//   title: "เข้าสู่ระบบ | Interlink Shop",
+// };
+
+// export default function LoginPage() {
+//   // ถ้าอยากรองรับ ?redirect=/xxx เพิ่ม props ทีหลังได้
+//   return <LoginForm />;
+// }
 
 
 // v.1.1.4 =====================================================================

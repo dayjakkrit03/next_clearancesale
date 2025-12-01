@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function RegisterPage() {
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-8">
+    <div className=" min-h-screen bg-slate-50 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-6 sm:p-8">
         <h1 className="text-xl sm:text-2xl font-bold text-center mb-2">
           สมัครสมาชิกใหม่
@@ -24,9 +24,9 @@ export default function RegisterPage() {
         <RegisterForm />
 
         {/* 🔹 ปุ่ม Social Register อยู่ตรงนี้เหมือนเดิม */}
-        <div className="mt-6">
+        {/* <div className="mt-6">
           <AuthSocialButtons mode="register" />
-        </div>
+        </div> */}
 
         {/* Terms */}
         <p className="mt-6 text-center text-[10px] sm:text-xs text-muted-foreground leading-relaxed">
