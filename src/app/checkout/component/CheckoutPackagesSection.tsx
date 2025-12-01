@@ -111,7 +111,7 @@ export default function CheckoutPackagesSection({
               </div>
 
               {/* ปุ่มลบ */}
-              <AlertDialog>
+              {/* <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
                     variant="ghost"
@@ -138,7 +138,8 @@ export default function CheckoutPackagesSection({
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
-              </AlertDialog>
+              </AlertDialog> */}
+              
             </div>
           );
         })}

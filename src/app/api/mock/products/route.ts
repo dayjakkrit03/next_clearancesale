@@ -1,229 +1,480 @@
-// v.1.1.11 ===============================================================
+// v.1.1.12 ===============================================================
 // src/app/api/mock/products/route.ts
 
 import { NextResponse } from "next/server";
 import {
-  getMeta,
-  upsert,
-  queryProducts,
-  getAll as getAllProducts,
+  getMeta,
+  upsert,
+  queryProducts,
+  getAll as getAllProducts,
 } from "./_store";
 import {
-  getAll as getAllCategories,
-  type UICategory,
+  getAll as getAllCategories,
+  type UICategory,
 } from "../categories/_store";
 import { validateProductInput } from "@/lib/validation/product";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+// ชนิดของ sort จากชั้น store (เอามาใช้ซ้ำให้ type ชัด)
+type StoreSort = Parameters<typeof queryProducts>[0]["sort"];
+
 /** helper: coerce numeric string → number */
 function coerceId(v: string | null): string | number | undefined {
-  if (v == null || v === "") return undefined;
-  return isNaN(Number(v)) ? v : Number(v);
+  if (v == null || v === "") return undefined;
+  return isNaN(Number(v)) ? v : Number(v);
 }
 
 /** normalize text (case/diacritics-insensitive) */
 function norm(text?: string) {
-  return (text ?? "")
-    .toString()
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "");
+  return (text ?? "")
+    .toString()
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "");
 }
 
-/** map UI sort params → store sort keys (เดิม) */
-function mapSort(
-  sortIn: string | null,
-  orderIn: string | null
-): Parameters<typeof queryProducts>[0]["sort"] {
-  const s = (sortIn ?? "order").toLowerCase();
-  const o = (orderIn ?? "asc").toLowerCase();
-  if (s === "price") return o === "desc" ? "price_desc" : "price_asc";
-  if (
-    s === "order" ||
-    s === "newest" ||
-    s === "price_asc" ||
-    s === "price_desc" ||
-    s === "discount_desc" ||
-    s === "rating_desc"
-  ) {
-    return s as any;
-  }
-  return "order";
+/** map UI sort params → store sort keys */
+function mapSort(sortIn: string | null, orderIn: string | null): StoreSort {
+  const s = (sortIn ?? "order").toLowerCase();
+  const o = (orderIn ?? "asc").toLowerCase();
+
+  // รองรับรูปแบบเก่า: sort=price&order=asc/desc
+  if (s === "price") {
+    return (o === "desc" ? "price_desc" : "price_asc") as StoreSort;
+  }
+
+  // รายการ key ที่ปล่อยผ่านได้ตรง ๆ
+  if (
+    s === "order" ||
+    s === "newest" ||
+    s === "price_asc" ||
+    s === "price_desc" ||
+    s === "discount_desc" ||
+    s === "discount_asc" ||
+    s === "rating_desc"
+  ) {
+    return s as StoreSort;
+  }
+
+  // ค่าแปลก ๆ ให้กลับไปใช้ "order"
+  return "order";
 }
 
 /** local sort (mirror ของ store สำหรับเส้นทาง q) */
-function applySortLocal(
-  list: any[],
-  sort: Parameters<typeof queryProducts>[0]["sort"]
-) {
-  const s = sort ?? "order";
-  const arr = [...list];
-  switch (s) {
-    case "price_asc":
-      return arr.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
-    case "price_desc":
-      return arr.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
-    case "discount_desc":
-      return arr.sort((a, b) => (b.discountPercent ?? 0) - (a.discountPercent ?? 0));
-    case "rating_desc":
-      return arr.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
-    case "newest":
-      // เหมือน mock เดิม: ใช้ id แทน createdAt
-      return arr.sort((a, b) => {
-        const an = typeof a.id === "number" ? a.id : 0;
-        const bn = typeof b.id === "number" ? b.id : 0;
-        return bn - an;
-      });
-    case "order":
-    default:
-      return arr.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-  }
+function applySortLocal(list: any[], sort: StoreSort) {
+  const s: StoreSort = sort ?? "order";
+  const arr = [...list];
+
+  switch (s) {
+    case "price_asc":
+      return arr.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+
+    case "price_desc":
+      return arr.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+
+    case "discount_desc":
+      // ส่วนลดมาก → น้อย
+      return arr.sort(
+        (a, b) => (b.discountPercent ?? 0) - (a.discountPercent ?? 0),
+      );
+
+    case "discount_asc":
+      // ส่วนลบน้อย → มาก
+      return arr.sort(
+        (a, b) => (a.discountPercent ?? 0) - (b.discountPercent ?? 0),
+      );
+
+    case "rating_desc":
+      return arr.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+
+    case "newest":
+      // เหมือน mock เดิม: ใช้ id แทน createdAt
+      return arr.sort((a, b) => {
+        const an = typeof a.id === "number" ? a.id : 0;
+        const bn = typeof b.id === "number" ? b.id : 0;
+        return bn - an;
+      });
+
+    case "order":
+    default:
+      return arr.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  }
 }
 
 export async function GET(req: Request) {
-  const sp = new URL(req.url).searchParams;
+  const sp = new URL(req.url).searchParams;
 
-  const qRaw = sp.get("q") ?? undefined;
-  const q = qRaw?.trim() ? qRaw.trim() : undefined;
+  const qRaw = sp.get("q") ?? undefined;
+  const q = qRaw?.trim() ? qRaw.trim() : undefined;
 
-  // รองรับทั้ง category_id และ categoryId
-  const category_id =
-    coerceId(sp.get("category_id")) ?? coerceId(sp.get("categoryId"));
+  // รองรับทั้ง category_id และ categoryId
+  const category_id =
+    coerceId(sp.get("category_id")) ?? coerceId(sp.get("categoryId"));
 
-  // visible (ไม่ส่ง = undefined)
-  const visibleStr = (sp.get("visible") ?? "").toLowerCase();
-  const visible =
-    visibleStr === "true" ? true : visibleStr === "false" ? false : undefined;
+  // visible (ไม่ส่ง = undefined)
+  const visibleStr = (sp.get("visible") ?? "").toLowerCase();
+  const visible =
+    visibleStr === "true"
+      ? true
+      : visibleStr === "false"
+      ? false
+      : undefined;
 
-  const sort = mapSort(sp.get("sort"), sp.get("order"));
-  const page = Math.max(1, Number(sp.get("page") ?? 1) || 1);
-  const pageSize = Math.max(1, Number(sp.get("pageSize") ?? 24) || 24);
+  const sort = mapSort(sp.get("sort"), sp.get("order"));
+  const page = Math.max(1, Number(sp.get("page") ?? 1) || 1);
+  const pageSize = Math.max(1, Number(sp.get("pageSize") ?? 24) || 24);
 
-  const ensureArray = (v: unknown) => (Array.isArray(v) ? v : []);
+  const ensureArray = (v: unknown) => (Array.isArray(v) ? v : []);
 
-  // ไม่มี q → ให้ชั้น store/db จัดการ (พฤติกรรมเดิม)
-  if (!q) {
-    const result = await queryProducts({
-      q,
-      category_id,
-      visible,
-      sort,
-      page,
-      pageSize,
-    });
-
-    // --- LOG A: ตรวจสอบผลลัพธ์ที่ได้จาก queryProducts (Route.ts) ---
-    // console.log("--- API LOG A: ผลลัพธ์ที่ได้จาก queryProducts (id, image_url) ---");
-    // (result.items ?? []).slice(0, 3).forEach((p: any) => {
-    //     console.log(`[Item ${p.id}] image_url: ${p.image_url} (route.ts)`);
-    // });
-    // console.log("---------------------------------------------------------------");
-    // --- END LOG A ---
-
-    const meta = await getMeta();
-    return NextResponse.json(
-      { ...result, items: ensureArray(result.items), meta },
-      { headers: { "Cache-Control": "no-store" } }
-    );
-  }
-
-  // ===== มี q: ให้พฤติกรรมเดิม (ค้นชื่อ/แบรนด์/SKU + ขยาย “ชื่อหมวด”) ฝั่ง route =====
-  // 1) หา category ids ที่ชื่อแมตช์ q
-  const categories: UICategory[] = await getAllCategories({ includeHidden: true });
-  const qn = norm(q);
-  const catNameById = new Map(categories.map((c) => [c.id, norm(c.name)]));
-  const matchedCatIds = new Set(
-    [...catNameById.entries()]
-      .filter(([, name]) => name.includes(qn))
-      .map(([id]) => id),
-  );
-
-  // 2) โหลดสินค้าทั้งหมดแล้วกรองด้วย (ชื่อ/แบรนด์/SKU) OR (ชื่อหมวด)
-  let list = await getAllProducts({ includeHidden: true });
-
-    // --- LOG B: ตรวจสอบผลลัพธ์ที่ได้จาก getAllProducts (Route.ts) ---
-    console.log("--- API LOG B: ผลลัพธ์ที่ได้จาก getAllProducts (id, image_url) ---");
-    list.slice(0, 3).forEach((p: any) => {
-        console.log(`[Item ${p.id}] image_url: ${p.image_url} (route.ts)`);
+  // ---------- กรณีไม่มี q: ให้ชั้น store/db จัดการ (พฤติกรรมเดิม) ----------
+  if (!q) {
+    const result = await queryProducts({
+      q,
+      category_id,
+      visible,
+      sort,
+      page,
+      pageSize,
     });
-    console.log("---------------------------------------------------------------");
-    // --- END LOG B ---
 
-  // ฟิลเตอร์ visible
-  if (typeof visible === "boolean") {
-    list = list.filter((x) => (x.visible ?? true) === visible);
-  }
+    const meta = await getMeta();
+    return NextResponse.json(
+      { ...result, items: ensureArray(result.items), meta },
+      { headers: { "Cache-Control": "no-store" } },
+    );
+  }
 
-  // ฟิลเตอร์ category_id พารามิเตอร์ (ถ้าส่งมา)
-  if (typeof category_id !== "undefined") {
-    list = list.filter((x) => String(x.category_id) === String(category_id));
-  }
+  // ---------- กรณีมี q: ให้ route เป็นคน search + sort + paginate ----------
+  // 1) หา category ids ที่ชื่อแมตช์ q
+  const categories: UICategory[] = await getAllCategories({
+    includeHidden: true,
+  });
+  const qn = norm(q);
+  const catNameById = new Map(categories.map((c) => [c.id, norm(c.name)]));
+  const matchedCatIds = new Set(
+    [...catNameById.entries()]
+      .filter(([, name]) => name.includes(qn))
+      .map(([id]) => id),
+  );
 
-  // ฟิลเตอร์ q: แมตช์ชื่อ/แบรนด์/SKU หรือชื่อหมวด
-  list = list.filter((p) => {
-    const textBucket = norm(`${p.name ?? ""} ${p.brand ?? ""} ${p.sku ?? ""}`);
-    const matchText = textBucket.includes(qn);
-    const matchCat =
-      p.category_id != null &&
-      matchedCatIds.size > 0 &&
-      matchedCatIds.has(p.category_id as any);
-    return matchText || matchCat;
-  });
+  // 2) โหลดสินค้าทั้งหมดแล้วกรองด้วย (ชื่อ/แบรนด์/SKU) OR (ชื่อหมวด)
+  let list = await getAllProducts({ includeHidden: true });
 
-  // 3) sort + paginate (พฤติกรรมเดิม)
-  list = applySortLocal(list, sort);
-  const total = list.length;
-  const start = (page - 1) * pageSize;
-  const items = list.slice(start, start + pageSize);
+  // ฟิลเตอร์ visible
+  if (typeof visible === "boolean") {
+    list = list.filter((x) => (x.visible ?? true) === visible);
+  }
 
-  const meta = await getMeta();
-  return NextResponse.json(
-    { items, total, page, pageSize, meta },
-    { headers: { "Cache-Control": "no-store" } }
-  );
+  // ฟิลเตอร์ category_id พารามิเตอร์ (ถ้าส่งมา)
+  if (typeof category_id !== "undefined") {
+    list = list.filter((x) => String(x.category_id) === String(category_id));
+  }
+
+  // ฟิลเตอร์ q: แมตช์ชื่อ/แบรนด์/SKU หรือชื่อหมวด
+  list = list.filter((p) => {
+    const textBucket = norm(
+      `${p.name ?? ""} ${p.brand ?? ""} ${p.sku ?? ""}`,
+    );
+    const matchText = textBucket.includes(qn);
+    const matchCat =
+      p.category_id != null &&
+      matchedCatIds.size > 0 &&
+      matchedCatIds.has(p.category_id as any);
+    return matchText || matchCat;
+  });
+
+  // 3) sort + paginate
+  list = applySortLocal(list, sort);
+  const total = list.length;
+  const start = (page - 1) * pageSize;
+  const items = list.slice(start, start + pageSize);
+
+  const meta = await getMeta();
+  return NextResponse.json(
+    { items, total, page, pageSize, meta },
+    { headers: { "Cache-Control": "no-store" } },
+  );
 }
 
 export async function POST(req: Request) {
-  const raw = await req.json().catch(() => null);
-  if (!raw) return NextResponse.json({ error: "Bad payload" }, { status: 400 });
+  const raw = await req.json().catch(() => null);
+  if (!raw) {
+    return NextResponse.json({ error: "Bad payload" }, { status: 400 });
+  }
 
-  try {
-    const base = validateProductInput(raw);
-    const num = (v: any) => (v === "" || v == null ? undefined : Number(v));
-    const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
-    const ratingRaw = num(raw.rating);
-    const reviewsRaw = num(raw.reviews);
+  try {
+    const base = validateProductInput(raw);
+    const num = (v: any) => (v === "" || v == null ? undefined : Number(v));
+    const clamp = (v: number, lo: number, hi: number) =>
+      Math.min(hi, Math.max(lo, v));
+    const ratingRaw = num(raw.rating);
+    const reviewsRaw = num(raw.reviews);
 
-    const payload = {
-      ...base,
-      category_id:
-        raw.category_id === "" || raw.category_id == null
-          ? undefined
-          : raw.category_id,
-      uom: typeof raw.uom === "string" ? raw.uom.trim() || undefined : undefined,
-      rating:
-        typeof ratingRaw === "number" && Number.isFinite(ratingRaw)
-          ? clamp(Number(ratingRaw.toFixed(1)), 0, 5)
-          : undefined,
-      reviews:
-        typeof reviewsRaw === "number" && Number.isFinite(reviewsRaw)
-          ? Math.max(0, Math.floor(reviewsRaw))
-          : undefined,
-      visible: typeof raw.visible === "boolean" ? raw.visible : false,
-    };
+    const payload = {
+      ...base,
+      category_id:
+        raw.category_id === "" || raw.category_id == null
+          ? undefined
+          : raw.category_id,
+      uom:
+        typeof raw.uom === "string"
+          ? raw.uom.trim() || undefined
+          : undefined,
+      rating:
+        typeof ratingRaw === "number" && Number.isFinite(ratingRaw)
+          ? clamp(Number(ratingRaw.toFixed(1)), 0, 5)
+          : undefined,
+      reviews:
+        typeof reviewsRaw === "number" && Number.isFinite(reviewsRaw)
+          ? Math.max(0, Math.floor(reviewsRaw))
+          : undefined,
+      visible: typeof raw.visible === "boolean" ? raw.visible : false,
+    };
 
-    // ชั้น _store ฝั่ง DB ต้องรองรับ upsert(payload) เหมือนเดิม
-    const item = await upsert(payload as any);
-    return NextResponse.json({ item }, { status: 201 });
-  } catch (e: any) {
-    return NextResponse.json(
-      { error: "Validation failed", message: e?.message ?? "" },
-      { status: 400 }
-    );
-  }
+    // ชั้น _store ฝั่ง DB ต้องรองรับ upsert(payload) เหมือนเดิม
+    const item = await upsert(payload as any);
+    return NextResponse.json({ item }, { status: 201 });
+  } catch (e: any) {
+    return NextResponse.json(
+      { error: "Validation failed", message: e?.message ?? "" },
+      { status: 400 },
+    );
+  }
 }
+
+// v.1.1.12 ===============================================================
+
+// v.1.1.11 ===============================================================
+// // src/app/api/mock/products/route.ts
+
+// import { NextResponse } from "next/server";
+// import {
+//   getMeta,
+//   upsert,
+//   queryProducts,
+//   getAll as getAllProducts,
+// } from "./_store";
+// import {
+//   getAll as getAllCategories,
+//   type UICategory,
+// } from "../categories/_store";
+// import { validateProductInput } from "@/lib/validation/product";
+
+// export const dynamic = "force-dynamic";
+// export const revalidate = 0;
+
+// /** helper: coerce numeric string → number */
+// function coerceId(v: string | null): string | number | undefined {
+//   if (v == null || v === "") return undefined;
+//   return isNaN(Number(v)) ? v : Number(v);
+// }
+
+// /** normalize text (case/diacritics-insensitive) */
+// function norm(text?: string) {
+//   return (text ?? "")
+//     .toString()
+//     .toLowerCase()
+//     .normalize("NFKD")
+//     .replace(/[\u0300-\u036f]/g, "");
+// }
+
+// /** map UI sort params → store sort keys (เดิม) */
+// function mapSort(
+//   sortIn: string | null,
+//   orderIn: string | null
+// ): Parameters<typeof queryProducts>[0]["sort"] {
+//   const s = (sortIn ?? "order").toLowerCase();
+//   const o = (orderIn ?? "asc").toLowerCase();
+//   if (s === "price") return o === "desc" ? "price_desc" : "price_asc";
+//   if (
+//     s === "order" ||
+//     s === "newest" ||
+//     s === "price_asc" ||
+//     s === "price_desc" ||
+//     s === "discount_desc" ||
+//     s === "discount_asc" ||
+//     s === "rating_desc"
+//   ) {
+//     return s as any;
+//   }
+//   return "order";
+// }
+
+// /** local sort (mirror ของ store สำหรับเส้นทาง q) */
+// function applySortLocal(
+//   list: any[],
+//   sort: Parameters<typeof queryProducts>[0]["sort"]
+// ) {
+//   const s = sort ?? "order";
+//   const arr = [...list];
+//   switch (s) {
+//     case "price_asc":
+//       return arr.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+//     case "price_desc":
+//       return arr.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+//     case "discount_desc":
+//       return arr.sort((a, b) => (b.discountPercent ?? 0) - (a.discountPercent ?? 0));
+//     case "discount_asc":
+//       return arr.sort((a, b) => (a.discountPercent ?? 0) - (b.discountPercent ?? 0));
+//     case "rating_desc":
+//       return arr.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+//     case "newest":
+//       // เหมือน mock เดิม: ใช้ id แทน createdAt
+//       return arr.sort((a, b) => {
+//         const an = typeof a.id === "number" ? a.id : 0;
+//         const bn = typeof b.id === "number" ? b.id : 0;
+//         return bn - an;
+//       });
+//     case "order":
+//     default:
+//       return arr.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+//   }
+// }
+
+// export async function GET(req: Request) {
+//   const sp = new URL(req.url).searchParams;
+
+//   const qRaw = sp.get("q") ?? undefined;
+//   const q = qRaw?.trim() ? qRaw.trim() : undefined;
+
+//   // รองรับทั้ง category_id และ categoryId
+//   const category_id =
+//     coerceId(sp.get("category_id")) ?? coerceId(sp.get("categoryId"));
+
+//   // visible (ไม่ส่ง = undefined)
+//   const visibleStr = (sp.get("visible") ?? "").toLowerCase();
+//   const visible =
+//     visibleStr === "true" ? true : visibleStr === "false" ? false : undefined;
+
+//   const sort = mapSort(sp.get("sort"), sp.get("order"));
+//   const page = Math.max(1, Number(sp.get("page") ?? 1) || 1);
+//   const pageSize = Math.max(1, Number(sp.get("pageSize") ?? 24) || 24);
+
+//   const ensureArray = (v: unknown) => (Array.isArray(v) ? v : []);
+
+//   // ไม่มี q → ให้ชั้น store/db จัดการ (พฤติกรรมเดิม)
+//   if (!q) {
+//     const result = await queryProducts({
+//       q,
+//       category_id,
+//       visible,
+//       sort,
+//       page,
+//       pageSize,
+//     });
+
+//     // --- LOG A: ตรวจสอบผลลัพธ์ที่ได้จาก queryProducts (Route.ts) ---
+//     // console.log("--- API LOG A: ผลลัพธ์ที่ได้จาก queryProducts (id, image_url) ---");
+//     // (result.items ?? []).slice(0, 3).forEach((p: any) => {
+//     //     console.log(`[Item ${p.id}] image_url: ${p.image_url} (route.ts)`);
+//     // });
+//     // console.log("---------------------------------------------------------------");
+//     // --- END LOG A ---
+
+//     const meta = await getMeta();
+//     return NextResponse.json(
+//       { ...result, items: ensureArray(result.items), meta },
+//       { headers: { "Cache-Control": "no-store" } }
+//     );
+//   }
+
+//   // ===== มี q: ให้พฤติกรรมเดิม (ค้นชื่อ/แบรนด์/SKU + ขยาย “ชื่อหมวด”) ฝั่ง route =====
+//   // 1) หา category ids ที่ชื่อแมตช์ q
+//   const categories: UICategory[] = await getAllCategories({ includeHidden: true });
+//   const qn = norm(q);
+//   const catNameById = new Map(categories.map((c) => [c.id, norm(c.name)]));
+//   const matchedCatIds = new Set(
+//     [...catNameById.entries()]
+//       .filter(([, name]) => name.includes(qn))
+//       .map(([id]) => id),
+//   );
+
+//   // 2) โหลดสินค้าทั้งหมดแล้วกรองด้วย (ชื่อ/แบรนด์/SKU) OR (ชื่อหมวด)
+//   let list = await getAllProducts({ includeHidden: true });
+
+//     // --- LOG B: ตรวจสอบผลลัพธ์ที่ได้จาก getAllProducts (Route.ts) ---
+//     console.log("--- API LOG B: ผลลัพธ์ที่ได้จาก getAllProducts (id, image_url) ---");
+//     list.slice(0, 3).forEach((p: any) => {
+//         console.log(`[Item ${p.id}] image_url: ${p.image_url} (route.ts)`);
+//     });
+//     console.log("---------------------------------------------------------------");
+//     // --- END LOG B ---
+
+//   // ฟิลเตอร์ visible
+//   if (typeof visible === "boolean") {
+//     list = list.filter((x) => (x.visible ?? true) === visible);
+//   }
+
+//   // ฟิลเตอร์ category_id พารามิเตอร์ (ถ้าส่งมา)
+//   if (typeof category_id !== "undefined") {
+//     list = list.filter((x) => String(x.category_id) === String(category_id));
+//   }
+
+//   // ฟิลเตอร์ q: แมตช์ชื่อ/แบรนด์/SKU หรือชื่อหมวด
+//   list = list.filter((p) => {
+//     const textBucket = norm(`${p.name ?? ""} ${p.brand ?? ""} ${p.sku ?? ""}`);
+//     const matchText = textBucket.includes(qn);
+//     const matchCat =
+//       p.category_id != null &&
+//       matchedCatIds.size > 0 &&
+//       matchedCatIds.has(p.category_id as any);
+//     return matchText || matchCat;
+//   });
+
+//   // 3) sort + paginate (พฤติกรรมเดิม)
+//   list = applySortLocal(list, sort);
+//   const total = list.length;
+//   const start = (page - 1) * pageSize;
+//   const items = list.slice(start, start + pageSize);
+
+//   const meta = await getMeta();
+//   return NextResponse.json(
+//     { items, total, page, pageSize, meta },
+//     { headers: { "Cache-Control": "no-store" } }
+//   );
+// }
+
+// export async function POST(req: Request) {
+//   const raw = await req.json().catch(() => null);
+//   if (!raw) return NextResponse.json({ error: "Bad payload" }, { status: 400 });
+
+//   try {
+//     const base = validateProductInput(raw);
+//     const num = (v: any) => (v === "" || v == null ? undefined : Number(v));
+//     const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+//     const ratingRaw = num(raw.rating);
+//     const reviewsRaw = num(raw.reviews);
+
+//     const payload = {
+//       ...base,
+//       category_id:
+//         raw.category_id === "" || raw.category_id == null
+//           ? undefined
+//           : raw.category_id,
+//       uom: typeof raw.uom === "string" ? raw.uom.trim() || undefined : undefined,
+//       rating:
+//         typeof ratingRaw === "number" && Number.isFinite(ratingRaw)
+//           ? clamp(Number(ratingRaw.toFixed(1)), 0, 5)
+//           : undefined,
+//       reviews:
+//         typeof reviewsRaw === "number" && Number.isFinite(reviewsRaw)
+//           ? Math.max(0, Math.floor(reviewsRaw))
+//           : undefined,
+//       visible: typeof raw.visible === "boolean" ? raw.visible : false,
+//     };
+
+//     // ชั้น _store ฝั่ง DB ต้องรองรับ upsert(payload) เหมือนเดิม
+//     const item = await upsert(payload as any);
+//     return NextResponse.json({ item }, { status: 201 });
+//   } catch (e: any) {
+//     return NextResponse.json(
+//       { error: "Validation failed", message: e?.message ?? "" },
+//       { status: 400 }
+//     );
+//   }
+// }
 // v.1.1.11 ===============================================================
 
 

@@ -150,7 +150,7 @@ export const Header = ({ onCartClick }: HeaderProps) => {
                 href="/products"
                 className="hover:text-primary/80 transition-colors whitespace-nowrap text-sm font-medium"
               >
-                สินค้าแนะนำ
+                สินค้าทั้งหมด
               </Link>
               <Link
                 href="/contact"

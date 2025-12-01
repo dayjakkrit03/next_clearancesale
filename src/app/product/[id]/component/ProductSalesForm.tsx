@@ -290,7 +290,8 @@ export function ProductSalesForm({
           <>
             <div className="w-2 h-2 bg-success rounded-full" />
             <span className="text-success font-medium">
-              มีสินค้าในสต๊อก จำนวน {clearanceQty.toLocaleString()} {unit}
+              มีสินค้าในสต๊อก
+              {/* มีสินค้าในสต๊อก จำนวน {clearanceQty.toLocaleString()} {unit} */}
             </span>
           </>
         ) : (

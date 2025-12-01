@@ -1,9 +1,10 @@
-// v.1.1.8 ======================================================================
+// v.1.1.10 =====================================================================
 // src/components/category-grid.tsx
+
 "use client";
 
 import { useMemo } from "react";
-import Link from "next/link"; // ✅ ใช้ Link ให้เนวิเกชันเหมือนเมนู
+import Link from "next/link";
 
 export interface MainImage {
   image_path: string;
@@ -26,7 +27,8 @@ interface CategoryGridProps {
 }
 
 const DEFAULT_TITLE = "หมวดหมู่สินค้า";
-const DEFAULT_SUBTITLE = "เลือกซื้ออุปกรณ์เครือข่ายคุณภาพสูงจากหมวดหมู่ที่หลากหลาย";
+const DEFAULT_SUBTITLE =
+  "เลือกซื้ออุปกรณ์เครือข่ายคุณภาพสูงจากหมวดหมู่ที่หลากหลาย";
 
 const getImageUrl = (mainImage?: MainImage | null): string | null => {
   if (mainImage && mainImage.image_path && mainImage.image_name) {
@@ -40,10 +42,6 @@ const getImageUrl = (mainImage?: MainImage | null): string | null => {
   }
   return null;
 };
-
-// ✅ สร้าง href ให้ตรงรูปแบบ /products?category=...
-// const categoryHref = (c: Pick<Category, "slug" | "name">) =>
-//   `/products?category=${encodeURIComponent(c.slug ?? c.name)}`;
 
 const categoryHref = (c: Pick<Category, "name">) =>
   `/products?category=${encodeURIComponent((c.name ?? "").trim())}`;
@@ -80,20 +78,46 @@ export const CategoryGrid = ({ items, title, subtitle }: CategoryGridProps) => {
               return (
                 <Link
                   key={(category.id ?? category.slug) ?? index}
-                  href={categoryHref(category)} // ✅ กดการ์ดแล้ววิ่งไป /products?category=...
-                  className="flex flex-col items-center p-6 rounded-xl bg-card hover:bg-gradient-card shadow-soft hover:shadow-card-hover transition-all duration-300 group opacity-0 animate-fade-in"
+                  href={categoryHref(category)}
+                  className="group flex flex-col items-center justify-between
+                             p-4 sm:p-5 rounded-xl bg-card hover:bg-gradient-card
+                             shadow-soft hover:shadow-card-hover
+                             transition-all duration-300
+                             opacity-0 animate-fade-in
+                             min-h-[150px] sm:min-h-[170px] lg:min-h-[190px]"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <div className="mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                  {/* กล่องรูปภาพ + hover zoom & tilt */}
+                  <div
+                    className="flex-1 flex items-center justify-center w-full mb-2 sm:mb-3
+                               overflow-hidden"  // กันรูปไม่ล้น
+                  >
                     <img
                       src={imageUrl ?? "/placeholder.png"}
                       alt={category.name}
-                      width={64}
-                      height={64}
-                      className="w-16 h-16 object-cover rounded-2xl shadow-soft"
+                      className="
+                        w-auto
+                        max-h-24         /* มือถือ: 96px */
+                        sm:max-h-28      /* 110px */
+                        md:max-h-32      /* 128px */
+                        lg:max-h-36      /* 144px */
+                        object-contain rounded-2xl shadow-soft
+                        transition-transform duration-300
+                        group-hover:scale-110 group-hover:-translate-y-1 group-hover:rotate-1
+                      "
                     />
                   </div>
-                  <span className="text-sm font-medium text-center group-hover:text-primary transition-colors leading-tight h-10">
+
+                  <span
+                    className="
+                      mt-1
+                      text-[11px] sm:text-xs md:text-sm
+                      font-medium text-center
+                      group-hover:text-primary
+                      transition-colors
+                      leading-tight
+                    "
+                  >
                     {category.name}
                   </span>
                 </Link>
@@ -105,6 +129,243 @@ export const CategoryGrid = ({ items, title, subtitle }: CategoryGridProps) => {
     </section>
   );
 };
+
+// v.1.1.10 =====================================================================
+
+// v.1.1.9 ======================================================================
+// // src/components/category-grid.tsx
+// "use client";
+
+// import { useMemo } from "react";
+// import Link from "next/link";
+
+// export interface MainImage {
+//   image_path: string;
+//   image_name: string;
+// }
+
+// export interface Category {
+//   id?: number | string;
+//   name: string;
+//   slug: string;
+//   main_image?: MainImage | null;
+//   visible?: boolean;
+//   order?: number;
+// }
+
+// interface CategoryGridProps {
+//   items?: Category[];
+//   title?: string;
+//   subtitle?: string;
+// }
+
+// const DEFAULT_TITLE = "หมวดหมู่สินค้า";
+// const DEFAULT_SUBTITLE =
+//   "เลือกซื้ออุปกรณ์เครือข่ายคุณภาพสูงจากหมวดหมู่ที่หลากหลาย";
+
+// const getImageUrl = (mainImage?: MainImage | null): string | null => {
+//   if (mainImage && mainImage.image_path && mainImage.image_name) {
+//     const path = mainImage.image_path.endsWith("/")
+//       ? mainImage.image_path.slice(0, -1)
+//       : mainImage.image_path;
+//     const fileName = mainImage.image_name.startsWith("/")
+//       ? mainImage.image_name.slice(1)
+//       : mainImage.image_name;
+//     return `${path}/${fileName}`;
+//   }
+//   return null;
+// };
+
+// const categoryHref = (c: Pick<Category, "name">) =>
+//   `/products?category=${encodeURIComponent((c.name ?? "").trim())}`;
+
+// export const CategoryGrid = ({ items, title, subtitle }: CategoryGridProps) => {
+//   const data = useMemo(() => {
+//     const list = Array.isArray(items) ? items : [];
+//     return list
+//       .filter((c) => c.visible !== false)
+//       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+//   }, [items]);
+
+//   return (
+//     <section className="py-12 bg-background">
+//       <div className="container mx-auto px-4">
+//         <div className="text-center mb-10">
+//           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+//             {title ?? DEFAULT_TITLE}
+//           </h2>
+//           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+//             {subtitle ?? DEFAULT_SUBTITLE}
+//           </p>
+//         </div>
+
+//         {data.length === 0 ? (
+//           <div className="rounded-xl border border-dashed p-8 text-center text-muted-foreground">
+//             ไม่มีหมวดหมู่ให้แสดง
+//           </div>
+//         ) : (
+//           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6">
+//             {data.map((category, index) => {
+//               const imageUrl = getImageUrl(category.main_image);
+
+//               return (
+//                 <Link
+//                   key={(category.id ?? category.slug) ?? index}
+//                   href={categoryHref(category)}
+//                   className="flex flex-col items-center justify-between
+//                              p-4 sm:p-5 rounded-xl bg-card hover:bg-gradient-card
+//                              shadow-soft hover:shadow-card-hover
+//                              transition-all duration-300 group
+//                              opacity-0 animate-fade-in
+//                              min-h-[150px] sm:min-h-[170px] lg:min-h-[190px]"
+//                   style={{ animationDelay: `${index * 0.1}s` }}
+//                 >
+//                   {/* กล่องของรูปภาพ ให้กินพื้นที่การ์ดเยอะ ๆ แต่ไม่ล้น */}
+//                   <div className="flex-1 flex items-center justify-center w-full mb-2 sm:mb-3">
+//                     <img
+//                       src={imageUrl ?? "/placeholder.png"}
+//                       alt={category.name}
+//                       className="
+//                         w-auto
+//                         max-h-16 sm:max-h-20 md:max-h-24 lg:max-h-28
+//                         object-contain
+//                         rounded-2xl shadow-soft
+//                       "
+//                     />
+//                   </div>
+
+//                   {/* ชื่อหมวดหมู่ – เล็กลง และไม่ล้นการ์ด */}
+//                   <span
+//                     className="
+//                       mt-1
+//                       text-[11px] sm:text-xs md:text-sm
+//                       font-medium text-center
+//                       group-hover:text-primary
+//                       transition-colors
+//                       leading-tight
+//                     "
+//                   >
+//                     {category.name}
+//                   </span>
+//                 </Link>
+//               );
+//             })}
+//           </div>
+//         )}
+//       </div>
+//     </section>
+//   );
+// };
+
+// v.1.1.9 ======================================================================
+
+// v.1.1.8 ======================================================================
+// // src/components/category-grid.tsx
+// "use client";
+
+// import { useMemo } from "react";
+// import Link from "next/link"; // ✅ ใช้ Link ให้เนวิเกชันเหมือนเมนู
+
+// export interface MainImage {
+//   image_path: string;
+//   image_name: string;
+// }
+
+// export interface Category {
+//   id?: number | string;
+//   name: string;
+//   slug: string;
+//   main_image?: MainImage | null;
+//   visible?: boolean;
+//   order?: number;
+// }
+
+// interface CategoryGridProps {
+//   items?: Category[];
+//   title?: string;
+//   subtitle?: string;
+// }
+
+// const DEFAULT_TITLE = "หมวดหมู่สินค้า";
+// const DEFAULT_SUBTITLE = "เลือกซื้ออุปกรณ์เครือข่ายคุณภาพสูงจากหมวดหมู่ที่หลากหลาย";
+
+// const getImageUrl = (mainImage?: MainImage | null): string | null => {
+//   if (mainImage && mainImage.image_path && mainImage.image_name) {
+//     const path = mainImage.image_path.endsWith("/")
+//       ? mainImage.image_path.slice(0, -1)
+//       : mainImage.image_path;
+//     const fileName = mainImage.image_name.startsWith("/")
+//       ? mainImage.image_name.slice(1)
+//       : mainImage.image_name;
+//     return `${path}/${fileName}`;
+//   }
+//   return null;
+// };
+
+// // ✅ สร้าง href ให้ตรงรูปแบบ /products?category=...
+// // const categoryHref = (c: Pick<Category, "slug" | "name">) =>
+// //   `/products?category=${encodeURIComponent(c.slug ?? c.name)}`;
+
+// const categoryHref = (c: Pick<Category, "name">) =>
+//   `/products?category=${encodeURIComponent((c.name ?? "").trim())}`;
+
+// export const CategoryGrid = ({ items, title, subtitle }: CategoryGridProps) => {
+//   const data = useMemo(() => {
+//     const list = Array.isArray(items) ? items : [];
+//     return list
+//       .filter((c) => c.visible !== false)
+//       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+//   }, [items]);
+
+//   return (
+//     <section className="py-12 bg-background">
+//       <div className="container mx-auto px-4">
+//         <div className="text-center mb-10">
+//           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+//             {title ?? DEFAULT_TITLE}
+//           </h2>
+//           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+//             {subtitle ?? DEFAULT_SUBTITLE}
+//           </p>
+//         </div>
+
+//         {data.length === 0 ? (
+//           <div className="rounded-xl border border-dashed p-8 text-center text-muted-foreground">
+//             ไม่มีหมวดหมู่ให้แสดง
+//           </div>
+//         ) : (
+//           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6">
+//             {data.map((category, index) => {
+//               const imageUrl = getImageUrl(category.main_image);
+
+//               return (
+//                 <Link
+//                   key={(category.id ?? category.slug) ?? index}
+//                   href={categoryHref(category)} // ✅ กดการ์ดแล้ววิ่งไป /products?category=...
+//                   className="flex flex-col items-center p-6 rounded-xl bg-card hover:bg-gradient-card shadow-soft hover:shadow-card-hover transition-all duration-300 group opacity-0 animate-fade-in"
+//                   style={{ animationDelay: `${index * 0.1}s` }}
+//                 >
+//                   <div className="mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+//                     <img
+//                       src={imageUrl ?? "/placeholder.png"}
+//                       alt={category.name}
+//                       width={64}
+//                       height={64}
+//                       className="w-16 h-16 object-cover rounded-2xl shadow-soft"
+//                     />
+//                   </div>
+//                   <span className="text-sm font-medium text-center group-hover:text-primary transition-colors leading-tight h-10">
+//                     {category.name}
+//                   </span>
+//                 </Link>
+//               );
+//             })}
+//           </div>
+//         )}
+//       </div>
+//     </section>
+//   );
+// };
 
 // v.1.1.8 ======================================================================
 

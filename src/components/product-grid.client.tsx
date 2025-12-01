@@ -8,6 +8,7 @@ import { ProductCard } from "./product-card";
 import type { ProductCardProps } from "./product-card";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 /* ====== Types ====== */
 type UIProductBase = {
@@ -105,10 +106,12 @@ export function ProductGridClient({
             <h2 className="text-xl sm:text-2xl font-bold text-foreground">{title}</h2>
             {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
           </div>
-          <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
-            ดูทั้งหมด
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
+          <Link href="/products">
+            <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
+              ดูทั้งหมด
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </Link>
         </div>
 
         {/* Grid */}

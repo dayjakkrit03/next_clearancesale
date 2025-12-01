@@ -1,4 +1,4 @@
-// v.1.1.6 ===============================================================
+// v.1.1.8 ===============================================================
 // src/types/checkout.ts
 
 import type { CartItem } from "@/types/cart";
@@ -13,12 +13,15 @@ export type CheckoutAddressTag = "HOME" | "OFFICE";
 /** ใช้บอกว่า address นี้เอาไว้ทำอะไรในหน้า checkout */
 export type CheckoutAddressPurpose = "shipping" | "billing";
 
+/** โหมดโปรไฟล์ที่ใช้งานใน checkout */
+export type CheckoutProfileMode = "person" | "entity" | null;
+
 export type CheckoutAddress = {
   id: number;
   /** HOME = บุคคลธรรมดา, OFFICE = นิติบุคคล (เอาไป map เป็น label ที่ UI) */
   type: CheckoutAddressTag;
 
-  /** ชื่อที่โชว์บนบล็อก เช่น สิรดา ถวิก / บจก.อินเตอร์ลิ้งค์ฯ */
+  /** ชื่อที่โชว์บนบล็อก เช่น จักรกฤษ รุ่งวงษ์ / บจก.อินเตอร์ลิ้งค์ฯ */
   name: string;
 
   /** เบอร์ติดต่อ */
@@ -27,14 +30,14 @@ export type CheckoutAddress = {
   /** ที่อยู่รวมทุกอย่างในรูปแบบพร้อมแสดง */
   address: string;
 
-  /** ใช้ทำ “ค่าเริ่มต้น” ใน sheet */
+  /** ใช้ทำ “ค่าเริ่มต้น” ใน sheet / card list */
   isDefault: boolean;
 
   /** ใช้แยกว่าบล็อกนี้ใช้เป็น “ที่อยู่จัดส่ง” หรือ “ที่อยู่ออกใบกำกับภาษี” */
   purpose?: CheckoutAddressPurpose;
 
   /** ใช้รู้ว่า address นี้มาจาก profile แบบไหน */
-  profileMode?: "person" | "entity";
+  profileMode?: Exclude<CheckoutProfileMode, null>; // "person" | "entity"
 
   /** id row ของตาราง customer_profile_people/entities (ถ้ามี) */
   profileSourceId?: number | string | bigint;
@@ -58,19 +61,25 @@ export function mapPersonProfileToCheckoutAddresses(
 } {
   if (!person) return {};
 
+  // ✅ ใช้ "ชื่อลูกค้า" เป็นหลัก
   const baseName =
-    (person as any).personContactMore ||
+    (person as any).personName ||
+    (person as any).personCustomerName ||
     (person as any).personCompanyName ||
     "บุคคลธรรมดา";
+
   const phone = person.personTel ?? "";
 
+  // ที่อยู่จัดส่ง: เอา "รายละเอียดผู้รับสินค้าเพิ่มเติม" ไปต่อใน address แทน
   const shipParts = [
+    person.personContactMore,
     person.personShipAddr,
     person.personShipDistric,
     person.personShipProvince,
     person.personShipCountry,
     person.personShipPostCode,
   ];
+
   const taxParts = [
     person.personTaxAddr,
     person.personTaxDistric,
@@ -83,7 +92,7 @@ export function mapPersonProfileToCheckoutAddresses(
     ? ({
         id: 1,
         type: "HOME",
-        name: baseName,
+        name: baseName, // ← แสดงเป็น "จักรกฤษ รุ่งวงษ์"
         phone,
         address: shipParts.filter(Boolean).join(" "),
         isDefault: true,
@@ -97,7 +106,7 @@ export function mapPersonProfileToCheckoutAddresses(
     ? ({
         id: 2,
         type: "HOME",
-        name: baseName,
+        name: baseName, // ← ใช้ชื่อเดียวกัน
         phone,
         address: taxParts.filter(Boolean).join(" "),
         isDefault: true,
@@ -169,11 +178,9 @@ export function mapEntityProfileToCheckoutAddresses(
 }
 
 /**
- * รวม person + entity ให้เป็น list สำหรับ checkout
+ * รวม person + entity ให้เป็น list สำหรับ checkout (ใช้หน้าแรก)
  * - shipping: ใช้ในบล็อก “ที่อยู่จัดส่ง”
  * - billing: ใช้ในบล็อก “ที่อยู่ออกใบกำกับภาษี”
- *
- * (ตอนนี้ยังไม่ได้ใช้ในหน้า checkout จริง แต่เตรียมไว้ให้ service layer เรียก)
  */
 export function buildCheckoutAddressesFromProfiles(
   person: PersonProfile | null,
@@ -192,23 +199,75 @@ export function buildCheckoutAddressesFromProfiles(
 
   let nextId = 1;
 
+  // ให้ทุกตัวที่ push เข้ามา isDefault = false ก่อน
   for (const addr of [personShip, entityShip]) {
     if (addr) {
-      shipping.push({ ...addr, id: nextId++ });
+      shipping.push({ ...addr, id: nextId++, isDefault: false });
     }
   }
 
   for (const addr of [personBill, entityBill]) {
     if (addr) {
-      billing.push({ ...addr, id: nextId++ });
+      billing.push({ ...addr, id: nextId++, isDefault: false });
     }
   }
 
-  // ตั้งค่า isDefault true แค่ตัวแรกของแต่ละกลุ่ม
+  // ตั้งค่า isDefault true เฉพาะตัวแรกของแต่ละกลุ่มเท่านั้น
   if (shipping[0]) shipping[0].isDefault = true;
   if (billing[0]) billing[0].isDefault = true;
 
   return { shipping, billing };
+}
+
+/* ======================================================
+ *  Profile Address Groups (ใช้สำหรับหน้าเลือกใน Sheet)
+ * ====================================================== */
+
+// การ์ดหนึ่งใบในหน้าเลือก: รวมทั้งที่อยู่จัดส่ง + ออกใบกำกับของโหมดเดียวกัน
+export type CheckoutProfileAddressGroup = {
+  /** โหมดของโปรไฟล์ในกลุ่มนี้ */
+  mode: Exclude<CheckoutProfileMode, null>; // "person" | "entity"
+  /** ที่อยู่จัดส่ง (ถ้ามี) */
+  shipping?: CheckoutAddress;
+  /** ที่อยู่ออกใบกำกับภาษี (ถ้ามี) */
+  billing?: CheckoutAddress;
+};
+
+// สมุดรวบรวม 2 การ์ด: บุคคลธรรมดา + นิติบุคคล
+export type CheckoutProfileAddressBook = {
+  person?: CheckoutProfileAddressGroup;
+  entity?: CheckoutProfileAddressGroup;
+};
+
+// helper สำหรับสร้างข้อมูล 2 การ์ด ให้ sheet ใช้ render
+export function buildCheckoutProfileAddressBook(
+  person: PersonProfile | null,
+  entity: EntityProfile | null
+): CheckoutProfileAddressBook {
+  const { shippingAddress: personShip, billingAddress: personBill } =
+    mapPersonProfileToCheckoutAddresses(person);
+  const { shippingAddress: entityShip, billingAddress: entityBill } =
+    mapEntityProfileToCheckoutAddresses(entity);
+
+  const book: CheckoutProfileAddressBook = {};
+
+  if (personShip || personBill) {
+    book.person = {
+      mode: "person",
+      shipping: personShip,
+      billing: personBill,
+    };
+  }
+
+  if (entityShip || entityBill) {
+    book.entity = {
+      mode: "entity",
+      shipping: entityShip,
+      billing: entityBill,
+    };
+  }
+
+  return book;
 }
 
 /* ======================================================
@@ -288,7 +347,7 @@ export type CheckoutSummary = {
  * ====================================================== */
 
 export type CheckoutProfileInfo = {
-  mode: "person" | "entity" | null;
+  mode: CheckoutProfileMode;
   email?: string;
   taxId?: string;
 };
@@ -304,6 +363,9 @@ export type CheckoutData = {
   shippingAddress?: CheckoutAddress | null;
   billingAddress?: CheckoutAddress | null;
   profileInfo?: CheckoutProfileInfo;
+
+  /** ใช้สำหรับหน้าเลือกที่อยู่ (2 การ์ด person + entity) */
+  addressProfiles?: CheckoutProfileAddressBook;
 };
 
 /* ======================================================
@@ -368,13 +430,28 @@ export type CheckoutSummaryProps = {
  *  Product Info For Mapping Cart → Checkout
  * ====================================================== */
 
+// ✅ ข้อมูลสินค้าใช้ตอน join กับ cart เพื่อนำไปสร้าง CheckoutItem
 export type ProductForCheckout = {
   id: number;
   sku: string;
   name: string;
-  brand?: string | null;
-  image_url?: string | null;
-  uom_default?: string | null;
+  brand: string | null;
+  image_url: string | null;
+  uom_default: string | null;
+
+  // ข้อมูลเสริม (optional) เอาไว้ใช้ในอนาคต / UI
+  categoryId?: number | null;
+  originalPrice?: number | null;
+  discountLabel?: string | null;
+  clearanceSales?: boolean | null;
+  clearanceQuantity?: number | null;
+  freeShippingEligible?: boolean | null;
+  freeShipMinimum?: number | null;
+  warrantyMonths?: number | null;
+  returnDays?: number | null;
+
+  // เงื่อนไขการขาย (CUT / ROLL ฯลฯ) จาก product_conditions
+  conditions?: any[] | null;
 };
 
 /* ======================================================
@@ -481,18 +558,35 @@ export function buildCheckoutProfileInfo(
   person: PersonProfile | null,
   entity: EntityProfile | null
 ): CheckoutProfileInfo {
-  const emptyPerson = isEmptyProfileCore(person ?? undefined);
-  const emptyEntity = isEmptyProfileCore(entity ?? undefined);
+  const hasPerson =
+    !!person &&
+    [
+      (person as any).personCustomerName,
+      person.personShipAddr,
+      person.personTaxAddr,
+      person.personMail,
+      person.personTel,
+    ]
+      .map((v) => (v ?? "").toString().trim())
+      .some((v) => v !== "");
 
-  if (!emptyEntity) {
-    return {
-      mode: "entity",
-      email: entity?.entityMail ?? undefined,
-      taxId: entity?.entityTaxId ?? undefined,
-    };
-  }
+  const hasEntity =
+    !!entity &&
+    [
+      entity.entityCompanyName,
+      (entity as any).entityCustomerName,
+      entity.entityShipAddr,
+      entity.entityTaxAddr,
+      entity.entityMail,
+      entity.entityTaxId,
+    ]
+      .map((v) => (v ?? "").toString().trim())
+      .some((v) => v !== "");
 
-  if (!emptyPerson) {
+  // ---------- ตัดสินโหมดโปรไฟล์ (ให้บุคคลธรรมดาเป็นค่าเริ่มต้น) ----------
+
+  // ถ้ามีข้อมูลบุคคลธรรมดาเมื่อไหร่ → ใช้ person ก่อนเสมอ
+  if (hasPerson) {
     return {
       mode: "person",
       email: person?.personMail ?? undefined,
@@ -500,8 +594,1102 @@ export function buildCheckoutProfileInfo(
     };
   }
 
+  // ถ้าไม่มีบุคคลธรรมดา แต่มีนิติบุคคล → ใช้ entity
+  if (hasEntity) {
+    return {
+      mode: "entity",
+      email: entity?.entityMail ?? undefined,
+      taxId: entity?.entityTaxId ?? undefined,
+    };
+  }
+
+  // ไม่มีข้อมูลทั้งคู่
   return { mode: null };
 }
+
+// v.1.1.8 ===============================================================
+
+// v.1.1.7 ===============================================================
+// // src/types/checkout.ts
+
+// import type { CartItem } from "@/types/cart";
+// import type { PersonProfile, EntityProfile } from "@/types/profile";
+
+// /* ======================================================
+//  *  Address Types
+//  * ====================================================== */
+
+// export type CheckoutAddressTag = "HOME" | "OFFICE";
+
+// /** ใช้บอกว่า address นี้เอาไว้ทำอะไรในหน้า checkout */
+// export type CheckoutAddressPurpose = "shipping" | "billing";
+
+// /** โหมดโปรไฟล์ที่ใช้งานใน checkout */
+// export type CheckoutProfileMode = "person" | "entity" | null;
+
+// export type CheckoutAddress = {
+//   id: number;
+//   /** HOME = บุคคลธรรมดา, OFFICE = นิติบุคคล (เอาไป map เป็น label ที่ UI) */
+//   type: CheckoutAddressTag;
+
+//   /** ชื่อที่โชว์บนบล็อก เช่น สิรดา ถวิก / บจก.อินเตอร์ลิ้งค์ฯ */
+//   name: string;
+
+//   /** เบอร์ติดต่อ */
+//   phone: string;
+
+//   /** ที่อยู่รวมทุกอย่างในรูปแบบพร้อมแสดง */
+//   address: string;
+
+//   /** ใช้ทำ “ค่าเริ่มต้น” ใน sheet / card list */
+//   isDefault: boolean;
+
+//   /** ใช้แยกว่าบล็อกนี้ใช้เป็น “ที่อยู่จัดส่ง” หรือ “ที่อยู่ออกใบกำกับภาษี” */
+//   purpose?: CheckoutAddressPurpose;
+
+//   /** ใช้รู้ว่า address นี้มาจาก profile แบบไหน */
+//   profileMode?: Exclude<CheckoutProfileMode, null>; // "person" | "entity"
+
+//   /** id row ของตาราง customer_profile_people/entities (ถ้ามี) */
+//   profileSourceId?: number | string | bigint;
+// };
+
+// /* ======================================================
+//  *  Helper: Map Profile → CheckoutAddress
+//  *  (ยังเป็น pure function ใช้ได้ทั้งกับ mock / service layer)
+//  * ====================================================== */
+
+// /** ใช้เช็คว่าชุด field address ว่างหมดไหม */
+// function isEmptyAddressFields(fields: Array<string | null | undefined>) {
+//   return fields.map((v) => (v ?? "").trim()).every((v) => v === "");
+// }
+
+// export function mapPersonProfileToCheckoutAddresses(
+//   person: PersonProfile | null
+// ): {
+//   shippingAddress?: CheckoutAddress;
+//   billingAddress?: CheckoutAddress;
+// } {
+//   if (!person) return {};
+
+//   // ✅ ใช้ "ชื่อลูกค้า" เป็นหลัก
+//   const baseName =
+//     (person as any).personName ||
+//     (person as any).personCustomerName ||
+//     (person as any).personCompanyName ||
+//     "บุคคลธรรมดา";
+
+//   const phone = person.personTel ?? "";
+
+//   // ที่อยู่จัดส่ง: เอา "รายละเอียดผู้รับสินค้าเพิ่มเติม" ไปต่อใน address แทน
+//   const shipParts = [
+//     person.personContactMore,
+//     person.personShipAddr,
+//     person.personShipDistric,
+//     person.personShipProvince,
+//     person.personShipCountry,
+//     person.personShipPostCode,
+//   ];
+
+//   const taxParts = [
+//     person.personTaxAddr,
+//     person.personTaxDistric,
+//     person.personTaxProvince,
+//     person.personTaxCountry,
+//     person.personTaxPostcode,
+//   ];
+
+//   const shippingAddress = !isEmptyAddressFields(shipParts)
+//     ? ({
+//         id: 1,
+//         type: "HOME",
+//         name: baseName, // ← แสดงเป็น "จักรกฤษ รุ่งวงษ์"
+//         phone,
+//         address: shipParts.filter(Boolean).join(" "),
+//         isDefault: true,
+//         purpose: "shipping",
+//         profileMode: "person",
+//         profileSourceId: (person as any).id,
+//       } satisfies CheckoutAddress)
+//     : undefined;
+
+//   const billingAddress = !isEmptyAddressFields(taxParts)
+//     ? ({
+//         id: 2,
+//         type: "HOME",
+//         name: baseName, // ← ใช้ชื่อเดียวกัน
+//         phone,
+//         address: taxParts.filter(Boolean).join(" "),
+//         isDefault: true,
+//         purpose: "billing",
+//         profileMode: "person",
+//         profileSourceId: (person as any).id,
+//       } satisfies CheckoutAddress)
+//     : undefined;
+
+//   return { shippingAddress, billingAddress };
+// }
+
+
+// export function mapEntityProfileToCheckoutAddresses(
+//   entity: EntityProfile | null
+// ): {
+//   shippingAddress?: CheckoutAddress;
+//   billingAddress?: CheckoutAddress;
+// } {
+//   if (!entity) return {};
+
+//   const baseName =
+//     entity.entityCompanyName || entity.entityCustomerName || "นิติบุคคล";
+//   const phone = entity.entityTel ?? "";
+
+//   const shipParts = [
+//     entity.entityShipAddr,
+//     entity.entityShipDistric,
+//     entity.entityShipProvince,
+//     entity.entityShipCountry,
+//     entity.entityShipPostCode,
+//   ];
+//   const taxParts = [
+//     entity.entityTaxAddr,
+//     entity.entityTaxDistric,
+//     entity.entityTaxProvince,
+//     entity.entityTaxCountry,
+//     entity.entityTaxPostcode,
+//   ];
+
+//   const shippingAddress = !isEmptyAddressFields(shipParts)
+//     ? ({
+//         id: 3,
+//         type: "OFFICE",
+//         name: baseName,
+//         phone,
+//         address: shipParts.filter(Boolean).join(" "),
+//         isDefault: true,
+//         purpose: "shipping",
+//         profileMode: "entity",
+//         profileSourceId: (entity as any).id,
+//       } satisfies CheckoutAddress)
+//     : undefined;
+
+//   const billingAddress = !isEmptyAddressFields(taxParts)
+//     ? ({
+//         id: 4,
+//         type: "OFFICE",
+//         name: baseName,
+//         phone,
+//         address: taxParts.filter(Boolean).join(" "),
+//         isDefault: true,
+//         purpose: "billing",
+//         profileMode: "entity",
+//         profileSourceId: (entity as any).id,
+//       } satisfies CheckoutAddress)
+//     : undefined;
+
+//   return { shippingAddress, billingAddress };
+// }
+
+// /**
+//  * รวม person + entity ให้เป็น list สำหรับ checkout
+//  * - shipping: ใช้ในบล็อก “ที่อยู่จัดส่ง”
+//  * - billing: ใช้ในบล็อก “ที่อยู่ออกใบกำกับภาษี”
+//  *
+//  * (ตอนนี้ยังไม่ได้ใช้ในหน้า checkout จริง แต่เตรียมไว้ให้ service layer เรียก)
+//  */
+// export function buildCheckoutAddressesFromProfiles(
+//   person: PersonProfile | null,
+//   entity: EntityProfile | null
+// ): {
+//   shipping: CheckoutAddress[];
+//   billing: CheckoutAddress[];
+// } {
+//   const { shippingAddress: personShip, billingAddress: personBill } =
+//     mapPersonProfileToCheckoutAddresses(person);
+//   const { shippingAddress: entityShip, billingAddress: entityBill } =
+//     mapEntityProfileToCheckoutAddresses(entity);
+
+//   const shipping: CheckoutAddress[] = [];
+//   const billing: CheckoutAddress[] = [];
+
+//   let nextId = 1;
+
+//   // ให้ทุกตัวที่ push เข้ามา isDefault = false ก่อน
+//   for (const addr of [personShip, entityShip]) {
+//     if (addr) {
+//       shipping.push({ ...addr, id: nextId++, isDefault: false });
+//     }
+//   }
+
+//   for (const addr of [personBill, entityBill]) {
+//     if (addr) {
+//       billing.push({ ...addr, id: nextId++, isDefault: false });
+//     }
+//   }
+
+//   // ตั้งค่า isDefault true เฉพาะตัวแรกของแต่ละกลุ่มเท่านั้น
+//   if (shipping[0]) shipping[0].isDefault = true;
+//   if (billing[0]) billing[0].isDefault = true;
+
+//   return { shipping, billing };
+// }
+
+// /* ======================================================
+//  *  Delivery Options
+//  * ====================================================== */
+
+// export type DeliveryOption = "standard" | "express";
+
+// /* ======================================================
+//  *  Checkout Item (ตัวจริง + UI fields)
+//  * ====================================================== */
+
+// export type CheckoutItem = {
+//   /** id แถวใน checkout (ส่วนใหญ่ใช้ cart.id) */
+//   id: number;
+
+//   /** Mapping back to DB */
+//   cartId?: number;
+//   productId?: number;
+//   product?: string;
+
+//   /** Owner */
+//   customerId?: number;
+
+//   /** แสดงผลบน UI */
+//   name: string;
+//   sku?: string;
+//   brand?: string;
+
+//   /** รูปสินค้า */
+//   image: string;
+//   imageUrl?: string;
+
+//   /** ราคาต่อหน่วย */
+//   price: number;
+//   unitPrice?: number;
+
+//   /** จำนวนที่ลูกค้าซื้อ */
+//   quantity: number;
+
+//   /** หน่วยขาย เช่น PC., M. */
+//   uom?: string;
+
+//   /** ราคาปกติ (ก่อนลด) */
+//   originalPrice?: number;
+
+//   /** ส่วนลดเป็น % เช่น 60 => ประหยัด 60% */
+//   discountPercent?: number;
+
+//   /** line total จาก DB หรือ service คำนวณ */
+//   lineTotal?: number;
+
+//   /** ใช้เลือกส่งบางรายการไป checkout */
+//   checked?: boolean;
+
+//   /** Raw cart item จาก DB */
+//   rawCart?: CartItem;
+
+//   /** (UI only) store name */
+//   store?: string;
+// };
+
+// /* ======================================================
+//  *  Summary Types
+//  * ====================================================== */
+
+// export type CheckoutSummary = {
+//   itemCount: number;
+//   subtotal: number;
+//   shippingFee: number;
+//   discount: number;
+//   grandTotal: number;
+// };
+
+// /* ======================================================
+//  *  Profile Info (ใช้หน้า Checkout)
+//  * ====================================================== */
+
+// export type CheckoutProfileInfo = {
+//   mode: CheckoutProfileMode;
+//   email?: string;
+//   taxId?: string;
+// };
+
+// /* ======================================================
+//  *  Checkout Data (ภาพรวมสำหรับหน้า checkout)
+//  * ====================================================== */
+
+// export type CheckoutData = {
+//   items: CheckoutItem[];
+//   summary: CheckoutSummary;
+
+//   shippingAddress?: CheckoutAddress | null;
+//   billingAddress?: CheckoutAddress | null;
+//   profileInfo?: CheckoutProfileInfo;
+// };
+
+// /* ======================================================
+//  *  Voucher Type
+//  * ====================================================== */
+
+// export type CheckoutVoucher = {
+//   code: string;
+//   discount: number;
+// };
+
+// /* ======================================================
+//  *  Payment Methods
+//  * ====================================================== */
+
+// export type PaymentMethod =
+//   | "card"
+//   | "qr"
+//   | "cash"
+//   | "linepay"
+//   | "internetbanking"
+//   | "banktransfer";
+
+// export type PaymentMethodsArray = PaymentMethod[];
+
+// export type CheckoutPaymentData = {
+//   amount: number;
+//   orderId: string;
+//   items: CheckoutItem[];
+//   subtotal: number;
+//   shippingFee: number;
+//   shippingDiscount: number;
+//   voucherDiscount: number;
+//   appliedVouchers: CheckoutVoucher[];
+// };
+
+// /* ======================================================
+//  *  Invoice Info
+//  * ====================================================== */
+
+// export type CheckoutInvoiceInfo = {
+//   email: string;
+//   billingAddress: string;
+//   taxId?: string;
+//   headOfficeBranch?: string;
+// };
+
+// /* ======================================================
+//  *  Summary Section Props
+//  * ====================================================== */
+
+// export type CheckoutSummaryProps = {
+//   itemCount: number;
+//   subtotal: number;
+//   shippingFee: number;
+//   voucherDiscount: number;
+//   total: number;
+//   onPlaceOrder: () => void;
+// };
+
+// /* ======================================================
+//  *  Product Info For Mapping Cart → Checkout
+//  * ====================================================== */
+
+// // ✅ ข้อมูลสินค้าใช้ตอน join กับ cart เพื่อนำไปสร้าง CheckoutItem
+// export type ProductForCheckout = {
+//   id: number;
+//   sku: string;
+//   name: string;
+//   brand: string | null;
+//   image_url: string | null;
+//   uom_default: string | null;
+
+//   // ข้อมูลเสริม (optional) เอาไว้ใช้ในอนาคต / UI
+//   categoryId?: number | null;
+//   originalPrice?: number | null;
+//   discountLabel?: string | null;
+//   clearanceSales?: boolean | null;
+//   clearanceQuantity?: number | null;
+//   freeShippingEligible?: boolean | null;
+//   freeShipMinimum?: number | null;
+//   warrantyMonths?: number | null;
+//   returnDays?: number | null;
+
+//   // เงื่อนไขการขาย (CUT / ROLL ฯลฯ) จาก product_conditions
+//   conditions?: any[] | null;
+// };
+
+// /* ======================================================
+//  *  Mappers
+//  * ====================================================== */
+
+// export function mapCartItemToCheckoutItem(
+//   cart: CartItem,
+//   product: ProductForCheckout
+// ): CheckoutItem {
+//   const quantity = cart.quantity ?? 0;
+//   const unitPrice = cart.price ?? 0;
+
+//   const lineTotal =
+//     typeof cart.price_amount === "number"
+//       ? cart.price_amount
+//       : quantity * unitPrice;
+
+//   const imageUrl = product.image_url ?? "";
+
+//   return {
+//     id: cart.id,
+//     cartId: cart.id,
+//     productId: product.id,
+//     product: cart.product,
+
+//     customerId: cart.id_customer,
+
+//     name: product.name || cart.product,
+//     sku: product.sku,
+//     brand: product.brand ?? undefined,
+
+//     image: imageUrl,
+//     imageUrl,
+
+//     price: unitPrice,
+//     unitPrice,
+//     quantity,
+//     uom: cart.uom || product.uom_default || undefined,
+
+//     lineTotal,
+//     checked: cart.check_product,
+
+//     rawCart: cart,
+//   };
+// }
+
+// /* ======================================================
+//  *  Build Summary
+//  * ====================================================== */
+
+// export function buildCheckoutSummary(
+//   items: CheckoutItem[],
+//   opts?: {
+//     shippingFee?: number;
+//     discount?: number;
+//   }
+// ): CheckoutSummary {
+//   const shippingFee = opts?.shippingFee ?? 0;
+//   const discount = opts?.discount ?? 0;
+
+//   const selected = items.filter((i) => i.checked);
+
+//   const itemCount = selected.length;
+
+//   const subtotal = selected.reduce((sum, item) => {
+//     const line =
+//       typeof item.lineTotal === "number"
+//         ? item.lineTotal
+//         : item.price * item.quantity;
+//     return sum + line;
+//   }, 0);
+
+//   const grandTotal = subtotal + shippingFee - discount;
+
+//   return {
+//     itemCount,
+//     subtotal,
+//     shippingFee,
+//     discount,
+//     grandTotal,
+//   };
+// }
+
+// /* ======================================================
+//  *  Profile Checker
+//  * ====================================================== */
+
+// export function isEmptyProfileCore(
+//   obj: Record<string, unknown> | null | undefined
+// ): boolean {
+//   if (!obj) return true;
+//   const values = Object.values(obj);
+//   if (values.length === 0) return true;
+
+//   return values.every((v) => {
+//     if (v === null || v === undefined) return true;
+//     const s = String(v).trim();
+//     return s === "";
+//   });
+// }
+
+// export function buildCheckoutProfileInfo(
+//   person: PersonProfile | null,
+//   entity: EntityProfile | null
+// ): CheckoutProfileInfo {
+//   const hasPerson =
+//     !!person &&
+//     [
+//       (person as any).personCustomerName,
+//       person.personShipAddr,
+//       person.personTaxAddr,
+//       person.personMail,
+//       person.personTel,
+//     ]
+//       .map((v) => (v ?? "").toString().trim())
+//       .some((v) => v !== "");
+
+//   const hasEntity =
+//     !!entity &&
+//     [
+//       entity.entityCompanyName,
+//       (entity as any).entityCustomerName,
+//       entity.entityShipAddr,
+//       entity.entityTaxAddr,
+//       entity.entityMail,
+//       entity.entityTaxId,
+//     ]
+//       .map((v) => (v ?? "").toString().trim())
+//       .some((v) => v !== "");
+
+//   // ---------- ตัดสินโหมดโปรไฟล์ (ให้บุคคลธรรมดาเป็นค่าเริ่มต้น) ----------
+
+//   // ถ้ามีข้อมูลบุคคลธรรมดาเมื่อไหร่ → ใช้ person ก่อนเสมอ
+//   if (hasPerson) {
+//     return {
+//       mode: "person",
+//       email: person?.personMail ?? undefined,
+//       taxId: person?.personIdCard ?? undefined,
+//     };
+//   }
+
+//   // ถ้าไม่มีบุคคลธรรมดา แต่มีนิติบุคคล → ใช้ entity
+//   if (hasEntity) {
+//     return {
+//       mode: "entity",
+//       email: entity?.entityMail ?? undefined,
+//       taxId: entity?.entityTaxId ?? undefined,
+//     };
+//   }
+
+//   // ไม่มีข้อมูลทั้งคู่
+//   return { mode: null };
+// }
+
+
+
+// v.1.1.7 ===============================================================
+
+// v.1.1.6 ===============================================================
+// // src/types/checkout.ts
+
+// import type { CartItem } from "@/types/cart";
+// import type { PersonProfile, EntityProfile } from "@/types/profile";
+
+// /* ======================================================
+//  *  Address Types
+//  * ====================================================== */
+
+// export type CheckoutAddressTag = "HOME" | "OFFICE";
+
+// /** ใช้บอกว่า address นี้เอาไว้ทำอะไรในหน้า checkout */
+// export type CheckoutAddressPurpose = "shipping" | "billing";
+
+// export type CheckoutAddress = {
+//   id: number;
+//   /** HOME = บุคคลธรรมดา, OFFICE = นิติบุคคล (เอาไป map เป็น label ที่ UI) */
+//   type: CheckoutAddressTag;
+
+//   /** ชื่อที่โชว์บนบล็อก เช่น สิรดา ถวิก / บจก.อินเตอร์ลิ้งค์ฯ */
+//   name: string;
+
+//   /** เบอร์ติดต่อ */
+//   phone: string;
+
+//   /** ที่อยู่รวมทุกอย่างในรูปแบบพร้อมแสดง */
+//   address: string;
+
+//   /** ใช้ทำ “ค่าเริ่มต้น” ใน sheet */
+//   isDefault: boolean;
+
+//   /** ใช้แยกว่าบล็อกนี้ใช้เป็น “ที่อยู่จัดส่ง” หรือ “ที่อยู่ออกใบกำกับภาษี” */
+//   purpose?: CheckoutAddressPurpose;
+
+//   /** ใช้รู้ว่า address นี้มาจาก profile แบบไหน */
+//   profileMode?: "person" | "entity";
+
+//   /** id row ของตาราง customer_profile_people/entities (ถ้ามี) */
+//   profileSourceId?: number | string | bigint;
+// };
+
+// /* ======================================================
+//  *  Helper: Map Profile → CheckoutAddress
+//  *  (ยังเป็น pure function ใช้ได้ทั้งกับ mock / service layer)
+//  * ====================================================== */
+
+// /** ใช้เช็คว่าชุด field address ว่างหมดไหม */
+// function isEmptyAddressFields(fields: Array<string | null | undefined>) {
+//   return fields.map((v) => (v ?? "").trim()).every((v) => v === "");
+// }
+
+// export function mapPersonProfileToCheckoutAddresses(
+//   person: PersonProfile | null
+// ): {
+//   shippingAddress?: CheckoutAddress;
+//   billingAddress?: CheckoutAddress;
+// } {
+//   if (!person) return {};
+
+//   const baseName =
+//     (person as any).personContactMore ||
+//     (person as any).personCompanyName ||
+//     "บุคคลธรรมดา";
+//   const phone = person.personTel ?? "";
+
+//   const shipParts = [
+//     person.personShipAddr,
+//     person.personShipDistric,
+//     person.personShipProvince,
+//     person.personShipCountry,
+//     person.personShipPostCode,
+//   ];
+//   const taxParts = [
+//     person.personTaxAddr,
+//     person.personTaxDistric,
+//     person.personTaxProvince,
+//     person.personTaxCountry,
+//     person.personTaxPostcode,
+//   ];
+
+//   const shippingAddress = !isEmptyAddressFields(shipParts)
+//     ? ({
+//         id: 1,
+//         type: "HOME",
+//         name: baseName,
+//         phone,
+//         address: shipParts.filter(Boolean).join(" "),
+//         isDefault: true,
+//         purpose: "shipping",
+//         profileMode: "person",
+//         profileSourceId: (person as any).id,
+//       } satisfies CheckoutAddress)
+//     : undefined;
+
+//   const billingAddress = !isEmptyAddressFields(taxParts)
+//     ? ({
+//         id: 2,
+//         type: "HOME",
+//         name: baseName,
+//         phone,
+//         address: taxParts.filter(Boolean).join(" "),
+//         isDefault: true,
+//         purpose: "billing",
+//         profileMode: "person",
+//         profileSourceId: (person as any).id,
+//       } satisfies CheckoutAddress)
+//     : undefined;
+
+//   return { shippingAddress, billingAddress };
+// }
+
+// export function mapEntityProfileToCheckoutAddresses(
+//   entity: EntityProfile | null
+// ): {
+//   shippingAddress?: CheckoutAddress;
+//   billingAddress?: CheckoutAddress;
+// } {
+//   if (!entity) return {};
+
+//   const baseName =
+//     entity.entityCompanyName || entity.entityCustomerName || "นิติบุคคล";
+//   const phone = entity.entityTel ?? "";
+
+//   const shipParts = [
+//     entity.entityShipAddr,
+//     entity.entityShipDistric,
+//     entity.entityShipProvince,
+//     entity.entityShipCountry,
+//     entity.entityShipPostCode,
+//   ];
+//   const taxParts = [
+//     entity.entityTaxAddr,
+//     entity.entityTaxDistric,
+//     entity.entityTaxProvince,
+//     entity.entityTaxCountry,
+//     entity.entityTaxPostcode,
+//   ];
+
+//   const shippingAddress = !isEmptyAddressFields(shipParts)
+//     ? ({
+//         id: 3,
+//         type: "OFFICE",
+//         name: baseName,
+//         phone,
+//         address: shipParts.filter(Boolean).join(" "),
+//         isDefault: true,
+//         purpose: "shipping",
+//         profileMode: "entity",
+//         profileSourceId: (entity as any).id,
+//       } satisfies CheckoutAddress)
+//     : undefined;
+
+//   const billingAddress = !isEmptyAddressFields(taxParts)
+//     ? ({
+//         id: 4,
+//         type: "OFFICE",
+//         name: baseName,
+//         phone,
+//         address: taxParts.filter(Boolean).join(" "),
+//         isDefault: true,
+//         purpose: "billing",
+//         profileMode: "entity",
+//         profileSourceId: (entity as any).id,
+//       } satisfies CheckoutAddress)
+//     : undefined;
+
+//   return { shippingAddress, billingAddress };
+// }
+
+// /**
+//  * รวม person + entity ให้เป็น list สำหรับ checkout
+//  * - shipping: ใช้ในบล็อก “ที่อยู่จัดส่ง”
+//  * - billing: ใช้ในบล็อก “ที่อยู่ออกใบกำกับภาษี”
+//  *
+//  * (ตอนนี้ยังไม่ได้ใช้ในหน้า checkout จริง แต่เตรียมไว้ให้ service layer เรียก)
+//  */
+// export function buildCheckoutAddressesFromProfiles(
+//   person: PersonProfile | null,
+//   entity: EntityProfile | null
+// ): {
+//   shipping: CheckoutAddress[];
+//   billing: CheckoutAddress[];
+// } {
+//   const { shippingAddress: personShip, billingAddress: personBill } =
+//     mapPersonProfileToCheckoutAddresses(person);
+//   const { shippingAddress: entityShip, billingAddress: entityBill } =
+//     mapEntityProfileToCheckoutAddresses(entity);
+
+//   const shipping: CheckoutAddress[] = [];
+//   const billing: CheckoutAddress[] = [];
+
+//   let nextId = 1;
+
+//   for (const addr of [personShip, entityShip]) {
+//     if (addr) {
+//       shipping.push({ ...addr, id: nextId++ });
+//     }
+//   }
+
+//   for (const addr of [personBill, entityBill]) {
+//     if (addr) {
+//       billing.push({ ...addr, id: nextId++ });
+//     }
+//   }
+
+//   // ตั้งค่า isDefault true แค่ตัวแรกของแต่ละกลุ่ม
+//   if (shipping[0]) shipping[0].isDefault = true;
+//   if (billing[0]) billing[0].isDefault = true;
+
+//   return { shipping, billing };
+// }
+
+// /* ======================================================
+//  *  Delivery Options
+//  * ====================================================== */
+
+// export type DeliveryOption = "standard" | "express";
+
+// /* ======================================================
+//  *  Checkout Item (ตัวจริง + UI fields)
+//  * ====================================================== */
+
+// export type CheckoutItem = {
+//   /** id แถวใน checkout (ส่วนใหญ่ใช้ cart.id) */
+//   id: number;
+
+//   /** Mapping back to DB */
+//   cartId?: number;
+//   productId?: number;
+//   product?: string;
+
+//   /** Owner */
+//   customerId?: number;
+
+//   /** แสดงผลบน UI */
+//   name: string;
+//   sku?: string;
+//   brand?: string;
+
+//   /** รูปสินค้า */
+//   image: string;
+//   imageUrl?: string;
+
+//   /** ราคาต่อหน่วย */
+//   price: number;
+//   unitPrice?: number;
+
+//   /** จำนวนที่ลูกค้าซื้อ */
+//   quantity: number;
+
+//   /** หน่วยขาย เช่น PC., M. */
+//   uom?: string;
+
+//   /** ราคาปกติ (ก่อนลด) */
+//   originalPrice?: number;
+
+//   /** ส่วนลดเป็น % เช่น 60 => ประหยัด 60% */
+//   discountPercent?: number;
+
+//   /** line total จาก DB หรือ service คำนวณ */
+//   lineTotal?: number;
+
+//   /** ใช้เลือกส่งบางรายการไป checkout */
+//   checked?: boolean;
+
+//   /** Raw cart item จาก DB */
+//   rawCart?: CartItem;
+
+//   /** (UI only) store name */
+//   store?: string;
+// };
+
+// /* ======================================================
+//  *  Summary Types
+//  * ====================================================== */
+
+// export type CheckoutSummary = {
+//   itemCount: number;
+//   subtotal: number;
+//   shippingFee: number;
+//   discount: number;
+//   grandTotal: number;
+// };
+
+// /* ======================================================
+//  *  Profile Info (ใช้หน้า Checkout)
+//  * ====================================================== */
+
+// export type CheckoutProfileInfo = {
+//   mode: "person" | "entity" | null;
+//   email?: string;
+//   taxId?: string;
+// };
+
+// /* ======================================================
+//  *  Checkout Data (ภาพรวมสำหรับหน้า checkout)
+//  * ====================================================== */
+
+// export type CheckoutData = {
+//   items: CheckoutItem[];
+//   summary: CheckoutSummary;
+
+//   shippingAddress?: CheckoutAddress | null;
+//   billingAddress?: CheckoutAddress | null;
+//   profileInfo?: CheckoutProfileInfo;
+// };
+
+// /* ======================================================
+//  *  Voucher Type
+//  * ====================================================== */
+
+// export type CheckoutVoucher = {
+//   code: string;
+//   discount: number;
+// };
+
+// /* ======================================================
+//  *  Payment Methods
+//  * ====================================================== */
+
+// export type PaymentMethod =
+//   | "card"
+//   | "qr"
+//   | "cash"
+//   | "linepay"
+//   | "internetbanking"
+//   | "banktransfer";
+
+// export type PaymentMethodsArray = PaymentMethod[];
+
+// export type CheckoutPaymentData = {
+//   amount: number;
+//   orderId: string;
+//   items: CheckoutItem[];
+//   subtotal: number;
+//   shippingFee: number;
+//   shippingDiscount: number;
+//   voucherDiscount: number;
+//   appliedVouchers: CheckoutVoucher[];
+// };
+
+// /* ======================================================
+//  *  Invoice Info
+//  * ====================================================== */
+
+// export type CheckoutInvoiceInfo = {
+//   email: string;
+//   billingAddress: string;
+//   taxId?: string;
+//   headOfficeBranch?: string;
+// };
+
+// /* ======================================================
+//  *  Summary Section Props
+//  * ====================================================== */
+
+// export type CheckoutSummaryProps = {
+//   itemCount: number;
+//   subtotal: number;
+//   shippingFee: number;
+//   voucherDiscount: number;
+//   total: number;
+//   onPlaceOrder: () => void;
+// };
+
+// /* ======================================================
+//  *  Product Info For Mapping Cart → Checkout
+//  * ====================================================== */
+
+// // ✅ ข้อมูลสินค้าใช้ตอน join กับ cart เพื่อนำไปสร้าง CheckoutItem
+// export type ProductForCheckout = {
+//   id: number;
+//   sku: string;
+//   name: string;
+//   brand: string | null;
+//   image_url: string | null;
+//   uom_default: string | null;
+
+//   // ข้อมูลเสริม (optional) เอาไว้ใช้ในอนาคต / UI
+//   categoryId?: number | null;
+//   originalPrice?: number | null;
+//   discountLabel?: string | null;
+//   clearanceSales?: boolean | null;
+//   clearanceQuantity?: number | null;
+//   freeShippingEligible?: boolean | null;
+//   freeShipMinimum?: number | null;
+//   warrantyMonths?: number | null;
+//   returnDays?: number | null;
+
+//   // เงื่อนไขการขาย (CUT / ROLL ฯลฯ) จาก product_conditions
+//   conditions?: any[] | null;
+// };
+
+// /* ======================================================
+//  *  Mappers
+//  * ====================================================== */
+
+// export function mapCartItemToCheckoutItem(
+//   cart: CartItem,
+//   product: ProductForCheckout
+// ): CheckoutItem {
+//   const quantity = cart.quantity ?? 0;
+//   const unitPrice = cart.price ?? 0;
+
+//   const lineTotal =
+//     typeof cart.price_amount === "number"
+//       ? cart.price_amount
+//       : quantity * unitPrice;
+
+//   const imageUrl = product.image_url ?? "";
+
+//   return {
+//     id: cart.id,
+//     cartId: cart.id,
+//     productId: product.id,
+//     product: cart.product,
+
+//     customerId: cart.id_customer,
+
+//     name: product.name || cart.product,
+//     sku: product.sku,
+//     brand: product.brand ?? undefined,
+
+//     image: imageUrl,
+//     imageUrl,
+
+//     price: unitPrice,
+//     unitPrice,
+//     quantity,
+//     uom: cart.uom || product.uom_default || undefined,
+
+//     lineTotal,
+//     checked: cart.check_product,
+
+//     rawCart: cart,
+//   };
+// }
+
+// /* ======================================================
+//  *  Build Summary
+//  * ====================================================== */
+
+// export function buildCheckoutSummary(
+//   items: CheckoutItem[],
+//   opts?: {
+//     shippingFee?: number;
+//     discount?: number;
+//   }
+// ): CheckoutSummary {
+//   const shippingFee = opts?.shippingFee ?? 0;
+//   const discount = opts?.discount ?? 0;
+
+//   const selected = items.filter((i) => i.checked);
+
+//   const itemCount = selected.length;
+
+//   const subtotal = selected.reduce((sum, item) => {
+//     const line =
+//       typeof item.lineTotal === "number"
+//         ? item.lineTotal
+//         : item.price * item.quantity;
+//     return sum + line;
+//   }, 0);
+
+//   const grandTotal = subtotal + shippingFee - discount;
+
+//   return {
+//     itemCount,
+//     subtotal,
+//     shippingFee,
+//     discount,
+//     grandTotal,
+//   };
+// }
+
+// /* ======================================================
+//  *  Profile Checker
+//  * ====================================================== */
+
+// export function isEmptyProfileCore(
+//   obj: Record<string, unknown> | null | undefined
+// ): boolean {
+//   if (!obj) return true;
+//   const values = Object.values(obj);
+//   if (values.length === 0) return true;
+
+//   return values.every((v) => {
+//     if (v === null || v === undefined) return true;
+//     const s = String(v).trim();
+//     return s === "";
+//   });
+// }
+
+// export function buildCheckoutProfileInfo(
+//   person: PersonProfile | null,
+//   entity: EntityProfile | null
+// ): CheckoutProfileInfo {
+//   const emptyPerson = isEmptyProfileCore(person ?? undefined);
+//   const emptyEntity = isEmptyProfileCore(entity ?? undefined);
+
+//   if (!emptyEntity) {
+//     return {
+//       mode: "entity",
+//       email: entity?.entityMail ?? undefined,
+//       taxId: entity?.entityTaxId ?? undefined,
+//     };
+//   }
+
+//   if (!emptyPerson) {
+//     return {
+//       mode: "person",
+//       email: person?.personMail ?? undefined,
+//       taxId: person?.personIdCard ?? undefined,
+//     };
+//   }
+
+//   return { mode: null };
+// }
 
 // v.1.1.6 ===============================================================
 

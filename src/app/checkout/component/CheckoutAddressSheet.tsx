@@ -1,332 +1,80 @@
-// v.1.1.4 ============================================================
+// v.1.1.7 ============================================================
 // src/app/checkout/component/CheckoutAddressSheet.tsx
 
 "use client";
 
-import { useState, type Dispatch, type SetStateAction } from "react";
-import { Plus, Home, Building } from "lucide-react";
+import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 
 import type {
-  CheckoutAddress,
-  CheckoutAddressTag,
+  CheckoutProfileAddressBook,
+  CheckoutProfileMode,
 } from "@/types/checkout";
+
 import CheckoutAddressList from "./CheckoutAddressList";
 import CheckoutProfileEditDialog from "./CheckoutProfileEditDialog";
 
-// ฟอร์มสำหรับเพิ่มที่อยู่ใหม่ (mock UI)
-type NewAddressFormState = {
-  type: CheckoutAddressTag;
-  name: string;
-  phone: string;
-  address: string;
-  province: string;
-  district: string;
-  subdistrict: string;
-  zipcode: string;
-};
-
 type Props = {
-  addresses: CheckoutAddress[];
-  selectedAddress: CheckoutAddress;
-  setAddresses: Dispatch<SetStateAction<CheckoutAddress[]>>;
-  setSelectedAddress: Dispatch<SetStateAction<CheckoutAddress>>;
+  /** สมุด 2 การ์ดโปรไฟล์ (person + entity) */
+  addressProfiles?: CheckoutProfileAddressBook;
+
+  /** โหมดที่เลือกอยู่ปัจจุบัน (person / entity / null) */
+  selectedMode: CheckoutProfileMode;
+
+  /** เวลาเลือกการ์ดใน sheet → แจ้ง parent */
+  onSelectProfile: (mode: Exclude<CheckoutProfileMode, null>) => void;
+
+  /** ปิด sheet */
   onClose: () => void;
+
+  title?: string;
 };
 
 export default function CheckoutAddressSheet({
-  addresses,
-  selectedAddress,
-  setAddresses,
-  setSelectedAddress,
+  addressProfiles,
+  selectedMode,
+  onSelectProfile,
   onClose,
+  title,
 }: Props) {
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-
-  // state ฟอร์มเพิ่มที่อยู่ใหม่ (mock)
-  const [newAddress, setNewAddress] = useState<NewAddressFormState>({
-    type: "HOME",
-    name: "",
-    phone: "",
-    address: "",
-    province: "",
-    district: "",
-    subdistrict: "",
-    zipcode: "",
-  });
-
-  const resetNewAddress = () =>
-    setNewAddress({
-      type: "HOME",
-      name: "",
-      phone: "",
-      address: "",
-      province: "",
-      district: "",
-      subdistrict: "",
-      zipcode: "",
-    });
-
-  // ----- เลือก/ตั้งค่า default address -----
-
-  const handleSelectAddress = (address: CheckoutAddress) => {
-    setSelectedAddress(address);
-    onClose();
-  };
-
-  const handleSetDefault = (addressId: number) => {
-    setAddresses((prev) =>
-      prev.map((addr) => ({
-        ...addr,
-        isDefault: addr.id === addressId,
-      }))
-    );
-
-    const newDefault = addresses.find((a) => a.id === addressId);
-    if (newDefault) {
-      setSelectedAddress(newDefault);
-    }
-  };
-
-  // ----- เพิ่ม address ใหม่แบบ mock -----
-
-  const handleAddAddress = () => {
-    const newAddr: CheckoutAddress = {
-      id: addresses.length + 1,
-      type: newAddress.type,
-      name: newAddress.name,
-      phone: newAddress.phone,
-      address: `${newAddress.address}, ${newAddress.subdistrict}, ${newAddress.zipcode}, ${newAddress.district}, ${newAddress.province}`,
-      isDefault: false,
-    };
-
-    setAddresses((prev) => [...prev, newAddr]);
-    resetNewAddress();
-    setIsAddDialogOpen(false);
-  };
-
-  // ----- เปิด dialog แก้ไขโปรไฟล์ (ใช้ Person/EntityProfileForm) -----
+  /* ======================================================
+   * เปิด Dialog แก้ไขโปรไฟล์ (Person / Entity)
+   * ====================================================== */
 
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
-  const [profileMode, setProfileMode] = useState<"person" | "entity">(
-    "person"
-  );
+  const [profileMode, setProfileMode] =
+    useState<"person" | "entity">("person");
 
-  const handleOpenProfileEdit = (address: CheckoutAddress) => {
-    // HOME = บุคคลธรรมดา, OFFICE = นิติบุคคล (ตามที่เราออกแบบ type ไว้)
-    const mode = address.type === "HOME" ? "person" : "entity";
+  const handleOpenProfileEdit = (mode: "person" | "entity") => {
     setProfileMode(mode);
     setIsProfileDialogOpen(true);
+  };
+
+  /* ======================================================
+   * เลือกการ์ดจาก list → ส่ง mode กลับขึ้น parent
+   * ====================================================== */
+  const handleSelectMode = (mode: Exclude<CheckoutProfileMode, null>) => {
+    onSelectProfile(mode);
+    onClose(); // ปิด sheet หลังเลือกเสร็จ
   };
 
   return (
     <>
       <SheetHeader>
-        <SheetTitle>เลือกที่อยู่จัดส่งจากโปรไฟล์</SheetTitle>
+        <SheetTitle>{title ?? "เลือกโปรไฟล์สำหรับที่อยู่"}</SheetTitle>
       </SheetHeader>
 
-      <div className="mt-6 space-y-4 overflow-y-auto max-h-[calc(100vh-120px)]">
-        {/* ปุ่มเพิ่มที่อยู่ใหม่ (mock) */}
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button
-              variant="outline"
-              className="w-full justify-start gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              เพิ่มที่อยู่ใหม่
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>เพิ่มที่อยู่จัดส่งใหม่</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">ชื่อ-นามสกุล / บริษัท</Label>
-                  <Input
-                    id="name"
-                    placeholder="กรุณากรอกชื่อ"
-                    value={newAddress.name}
-                    onChange={(e) =>
-                      setNewAddress({
-                        ...newAddress,
-                        name: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="phone">หมายเลขโทรศัพท์</Label>
-                  <Input
-                    id="phone"
-                    placeholder="กรุณากรอกหมายเลขโทรศัพท์"
-                    value={newAddress.phone}
-                    onChange={(e) =>
-                      setNewAddress({
-                        ...newAddress,
-                        phone: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="address">ที่อยู่</Label>
-                <Textarea
-                  id="address"
-                  placeholder="บ้านเลขที่ ชั้น ชื่ออาคาร ชื่อถนน"
-                  value={newAddress.address}
-                  onChange={(e) =>
-                    setNewAddress({
-                      ...newAddress,
-                      address: e.target.value,
-                    })
-                  }
-                  className="min-h-[80px]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="province">จังหวัด</Label>
-                  <Input
-                    id="province"
-                    placeholder="กรุณาเลือกจังหวัด"
-                    value={newAddress.province}
-                    onChange={(e) =>
-                      setNewAddress({
-                        ...newAddress,
-                        province: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="district">เขต/อำเภอ</Label>
-                  <Input
-                    id="district"
-                    placeholder="กรุณาเลือกเขต/อำเภอ"
-                    value={newAddress.district}
-                    onChange={(e) =>
-                      setNewAddress({
-                        ...newAddress,
-                        district: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="subdistrict">แขวง/ตำบล</Label>
-                  <Input
-                    id="subdistrict"
-                    placeholder="กรุณาเลือกแขวง/ตำบล"
-                    value={newAddress.subdistrict}
-                    onChange={(e) =>
-                      setNewAddress({
-                        ...newAddress,
-                        subdistrict: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="zipcode">รหัสไปรษณีย์</Label>
-                  <Input
-                    id="zipcode"
-                    placeholder="00000"
-                    value={newAddress.zipcode}
-                    onChange={(e) =>
-                      setNewAddress({
-                        ...newAddress,
-                        zipcode: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label>เลือกป้ายกำกับสำหรับการจัดส่งที่มีประสิทธิภาพ</Label>
-                <div className="flex gap-2 mt-2">
-                  <Button
-                    variant={
-                      newAddress.type === "HOME" ? "default" : "outline"
-                    }
-                    size="sm"
-                    onClick={() =>
-                      setNewAddress({ ...newAddress, type: "HOME" })
-                    }
-                  >
-                    <Home className="h-4 w-4 mr-1" />
-                    บุคคลธรรมดา
-                  </Button>
-                  <Button
-                    variant={
-                      newAddress.type === "OFFICE" ? "default" : "outline"
-                    }
-                    size="sm"
-                    onClick={() =>
-                      setNewAddress({ ...newAddress, type: "OFFICE" })
-                    }
-                  >
-                    <Building className="h-4 w-4 mr-1" />
-                    นิติบุคคล
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsAddDialogOpen(false)}
-                >
-                  ยกเลิก
-                </Button>
-                <Button
-                  className="bg-teal-500 hover:bg-teal-600"
-                  onClick={handleAddAddress}
-                  disabled={
-                    !newAddress.name ||
-                    !newAddress.phone ||
-                    !newAddress.address
-                  }
-                >
-                  บันทึก
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* รายการที่อยู่ + ปุ่มดินสอที่ไปเปิดฟอร์ม profile */}
+      <div className="mt-6 space-y-4 overflow-y-auto max-h-[calc(100vh-140px)]">
         <CheckoutAddressList
-          addresses={addresses}
-          selectedAddress={selectedAddress}
-          onSelectAddress={handleSelectAddress}
-          onSetDefault={handleSetDefault}
+          addressProfiles={addressProfiles}
+          selectedMode={selectedMode}
+          onSelectProfile={handleSelectMode}
           onEditProfile={handleOpenProfileEdit}
         />
       </div>
 
-      {/* Dialog แก้ไขโปรไฟล์ (reuse module profile) */}
+      {/* แก้ไขโปรไฟล์: จะเชื่อมกับ module profile ของจริง */}
       <CheckoutProfileEditDialog
         open={isProfileDialogOpen}
         onOpenChange={setIsProfileDialogOpen}
@@ -334,13 +82,566 @@ export default function CheckoutAddressSheet({
         initialPerson={undefined}
         initialEntity={undefined}
         onSaved={() => {
-          // TODO: ภายหลังจะ map Profile → CheckoutAddress ใหม่จาก service layer
-          // ตอนนี้ยังเป็น mock UI เลยยังไม่ต้องทำอะไร
+          // TODO: ภายหลังให้ดึงข้อมูลโปรไฟล์ใหม่ผ่าน service
+          // แล้ว map กลับเป็น CheckoutProfileAddressBook ใหม่
+          // ตอนนี้ให้ flow UI ทำงานก่อน
         }}
       />
     </>
   );
 }
+
+// v.1.1.7 ============================================================
+
+// v.1.1.6 ============================================================
+// // src/app/checkout/component/CheckoutAddressSheet.tsx
+
+// "use client";
+
+// import { useState, type Dispatch, type SetStateAction } from "react";
+
+// import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
+
+// import type { CheckoutAddress } from "@/types/checkout";
+// import CheckoutAddressList from "./CheckoutAddressList";
+// import CheckoutProfileEditDialog from "./CheckoutProfileEditDialog";
+
+// type Props = {
+//   addresses: CheckoutAddress[];
+//   selectedAddress: CheckoutAddress;
+//   setAddresses: Dispatch<SetStateAction<CheckoutAddress[]>>;
+//   setSelectedAddress: Dispatch<SetStateAction<CheckoutAddress>>;
+//   onClose: () => void;
+//   title?: string;
+// };
+
+// export default function CheckoutAddressSheet({
+//   addresses,
+//   selectedAddress,
+//   setAddresses,
+//   setSelectedAddress,
+//   onClose,
+//   title,
+// }: Props) {
+//   /* ======================================================
+//    * เลือกที่อยู่ → ส่งกลับไปยัง CheckoutAddressSection
+//    * ====================================================== */
+//   const handleSelectAddress = (address: CheckoutAddress) => {
+//     setSelectedAddress(address);
+//     onClose(); // ปิด sheet
+//   };
+
+//   /* ======================================================
+//    * ไม่ใช้ default แบบเก่าแล้ว (ระบบใหม่: 1 โหมด = 1 ที่อยู่)
+//    * แต่ยังคงฟังก์ชัน placeholder ไว้ให้ component child ใช้ได้
+//    * ====================================================== */
+//   const handleSetDefault = (addressId: number) => {
+//     setAddresses((prev) =>
+//       prev.map((addr) => ({ ...addr, isDefault: addr.id === addressId }))
+//     );
+
+//     const newAddr = addresses.find((a) => a.id === addressId);
+//     if (newAddr) setSelectedAddress(newAddr);
+//   };
+
+//   /* ======================================================
+//    * เปิด Dialog แก้ไขโปรไฟล์ (Person / Entity)
+//    * ====================================================== */
+
+//   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+//   const [profileMode, setProfileMode] =
+//     useState<"person" | "entity">("person");
+
+//   const handleOpenProfileEdit = (address: CheckoutAddress) => {
+//     const mode =
+//       address.profileMode === "entity"
+//         ? "entity"
+//         : "person"; // fallback → person
+
+//     setProfileMode(mode);
+//     setIsProfileDialogOpen(true);
+//   };
+
+//   return (
+//     <>
+//       <SheetHeader>
+//         <SheetTitle>{title ?? "เลือกที่อยู่จากโปรไฟล์"}</SheetTitle>
+//       </SheetHeader>
+
+//       <div className="mt-6 space-y-4 overflow-y-auto max-h-[calc(100vh-140px)]">
+//         <CheckoutAddressList
+//           addresses={addresses}
+//           selectedAddress={selectedAddress}
+//           onSelectAddress={handleSelectAddress}
+//           onSetDefault={handleSetDefault} // placeholder เผื่อใช้ภายหลัง
+//           onEditProfile={handleOpenProfileEdit}
+//         />
+//       </div>
+
+//       {/* แก้ไขโปรไฟล์: จะเชื่อมกับ module profile ของจริง */}
+//       <CheckoutProfileEditDialog
+//         open={isProfileDialogOpen}
+//         onOpenChange={setIsProfileDialogOpen}
+//         mode={profileMode}
+//         initialPerson={undefined}
+//         initialEntity={undefined}
+//         onSaved={() => {
+//           // TODO: ภายหลังให้ดึงข้อมูลโปรไฟล์ใหม่ผ่าน service แล้ว map กลับเป็น CheckoutAddress[]
+//           // ตัวนี้ปล่อยไว้ก่อนเพื่อให้ flow UI ทำงานสมบูรณ์
+//         }}
+//       />
+//     </>
+//   );
+// }
+
+// v.1.1.6 ============================================================
+
+// v.1.1.5 ============================================================
+// // src/app/checkout/component/CheckoutAddressSheet.tsx
+
+// "use client";
+
+// import { useState, type Dispatch, type SetStateAction } from "react";
+
+// import { Button } from "@/components/ui/button";
+// import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
+
+// import type { CheckoutAddress } from "@/types/checkout";
+// import CheckoutAddressList from "./CheckoutAddressList";
+// import CheckoutProfileEditDialog from "./CheckoutProfileEditDialog";
+
+// type Props = {
+//   addresses: CheckoutAddress[];
+//   selectedAddress: CheckoutAddress;
+//   setAddresses: Dispatch<SetStateAction<CheckoutAddress[]>>;
+//   setSelectedAddress: Dispatch<SetStateAction<CheckoutAddress>>;
+//   onClose: () => void;
+
+//   /** ใช้เปลี่ยนหัวข้อ เช่น "เลือกที่อยู่จัดส่งจากโปรไฟล์" / "เลือกที่อยู่ออกใบกำกับภาษีจากโปรไฟล์" */
+//   title?: string;
+// };
+
+// export default function CheckoutAddressSheet({
+//   addresses,
+//   selectedAddress,
+//   setAddresses,
+//   setSelectedAddress,
+//   onClose,
+//   title,
+// }: Props) {
+//   // ----- เลือก/ตั้งค่า default address -----
+
+//   const handleSelectAddress = (address: CheckoutAddress) => {
+//     setSelectedAddress(address);
+//     onClose();
+//   };
+
+//   const handleSetDefault = (addressId: number) => {
+//     setAddresses((prev) =>
+//       prev.map((addr) => ({
+//         ...addr,
+//         isDefault: addr.id === addressId,
+//       })),
+//     );
+
+//     const newDefault = addresses.find((a) => a.id === addressId);
+//     if (newDefault) {
+//       setSelectedAddress(newDefault);
+//     }
+//   };
+
+//   // ----- เปิด dialog แก้ไขโปรไฟล์ (ใช้ Person/EntityProfileForm) -----
+
+//   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+//   const [profileMode, setProfileMode] = useState<"person" | "entity">(
+//     "person",
+//   );
+
+//   const handleOpenProfileEdit = (address: CheckoutAddress) => {
+//     // HOME = บุคคลธรรมดา, OFFICE = นิติบุคคล
+//     const mode = address.type === "HOME" ? "person" : "entity";
+//     setProfileMode(mode);
+//     setIsProfileDialogOpen(true);
+//   };
+
+//   return (
+//     <>
+//       <SheetHeader>
+//         <SheetTitle>{title ?? "เลือกที่อยู่จากโปรไฟล์"}</SheetTitle>
+//       </SheetHeader>
+
+//       <div className="mt-6 space-y-4 overflow-y-auto max-h-[calc(100vh-120px)]">
+//         {/* 🔹 ไม่มีปุ่ม "เพิ่มที่อยู่ใหม่" แล้ว
+//             แสดงเฉพาะรายการที่มาจาก profile (person/entity) */}
+//         <CheckoutAddressList
+//           addresses={addresses}
+//           selectedAddress={selectedAddress}
+//           onSelectAddress={handleSelectAddress}
+//           onSetDefault={handleSetDefault}
+//           onEditProfile={handleOpenProfileEdit}
+//         />
+//       </div>
+
+//       {/* Dialog แก้ไขโปรไฟล์ (reuse module profile) */}
+//       <CheckoutProfileEditDialog
+//         open={isProfileDialogOpen}
+//         onOpenChange={setIsProfileDialogOpen}
+//         mode={profileMode}
+//         initialPerson={undefined}
+//         initialEntity={undefined}
+//         onSaved={() => {
+//           // ภายหลัง: ดึง profile ใหม่ แล้ว map กลับเป็น CheckoutAddress จาก service
+//         }}
+//       />
+//     </>
+//   );
+// }
+
+// v.1.1.5 ============================================================
+
+// v.1.1.4 ============================================================
+// // src/app/checkout/component/CheckoutAddressSheet.tsx
+
+// "use client";
+
+// import { useState, type Dispatch, type SetStateAction } from "react";
+// import { Plus, Home, Building } from "lucide-react";
+
+// import { Button } from "@/components/ui/button";
+// import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogHeader,
+//   DialogTitle,
+//   DialogTrigger,
+// } from "@/components/ui/dialog";
+// import { Label } from "@/components/ui/label";
+// import { Input } from "@/components/ui/input";
+// import { Textarea } from "@/components/ui/textarea";
+
+// import type {
+//   CheckoutAddress,
+//   CheckoutAddressTag,
+// } from "@/types/checkout";
+// import CheckoutAddressList from "./CheckoutAddressList";
+// import CheckoutProfileEditDialog from "./CheckoutProfileEditDialog";
+
+// // ฟอร์มสำหรับเพิ่มที่อยู่ใหม่ (mock UI)
+// type NewAddressFormState = {
+//   type: CheckoutAddressTag;
+//   name: string;
+//   phone: string;
+//   address: string;
+//   province: string;
+//   district: string;
+//   subdistrict: string;
+//   zipcode: string;
+// };
+
+// type Props = {
+//   addresses: CheckoutAddress[];
+//   selectedAddress: CheckoutAddress;
+//   setAddresses: Dispatch<SetStateAction<CheckoutAddress[]>>;
+//   setSelectedAddress: Dispatch<SetStateAction<CheckoutAddress>>;
+//   onClose: () => void;
+// };
+
+// export default function CheckoutAddressSheet({
+//   addresses,
+//   selectedAddress,
+//   setAddresses,
+//   setSelectedAddress,
+//   onClose,
+// }: Props) {
+//   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+//   // state ฟอร์มเพิ่มที่อยู่ใหม่ (mock)
+//   const [newAddress, setNewAddress] = useState<NewAddressFormState>({
+//     type: "HOME",
+//     name: "",
+//     phone: "",
+//     address: "",
+//     province: "",
+//     district: "",
+//     subdistrict: "",
+//     zipcode: "",
+//   });
+
+//   const resetNewAddress = () =>
+//     setNewAddress({
+//       type: "HOME",
+//       name: "",
+//       phone: "",
+//       address: "",
+//       province: "",
+//       district: "",
+//       subdistrict: "",
+//       zipcode: "",
+//     });
+
+//   // ----- เลือก/ตั้งค่า default address -----
+
+//   const handleSelectAddress = (address: CheckoutAddress) => {
+//     setSelectedAddress(address);
+//     onClose();
+//   };
+
+//   const handleSetDefault = (addressId: number) => {
+//     setAddresses((prev) =>
+//       prev.map((addr) => ({
+//         ...addr,
+//         isDefault: addr.id === addressId,
+//       }))
+//     );
+
+//     const newDefault = addresses.find((a) => a.id === addressId);
+//     if (newDefault) {
+//       setSelectedAddress(newDefault);
+//     }
+//   };
+
+//   // ----- เพิ่ม address ใหม่แบบ mock -----
+
+//   const handleAddAddress = () => {
+//     const newAddr: CheckoutAddress = {
+//       id: addresses.length + 1,
+//       type: newAddress.type,
+//       name: newAddress.name,
+//       phone: newAddress.phone,
+//       address: `${newAddress.address}, ${newAddress.subdistrict}, ${newAddress.zipcode}, ${newAddress.district}, ${newAddress.province}`,
+//       isDefault: false,
+//     };
+
+//     setAddresses((prev) => [...prev, newAddr]);
+//     resetNewAddress();
+//     setIsAddDialogOpen(false);
+//   };
+
+//   // ----- เปิด dialog แก้ไขโปรไฟล์ (ใช้ Person/EntityProfileForm) -----
+
+//   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+//   const [profileMode, setProfileMode] = useState<"person" | "entity">(
+//     "person"
+//   );
+
+//   const handleOpenProfileEdit = (address: CheckoutAddress) => {
+//     // HOME = บุคคลธรรมดา, OFFICE = นิติบุคคล (ตามที่เราออกแบบ type ไว้)
+//     const mode = address.type === "HOME" ? "person" : "entity";
+//     setProfileMode(mode);
+//     setIsProfileDialogOpen(true);
+//   };
+
+//   return (
+//     <>
+//       <SheetHeader>
+//         <SheetTitle>เลือกที่อยู่จัดส่งจากโปรไฟล์</SheetTitle>
+//       </SheetHeader>
+
+//       <div className="mt-6 space-y-4 overflow-y-auto max-h-[calc(100vh-120px)]">
+//         {/* ปุ่มเพิ่มที่อยู่ใหม่ (mock) */}
+//         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+//           <DialogTrigger asChild>
+//             <Button
+//               variant="outline"
+//               className="w-full justify-start gap-2"
+//             >
+//               <Plus className="h-4 w-4" />
+//               เพิ่มที่อยู่ใหม่
+//             </Button>
+//           </DialogTrigger>
+//           <DialogContent className="sm:max-w-[500px]">
+//             <DialogHeader>
+//               <DialogTitle>เพิ่มที่อยู่จัดส่งใหม่</DialogTitle>
+//             </DialogHeader>
+//             <div className="grid gap-4 py-4">
+//               <div className="grid grid-cols-2 gap-4">
+//                 <div>
+//                   <Label htmlFor="name">ชื่อ-นามสกุล / บริษัท</Label>
+//                   <Input
+//                     id="name"
+//                     placeholder="กรุณากรอกชื่อ"
+//                     value={newAddress.name}
+//                     onChange={(e) =>
+//                       setNewAddress({
+//                         ...newAddress,
+//                         name: e.target.value,
+//                       })
+//                     }
+//                   />
+//                 </div>
+//                 <div>
+//                   <Label htmlFor="phone">หมายเลขโทรศัพท์</Label>
+//                   <Input
+//                     id="phone"
+//                     placeholder="กรุณากรอกหมายเลขโทรศัพท์"
+//                     value={newAddress.phone}
+//                     onChange={(e) =>
+//                       setNewAddress({
+//                         ...newAddress,
+//                         phone: e.target.value,
+//                       })
+//                     }
+//                   />
+//                 </div>
+//               </div>
+
+//               <div>
+//                 <Label htmlFor="address">ที่อยู่</Label>
+//                 <Textarea
+//                   id="address"
+//                   placeholder="บ้านเลขที่ ชั้น ชื่ออาคาร ชื่อถนน"
+//                   value={newAddress.address}
+//                   onChange={(e) =>
+//                     setNewAddress({
+//                       ...newAddress,
+//                       address: e.target.value,
+//                     })
+//                   }
+//                   className="min-h-[80px]"
+//                 />
+//               </div>
+
+//               <div className="grid grid-cols-2 gap-4">
+//                 <div>
+//                   <Label htmlFor="province">จังหวัด</Label>
+//                   <Input
+//                     id="province"
+//                     placeholder="กรุณาเลือกจังหวัด"
+//                     value={newAddress.province}
+//                     onChange={(e) =>
+//                       setNewAddress({
+//                         ...newAddress,
+//                         province: e.target.value,
+//                       })
+//                     }
+//                   />
+//                 </div>
+//                 <div>
+//                   <Label htmlFor="district">เขต/อำเภอ</Label>
+//                   <Input
+//                     id="district"
+//                     placeholder="กรุณาเลือกเขต/อำเภอ"
+//                     value={newAddress.district}
+//                     onChange={(e) =>
+//                       setNewAddress({
+//                         ...newAddress,
+//                         district: e.target.value,
+//                       })
+//                     }
+//                   />
+//                 </div>
+//               </div>
+
+//               <div className="grid grid-cols-2 gap-4">
+//                 <div>
+//                   <Label htmlFor="subdistrict">แขวง/ตำบล</Label>
+//                   <Input
+//                     id="subdistrict"
+//                     placeholder="กรุณาเลือกแขวง/ตำบล"
+//                     value={newAddress.subdistrict}
+//                     onChange={(e) =>
+//                       setNewAddress({
+//                         ...newAddress,
+//                         subdistrict: e.target.value,
+//                       })
+//                     }
+//                   />
+//                 </div>
+//                 <div>
+//                   <Label htmlFor="zipcode">รหัสไปรษณีย์</Label>
+//                   <Input
+//                     id="zipcode"
+//                     placeholder="00000"
+//                     value={newAddress.zipcode}
+//                     onChange={(e) =>
+//                       setNewAddress({
+//                         ...newAddress,
+//                         zipcode: e.target.value,
+//                       })
+//                     }
+//                   />
+//                 </div>
+//               </div>
+
+//               <div>
+//                 <Label>เลือกป้ายกำกับสำหรับการจัดส่งที่มีประสิทธิภาพ</Label>
+//                 <div className="flex gap-2 mt-2">
+//                   <Button
+//                     variant={
+//                       newAddress.type === "HOME" ? "default" : "outline"
+//                     }
+//                     size="sm"
+//                     onClick={() =>
+//                       setNewAddress({ ...newAddress, type: "HOME" })
+//                     }
+//                   >
+//                     <Home className="h-4 w-4 mr-1" />
+//                     บุคคลธรรมดา
+//                   </Button>
+//                   <Button
+//                     variant={
+//                       newAddress.type === "OFFICE" ? "default" : "outline"
+//                     }
+//                     size="sm"
+//                     onClick={() =>
+//                       setNewAddress({ ...newAddress, type: "OFFICE" })
+//                     }
+//                   >
+//                     <Building className="h-4 w-4 mr-1" />
+//                     นิติบุคคล
+//                   </Button>
+//                 </div>
+//               </div>
+
+//               <div className="flex justify-end gap-2 pt-4">
+//                 <Button
+//                   variant="outline"
+//                   onClick={() => setIsAddDialogOpen(false)}
+//                 >
+//                   ยกเลิก
+//                 </Button>
+//                 <Button
+//                   className="bg-teal-500 hover:bg-teal-600"
+//                   onClick={handleAddAddress}
+//                   disabled={
+//                     !newAddress.name ||
+//                     !newAddress.phone ||
+//                     !newAddress.address
+//                   }
+//                 >
+//                   บันทึก
+//                 </Button>
+//               </div>
+//             </div>
+//           </DialogContent>
+//         </Dialog>
+
+//         {/* รายการที่อยู่ + ปุ่มดินสอที่ไปเปิดฟอร์ม profile */}
+//         <CheckoutAddressList
+//           addresses={addresses}
+//           selectedAddress={selectedAddress}
+//           onSelectAddress={handleSelectAddress}
+//           onSetDefault={handleSetDefault}
+//           onEditProfile={handleOpenProfileEdit}
+//         />
+//       </div>
+
+//       {/* Dialog แก้ไขโปรไฟล์ (reuse module profile) */}
+//       <CheckoutProfileEditDialog
+//         open={isProfileDialogOpen}
+//         onOpenChange={setIsProfileDialogOpen}
+//         mode={profileMode}
+//         initialPerson={undefined}
+//         initialEntity={undefined}
+//         onSaved={() => {
+//           // TODO: ภายหลังจะ map Profile → CheckoutAddress ใหม่จาก service layer
+//           // ตอนนี้ยังเป็น mock UI เลยยังไม่ต้องทำอะไร
+//         }}
+//       />
+//     </>
+//   );
+// }
 
 // v.1.1.4 ============================================================
 

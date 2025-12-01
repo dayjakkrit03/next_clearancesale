@@ -1,230 +1,307 @@
-// v.1.1.6 ==============================================================
+// v.1.1.8 ==============================================================
 // src/app/checkout/page.tsx
 
-"use client";
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
-import { useState, useEffect } from "react";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import CheckoutClient from "./CheckoutClient";
+import { CheckoutService } from "@/services/checkout";
+import { AUTH_COOKIE_NAME, verifyAuthToken } from "@/lib/auth";
 
-import CheckoutShippingAddressSection from "./component/CheckoutShippingAddressSection";
-import CheckoutBillingAddressSection from "./component/CheckoutBillingAddressSection";
-import CheckoutPackagesSection from "./component/CheckoutPackagesSection";
-import CheckoutPaymentSection from "./component/CheckoutPaymentSection";
-// import CheckoutVoucherSection from "./component/CheckoutVoucherSection";
-// import CheckoutInvoiceSection from "./component/CheckoutInvoiceSection";
-import CheckoutSummarySection from "./component/CheckoutSummarySection";
+export default async function CheckoutPage() {
+  // ในโปรเจกต์นี้ cookies() เป็น Promise เลยต้อง await
+  const cookieStore = await cookies();
 
-// ✅ ใช้ type กลางจาก src/types/checkout.ts
-import type {
-  CheckoutItem,
-  DeliveryOption,
-  PaymentMethod,
-  CheckoutVoucher,
-} from "@/types/checkout";
+  // 1) ดึง token จาก cookie
+  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
 
-/* ============================
- *  Mock data for checkout items
- *  (สไตล์เดียวกับการ์ดด้านขวาในรูปตัวอย่าง)
- * ============================ */
+  if (!token) {
+    redirect("/auth/login?redirect=/checkout");
+  }
 
-const initialCheckoutItems: CheckoutItem[] = [
-  {
-    id: 1,
-    name: "US-9035 CAT 5E UTP Cable Indoor 305m",
-    sku: "AM-3602A",
-    brand: "LINK",
-    price: 1770, // ต่อ PC.
-    quantity: 1,
-    uom: "PC.",
-    image: "/assets/switch-24port.jpg",
-    discountPercent: 60,
-  },
-  {
-    id: 2,
-    name: "Solar Cable 4mm² PV Wire 100m",
-    sku: "UFC4202",
-    brand: "LINK",
-    price: 480, // ต่อ M.
-    quantity: 200,
-    uom: "M.",
-    image: "/assets/lan-cable-cat6.jpg",
-    discountPercent: 70,
-  },
-  {
-    id: 3,
-    name: "Fiber Optic Cable Single Mode 305m",
-    sku: "UFC3306",
-    brand: "COMMSCOPE",
-    price: 210, // ต่อ M.
-    quantity: 2000,
-    uom: "M.",
-    image: "/assets/wifi-router-ac1200.jpg",
-    discountPercent: 60,
-  },
-];
+  // 2) verify token → payload
+  const payload = verifyAuthToken(token!);
 
-export default function CheckoutPage() {
-  const router = useRouter();
+  if (!payload) {
+    redirect("/auth/login?redirect=/checkout");
+  }
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  // sub เป็น string -> แปลงเป็น BigInt ให้ตรงกับ field id__customers
+  const customerId = BigInt(payload.sub);
 
-  // ===== State หลักที่มีผลหลายส่วน =====
-  const [checkoutItems, setCheckoutItems] =
-    useState<CheckoutItem[]>(initialCheckoutItems);
+  // 3) ดึงข้อมูล checkout จาก service layer (param: number | bigint)
+  const checkoutData = await CheckoutService.getCheckoutData(customerId);
 
-  // ✅ ใช้ DeliveryOption จาก type กลาง
-  const [deliveryOption, setDeliveryOption] =
-    useState<DeliveryOption>("standard");
-
-  // ✅ ใช้ PaymentMethod จาก type กลาง
-  const [paymentMethod, setPaymentMethod] =
-    useState<PaymentMethod>("card");
-
-  const [voucherCode, setVoucherCode] = useState("");
-  const [appliedVouchers, setAppliedVouchers] = useState<CheckoutVoucher[]>([]);
-  const [voucherError, setVoucherError] = useState("");
-
-  // ===== คำนวณราคา =====
-  const subtotal = checkoutItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
-  const shippingFee = deliveryOption === "standard" ? 0 : 65;
-  const voucherDiscount = appliedVouchers.reduce(
-    (sum, voucher) => sum + voucher.discount,
-    0
-  );
-  const total = subtotal + shippingFee - voucherDiscount;
-
-  // ===== Logic Voucher =====
-  const handleApplyVoucher = () => {
-    if (!voucherCode.trim()) return;
-
-    setVoucherError("");
-
-    const mockVouchers: Record<string, CheckoutVoucher> = {
-      SAVE100: { code: "SAVE100", discount: 100 },
-      DISCOUNT50: { code: "DISCOUNT50", discount: 50 },
-      FREESHIP: { code: "FREESHIP", discount: 65 },
-      VC0001: { code: "VC0001", discount: 100 },
-      VC0002: { code: "VC0002", discount: 200 },
-    };
-
-    const key = voucherCode.toUpperCase();
-    const voucher = mockVouchers[key];
-
-    if (!voucher) {
-      setVoucherError("โค้ดส่วนลดไม่ถูกต้อง");
-      return;
-    }
-
-    const isAlreadyApplied = appliedVouchers.some(
-      (v) => v.code === voucher.code
-    );
-    if (isAlreadyApplied) {
-      setVoucherError("โค้ดนี้ถูกใช้แล้ว");
-      return;
-    }
-
-    setAppliedVouchers((prev) => [...prev, voucher]);
-    setVoucherCode("");
-  };
-
-  const handleRemoveVoucher = (codeToRemove: string) => {
-    setAppliedVouchers((prev) =>
-      prev.filter((v) => v.code !== codeToRemove)
-    );
-  };
-
-  // ===== Logic Cart Item =====
-  const handleRemoveItem = (itemId: number) => {
-    setCheckoutItems((items) => items.filter((item) => item.id !== itemId));
-  };
-
-  // ===== Place Order =====
-  const handlePlaceOrder = () => {
-    const paymentData = {
-      amount: total,
-      orderId: `ORDER-${Date.now()}`,
-      items: checkoutItems,
-      subtotal,
-      shippingFee,
-      shippingDiscount: 65,
-      voucherDiscount,
-      appliedVouchers,
-    };
-
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("paymentData", JSON.stringify(paymentData));
-    }
-
-    if (paymentMethod === "card") {
-      router.push("/payment/card");
-    } else if (paymentMethod === "qr") {
-      router.push("/payment/qr");
-    } else {
-      router.push("/payment/card");
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto max-w-6xl px-4 py-6">
-        <div className="mb-6 flex items-center gap-4">
-          <Link href="/cart">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <h1 className="text-2xl font-bold">ชำระเงิน</h1>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* ซ้าย: ที่อยู่ + รายการสินค้า */}
-          <div className="space-y-6 lg:col-span-2">
-            {/* ที่อยู่จัดส่ง */}
-            <CheckoutShippingAddressSection />
-
-            {/* ที่อยู่ออกใบกำกับภาษี */}
-            <CheckoutBillingAddressSection />
-
-            {/* รายการสินค้า */}
-            <CheckoutPackagesSection
-              checkoutItems={checkoutItems}
-              deliveryOption={deliveryOption}
-              onChangeDeliveryOption={setDeliveryOption}
-              onRemoveItem={handleRemoveItem}
-            />
-          </div>
-
-          {/* ขวา: การชำระเงิน / Voucher / ใบกำกับ / สรุปยอด */}
-          <div className="space-y-6">
-            <CheckoutPaymentSection
-              paymentMethod={paymentMethod}
-              onChangePaymentMethod={setPaymentMethod}
-            />
-
-            {/* <CheckoutInvoiceSection /> */}
-
-            <CheckoutSummarySection
-              itemCount={checkoutItems.length}
-              subtotal={subtotal}
-              shippingFee={shippingFee}
-              voucherDiscount={voucherDiscount}
-              total={total}
-              onPlaceOrder={handlePlaceOrder}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  // 4) ส่งต่อให้ client component แสดงผล
+  return <CheckoutClient initialData={checkoutData} />;
 }
+
+// v.1.1.8 ==============================================================
+
+// v.1.1.7 ==============================================================
+// // src/app/checkout/page.tsx
+
+// import { redirect } from "next/navigation";
+// import CheckoutClient from "./CheckoutClient";
+// import { CheckoutService } from "@/services/checkout";
+
+// export default async function CheckoutPage() {
+//   // ดึงฟังก์ชัน auth แบบหลวม ๆ เผื่อชื่อ/รูปแบบไม่ตรง type
+//   const auth = await import("@/lib/auth");
+
+//   // พยายามใช้ requireCustomer() ถ้ามีใน auth.ts
+//   const requireCustomer = (auth as any).requireCustomer as
+//     | (() => Promise<any>)
+//     | undefined;
+
+//   let customer: any = null;
+
+//   if (requireCustomer) {
+//     customer = await requireCustomer();
+//   }
+
+//   // ยังกันไว้ว่า ถ้าระบบ auth เป็นแบบอื่น ให้คุณมาเติม logic ภายหลังได้
+//   if (!customer) {
+//     // ปรับ path หน้า login ตามโปรเจกต์จริงของคุณได้เลย
+//     redirect("/auth/login?redirect=/checkout");
+//   }
+
+//   const customerId = (customer as any).id;
+
+//   const checkoutData = await CheckoutService.getCheckoutData(customerId);
+
+//   return <CheckoutClient initialData={checkoutData} />;
+// }
+
+// v.1.1.7 ==============================================================
+
+// v.1.1.6 ==============================================================
+// // src/app/checkout/page.tsx
+
+// "use client";
+
+// import { useState, useEffect } from "react";
+// import { ArrowLeft } from "lucide-react";
+// import Link from "next/link";
+// import { useRouter } from "next/navigation";
+// import { Button } from "@/components/ui/button";
+
+// import CheckoutShippingAddressSection from "./component/CheckoutShippingAddressSection";
+// import CheckoutBillingAddressSection from "./component/CheckoutBillingAddressSection";
+// import CheckoutPackagesSection from "./component/CheckoutPackagesSection";
+// import CheckoutPaymentSection from "./component/CheckoutPaymentSection";
+// // import CheckoutVoucherSection from "./component/CheckoutVoucherSection";
+// // import CheckoutInvoiceSection from "./component/CheckoutInvoiceSection";
+// import CheckoutSummarySection from "./component/CheckoutSummarySection";
+
+// // ✅ ใช้ type กลางจาก src/types/checkout.ts
+// import type {
+//   CheckoutItem,
+//   DeliveryOption,
+//   PaymentMethod,
+//   CheckoutVoucher,
+// } from "@/types/checkout";
+
+// /* ============================
+//  *  Mock data for checkout items
+//  *  (สไตล์เดียวกับการ์ดด้านขวาในรูปตัวอย่าง)
+//  * ============================ */
+
+// const initialCheckoutItems: CheckoutItem[] = [
+//   {
+//     id: 1,
+//     name: "US-9035 CAT 5E UTP Cable Indoor 305m",
+//     sku: "AM-3602A",
+//     brand: "LINK",
+//     price: 1770, // ต่อ PC.
+//     quantity: 1,
+//     uom: "PC.",
+//     image: "/assets/switch-24port.jpg",
+//     discountPercent: 60,
+//   },
+//   {
+//     id: 2,
+//     name: "Solar Cable 4mm² PV Wire 100m",
+//     sku: "UFC4202",
+//     brand: "LINK",
+//     price: 480, // ต่อ M.
+//     quantity: 200,
+//     uom: "M.",
+//     image: "/assets/lan-cable-cat6.jpg",
+//     discountPercent: 70,
+//   },
+//   {
+//     id: 3,
+//     name: "Fiber Optic Cable Single Mode 305m",
+//     sku: "UFC3306",
+//     brand: "COMMSCOPE",
+//     price: 210, // ต่อ M.
+//     quantity: 2000,
+//     uom: "M.",
+//     image: "/assets/wifi-router-ac1200.jpg",
+//     discountPercent: 60,
+//   },
+// ];
+
+// export default function CheckoutPage() {
+//   const router = useRouter();
+
+//   useEffect(() => {
+//     window.scrollTo(0, 0);
+//   }, []);
+
+//   // ===== State หลักที่มีผลหลายส่วน =====
+//   const [checkoutItems, setCheckoutItems] =
+//     useState<CheckoutItem[]>(initialCheckoutItems);
+
+//   // ✅ ใช้ DeliveryOption จาก type กลาง
+//   const [deliveryOption, setDeliveryOption] =
+//     useState<DeliveryOption>("standard");
+
+//   // ✅ ใช้ PaymentMethod จาก type กลาง
+//   const [paymentMethod, setPaymentMethod] =
+//     useState<PaymentMethod>("card");
+
+//   const [voucherCode, setVoucherCode] = useState("");
+//   const [appliedVouchers, setAppliedVouchers] = useState<CheckoutVoucher[]>([]);
+//   const [voucherError, setVoucherError] = useState("");
+
+//   // ===== คำนวณราคา =====
+//   const subtotal = checkoutItems.reduce(
+//     (sum, item) => sum + item.price * item.quantity,
+//     0
+//   );
+//   const shippingFee = deliveryOption === "standard" ? 0 : 65;
+//   const voucherDiscount = appliedVouchers.reduce(
+//     (sum, voucher) => sum + voucher.discount,
+//     0
+//   );
+//   const total = subtotal + shippingFee - voucherDiscount;
+
+//   // ===== Logic Voucher =====
+//   const handleApplyVoucher = () => {
+//     if (!voucherCode.trim()) return;
+
+//     setVoucherError("");
+
+//     const mockVouchers: Record<string, CheckoutVoucher> = {
+//       SAVE100: { code: "SAVE100", discount: 100 },
+//       DISCOUNT50: { code: "DISCOUNT50", discount: 50 },
+//       FREESHIP: { code: "FREESHIP", discount: 65 },
+//       VC0001: { code: "VC0001", discount: 100 },
+//       VC0002: { code: "VC0002", discount: 200 },
+//     };
+
+//     const key = voucherCode.toUpperCase();
+//     const voucher = mockVouchers[key];
+
+//     if (!voucher) {
+//       setVoucherError("โค้ดส่วนลดไม่ถูกต้อง");
+//       return;
+//     }
+
+//     const isAlreadyApplied = appliedVouchers.some(
+//       (v) => v.code === voucher.code
+//     );
+//     if (isAlreadyApplied) {
+//       setVoucherError("โค้ดนี้ถูกใช้แล้ว");
+//       return;
+//     }
+
+//     setAppliedVouchers((prev) => [...prev, voucher]);
+//     setVoucherCode("");
+//   };
+
+//   const handleRemoveVoucher = (codeToRemove: string) => {
+//     setAppliedVouchers((prev) =>
+//       prev.filter((v) => v.code !== codeToRemove)
+//     );
+//   };
+
+//   // ===== Logic Cart Item =====
+//   const handleRemoveItem = (itemId: number) => {
+//     setCheckoutItems((items) => items.filter((item) => item.id !== itemId));
+//   };
+
+//   // ===== Place Order =====
+//   const handlePlaceOrder = () => {
+//     const paymentData = {
+//       amount: total,
+//       orderId: `ORDER-${Date.now()}`,
+//       items: checkoutItems,
+//       subtotal,
+//       shippingFee,
+//       shippingDiscount: 65,
+//       voucherDiscount,
+//       appliedVouchers,
+//     };
+
+//     if (typeof window !== "undefined") {
+//       sessionStorage.setItem("paymentData", JSON.stringify(paymentData));
+//     }
+
+//     if (paymentMethod === "card") {
+//       router.push("/payment/card");
+//     } else if (paymentMethod === "qr") {
+//       router.push("/payment/qr");
+//     } else {
+//       router.push("/payment/card");
+//     }
+//   };
+
+//   return (
+//     <div className="min-h-screen bg-background">
+//       <div className="container mx-auto max-w-6xl px-4 py-6">
+//         <div className="mb-6 flex items-center gap-4">
+//           <Link href="/cart">
+//             <Button variant="ghost" size="icon">
+//               <ArrowLeft className="h-5 w-5" />
+//             </Button>
+//           </Link>
+//           <h1 className="text-2xl font-bold">ชำระเงิน</h1>
+//         </div>
+
+//         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+//           {/* ซ้าย: ที่อยู่ + รายการสินค้า */}
+//           <div className="space-y-6 lg:col-span-2">
+//             {/* ที่อยู่จัดส่ง */}
+//             <CheckoutShippingAddressSection />
+
+//             {/* ที่อยู่ออกใบกำกับภาษี */}
+//             <CheckoutBillingAddressSection />
+
+//             {/* รายการสินค้า */}
+//             <CheckoutPackagesSection
+//               checkoutItems={checkoutItems}
+//               deliveryOption={deliveryOption}
+//               onChangeDeliveryOption={setDeliveryOption}
+//               onRemoveItem={handleRemoveItem}
+//             />
+//           </div>
+
+//           {/* ขวา: การชำระเงิน / Voucher / ใบกำกับ / สรุปยอด */}
+//           <div className="space-y-6">
+//             <CheckoutPaymentSection
+//               paymentMethod={paymentMethod}
+//               onChangePaymentMethod={setPaymentMethod}
+//             />
+
+//             {/* <CheckoutInvoiceSection /> */}
+
+//             <CheckoutSummarySection
+//               itemCount={checkoutItems.length}
+//               subtotal={subtotal}
+//               shippingFee={shippingFee}
+//               voucherDiscount={voucherDiscount}
+//               total={total}
+//               onPlaceOrder={handlePlaceOrder}
+//             />
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 
 // v.1.1.6 ==============================================================
 

@@ -1,138 +1,514 @@
-// v.1.1.3 ====================================================
+// v.1.1.5 ====================================================
 // src/app/checkout/component/CheckoutAddressList.tsx
 
 "use client";
 
-import type { CheckoutAddress } from "@/types/checkout";
+import type {
+  CheckoutProfileAddressBook,
+  CheckoutProfileMode,
+} from "@/types/checkout";
 
 import { Button } from "@/components/ui/button";
 import { Edit, Check } from "lucide-react";
-import type { Dispatch, SetStateAction } from "react";
 
 type Props = {
-  addresses: CheckoutAddress[];
-  selectedAddress: CheckoutAddress;
-  onSelectAddress: (address: CheckoutAddress) => void;
-  onSetDefault: (id: number) => void;
-  /** ให้ parent (CheckoutAddressSheet) เปิด Dialog แก้ไขโปรไฟล์ */
-  onEditProfile: (address: CheckoutAddress) => void;
+  /** สมุด 2 การ์ดโปรไฟล์ (person + entity) */
+  addressProfiles?: CheckoutProfileAddressBook;
+
+  /** โหมดที่เลือกอยู่ปัจจุบัน (person / entity / null) */
+  selectedMode: CheckoutProfileMode;
+
+  /** เลือกการ์ดใน sheet → แจ้ง parent */
+  onSelectProfile: (mode: "person" | "entity") => void;
+
+  /** ให้ parent เปิด Dialog แก้ไขโปรไฟล์ */
+  onEditProfile: (mode: "person" | "entity") => void;
 };
 
 export default function CheckoutAddressList({
-  addresses,
-  selectedAddress,
-  onSelectAddress,
-  onSetDefault,
+  addressProfiles,
+  selectedMode,
+  onSelectProfile,
   onEditProfile,
 }: Props) {
+  const person = addressProfiles?.person;
+  const entity = addressProfiles?.entity;
+
+  if (!person && !entity) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        ยังไม่มีที่อยู่ในโปรไฟล์ โปรดเพิ่มข้อมูลในโปรไฟล์ของคุณก่อน
+      </p>
+    );
+  }
+
+  const renderCard = (
+    mode: "person" | "entity",
+    opts: {
+      label: string;
+      badgeClass: string;
+      group?: {
+        shipping?: { name?: string; phone?: string; address?: string };
+        billing?: { address?: string };
+      };
+    },
+  ) => {
+    const isSelected = selectedMode === mode;
+    const { label, badgeClass, group } = opts;
+
+    const displayName =
+      group?.shipping?.name ||
+      group?.billing?.address ||
+      undefined;
+    const displayPhone = group?.shipping?.phone;
+
+    const shippingAddress = group?.shipping?.address;
+    const billingAddress = group?.billing?.address;
+
+    // ถ้าไม่มีข้อมูลเลยของโหมดนี้ → disable card แต่ยัง render ให้เห็นไว้
+    const isDisabled = !shippingAddress && !billingAddress;
+
+    return (
+      <div
+        key={mode}
+        className={`border rounded-xl p-5 transition-all duration-200 ${
+          isDisabled
+            ? "border-gray-200 bg-gray-50 opacity-70"
+            : isSelected
+            ? "border-teal-500 bg-teal-50 shadow-sm"
+            : "border-gray-200 hover:border-gray-300 hover:shadow-md"
+        }`}
+      >
+        <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+          <div className="flex flex-wrap items-center gap-2 min-w-0 flex-1">
+            {/* ป้ายแสดงโหมดโปรไฟล์ */}
+            <span
+              className={`text-xs px-3 py-1 rounded-full text-white font-medium ${badgeClass}`}
+            >
+              {label}
+            </span>
+
+            {displayName && (
+              <span className="font-semibold text-gray-900 truncate">
+                {displayName}
+              </span>
+            )}
+
+            {displayPhone && (
+              <span className="text-gray-600 text-sm">
+                {displayPhone}
+              </span>
+            )}
+
+            {isSelected && (
+              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium flex items-center gap-1">
+                <Check className="h-3 w-3" />
+                ใช้งานอยู่
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {/* ปุ่มแก้ไข → เปิด Dialog โปรไฟล์ (Person/Entity) */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditProfile(mode);
+              }}
+              className="h-9 w-9 p-0 hover:bg-blue-100 hover:text-blue-600"
+              title="แก้ไขข้อมูลโปรไฟล์"
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* ตัวเนื้อที่อยู่ */}
+        <div
+          className={`text-sm leading-relaxed ${
+            isDisabled
+              ? "text-gray-400"
+              : "text-gray-600 cursor-pointer hover:text-gray-800 transition-colors"
+          }`}
+          onClick={() => {
+            if (!isDisabled) onSelectProfile(mode);
+          }}
+        >
+          {/* ที่อยู่จัดส่ง */}
+          {shippingAddress && (
+            <div className="mb-2">
+              <p className="font-medium text-gray-800">
+                ที่อยู่จัดส่ง
+              </p>
+              <p className="break-words">{shippingAddress}</p>
+            </div>
+          )}
+
+          {/* ที่อยู่ออกใบกำกับภาษี */}
+          {billingAddress && (
+            <div>
+              <p className="font-medium text-gray-800">
+                ที่อยู่ออกใบกำกับภาษี
+              </p>
+              <p className="break-words">{billingAddress}</p>
+            </div>
+          )}
+
+          {!shippingAddress && !billingAddress && (
+            <p>ยังไม่มีที่อยู่สำหรับโหมดนี้</p>
+          )}
+        </div>
+
+        {/* ปุ่มเลือก สำหรับ mobile */}
+        {!isDisabled && (
+          <div className="mt-4 sm:hidden">
+            <Button
+              variant={isSelected ? "default" : "outline"}
+              size="sm"
+              className="w-full"
+              onClick={() => onSelectProfile(mode)}
+            >
+              {isSelected ? "เลือกแล้ว" : "เลือกโปรไฟล์นี้"}
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-4">
-      {addresses.map((address) => {
-        const isSelected = selectedAddress.id === address.id;
-        const tagLabel =
-          address.type === "HOME" ? "บุคคลธรรมดา" : "นิติบุคคล";
-        const tagClass =
-          address.type === "HOME" ? "bg-orange-500" : "bg-emerald-600";
+      {renderCard("person", {
+        label: "บุคคลธรรมดา",
+        badgeClass: "bg-orange-500",
+        group: person && {
+          shipping: {
+            name: person.shipping?.name,
+            phone: person.shipping?.phone,
+            address: person.shipping?.address,
+          },
+          billing: {
+            address: person.billing?.address,
+          },
+        },
+      })}
 
-        return (
-          <div
-            key={address.id}
-            className={`border rounded-xl p-5 transition-all duration-200 hover:shadow-md ${
-              isSelected
-                ? "border-teal-500 bg-teal-50 shadow-sm"
-                : "border-gray-200 hover:border-gray-300"
-            }`}
-          >
-            <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
-              <div className="flex flex-wrap items-center gap-2 min-w-0 flex-1">
-                {/* ป้ายแสดงโหมดโปรไฟล์ */}
-                <span
-                  className={`text-xs px-3 py-1 rounded-full text-white font-medium ${tagClass}`}
-                >
-                  {tagLabel}
-                </span>
-
-                <span className="font-semibold text-gray-900 truncate">
-                  {address.name}
-                </span>
-
-                {address.phone && (
-                  <span className="text-gray-600 text-sm">
-                    {address.phone}
-                  </span>
-                )}
-
-                {address.isDefault && (
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
-                    ค่าเริ่มต้น
-                  </span>
-                )}
-              </div>
-
-              <div className="flex items-center gap-1 flex-shrink-0">
-                {/* ปุ่มแก้ไข → เปิด Dialog โปรไฟล์ (Person/Entity) */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEditProfile(address);
-                  }}
-                  className="h-9 w-9 p-0 hover:bg-blue-100 hover:text-blue-600"
-                  title="แก้ไขข้อมูลโปรไฟล์"
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-
-                {/* ปุ่มตั้งค่า default */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSetDefault(address.id);
-                  }}
-                  className={`h-9 w-9 p-0 ${
-                    address.isDefault
-                      ? "text-green-600 hover:bg-green-100"
-                      : "text-gray-400 hover:bg-gray-100 hover:text-green-600"
-                  }`}
-                  title={
-                    address.isDefault
-                      ? "ที่อยู่เริ่มต้น"
-                      : "ตั้งเป็นค่าเริ่มต้น"
-                  }
-                >
-                  <Check className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* คลิกตัวเนื้อ address เพื่อเลือก */}
-            <div
-              className="text-sm text-gray-600 leading-relaxed cursor-pointer hover:text-gray-800 transition-colors"
-              onClick={() => onSelectAddress(address)}
-            >
-              <p className="break-words">{address.address}</p>
-            </div>
-
-            {/* ปุ่มเลือก สำหรับ mobile */}
-            <div className="mt-4 sm:hidden">
-              <Button
-                variant={isSelected ? "default" : "outline"}
-                size="sm"
-                className="w-full"
-                onClick={() => onSelectAddress(address)}
-              >
-                {isSelected ? "เลือกแล้ว" : "เลือกที่อยู่นี้"}
-              </Button>
-            </div>
-          </div>
-        );
+      {renderCard("entity", {
+        label: "นิติบุคคล",
+        badgeClass: "bg-emerald-600",
+        group: entity && {
+          shipping: {
+            name: entity.shipping?.name,
+            phone: entity.shipping?.phone,
+            address: entity.shipping?.address,
+          },
+          billing: {
+            address: entity.billing?.address,
+          },
+        },
       })}
     </div>
   );
 }
+
+// v.1.1.5 ====================================================
+
+// v.1.1.4 ====================================================
+// // src/app/checkout/component/CheckoutAddressList.tsx
+
+// "use client";
+
+// import type { CheckoutAddress } from "@/types/checkout";
+
+// import { Button } from "@/components/ui/button";
+// import { Edit, Check } from "lucide-react";
+
+// type Props = {
+//   addresses: CheckoutAddress[];
+//   selectedAddress: CheckoutAddress;
+//   onSelectAddress: (address: CheckoutAddress) => void;
+//   onSetDefault: (id: number) => void;
+//   /** ให้ parent (CheckoutAddressSheet) เปิด Dialog แก้ไขโปรไฟล์ */
+//   onEditProfile: (address: CheckoutAddress) => void;
+// };
+
+// function getProfileLabel(addr: CheckoutAddress): string {
+//   if (addr.profileMode === "person") return "บุคคลธรรมดา";
+//   if (addr.profileMode === "entity") return "นิติบุคคล";
+//   // fallback เดิม ถ้ายังไม่มี profileMode
+//   return addr.type === "HOME" ? "บุคคลธรรมดา" : "นิติบุคคล";
+// }
+
+// function getProfileBadgeClass(addr: CheckoutAddress): string {
+//   if (addr.profileMode === "person") return "bg-orange-500";
+//   if (addr.profileMode === "entity") return "bg-emerald-600";
+//   return addr.type === "HOME" ? "bg-orange-500" : "bg-emerald-600";
+// }
+
+// export default function CheckoutAddressList({
+//   addresses,
+//   selectedAddress,
+//   onSelectAddress,
+//   onSetDefault,
+//   onEditProfile,
+// }: Props) {
+//   if (!addresses.length) {
+//     return (
+//       <p className="text-sm text-muted-foreground">
+//         ยังไม่มีที่อยู่ในโปรไฟล์ โปรดเพิ่มที่อยู่ก่อน
+//       </p>
+//     );
+//   }
+
+//   return (
+//     <div className="space-y-4">
+//       {addresses.map((address) => {
+//         const isSelected = selectedAddress.id === address.id;
+//         const tagLabel = getProfileLabel(address);
+//         const tagClass = getProfileBadgeClass(address);
+
+//         return (
+//           <div
+//             key={address.id}
+//             className={`border rounded-xl p-5 transition-all duration-200 hover:shadow-md ${
+//               isSelected
+//                 ? "border-teal-500 bg-teal-50 shadow-sm"
+//                 : "border-gray-200 hover:border-gray-300"
+//             }`}
+//           >
+//             <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+//               <div className="flex flex-wrap items-center gap-2 min-w-0 flex-1">
+//                 {/* ป้ายแสดงโหมดโปรไฟล์ */}
+//                 <span
+//                   className={`text-xs px-3 py-1 rounded-full text-white font-medium ${tagClass}`}
+//                 >
+//                   {tagLabel}
+//                 </span>
+
+//                 {address.name && (
+//                   <span className="font-semibold text-gray-900 truncate">
+//                     {address.name}
+//                   </span>
+//                 )}
+
+//                 {address.phone && (
+//                   <span className="text-gray-600 text-sm">
+//                     {address.phone}
+//                   </span>
+//                 )}
+
+//                 {address.isDefault && (
+//                   <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+//                     ค่าเริ่มต้น
+//                   </span>
+//                 )}
+//               </div>
+
+//               <div className="flex items-center gap-1 flex-shrink-0">
+//                 {/* ปุ่มแก้ไข → เปิด Dialog โปรไฟล์ (Person/Entity) */}
+//                 <Button
+//                   variant="ghost"
+//                   size="sm"
+//                   onClick={(e) => {
+//                     e.stopPropagation();
+//                     onEditProfile(address);
+//                   }}
+//                   className="h-9 w-9 p-0 hover:bg-blue-100 hover:text-blue-600"
+//                   title="แก้ไขข้อมูลโปรไฟล์"
+//                 >
+//                   <Edit className="h-4 w-4" />
+//                 </Button>
+
+//                 {/* ปุ่มตั้งค่า default */}
+//                 <Button
+//                   variant="ghost"
+//                   size="sm"
+//                   onClick={(e) => {
+//                     e.stopPropagation();
+//                     onSetDefault(address.id);
+//                   }}
+//                   className={`h-9 w-9 p-0 ${
+//                     address.isDefault
+//                       ? "text-green-600 hover:bg-green-100"
+//                       : "text-gray-400 hover:bg-gray-100 hover:text-green-600"
+//                   }`}
+//                   title={
+//                     address.isDefault
+//                       ? "ที่อยู่เริ่มต้น"
+//                       : "ตั้งเป็นค่าเริ่มต้น"
+//                   }
+//                 >
+//                   <Check className="h-4 w-4" />
+//                 </Button>
+//               </div>
+//             </div>
+
+//             {/* คลิกตัวเนื้อ address เพื่อเลือก */}
+//             <div
+//               className="text-sm text-gray-600 leading-relaxed cursor-pointer hover:text-gray-800 transition-colors"
+//               onClick={() => onSelectAddress(address)}
+//             >
+//               {address.address && (
+//                 <p className="break-words">{address.address}</p>
+//               )}
+//             </div>
+
+//             {/* ปุ่มเลือก สำหรับ mobile */}
+//             <div className="mt-4 sm:hidden">
+//               <Button
+//                 variant={isSelected ? "default" : "outline"}
+//                 size="sm"
+//                 className="w-full"
+//                 onClick={() => onSelectAddress(address)}
+//               >
+//                 {isSelected ? "เลือกแล้ว" : "เลือกที่อยู่นี้"}
+//               </Button>
+//             </div>
+//           </div>
+//         );
+//       })}
+//     </div>
+//   );
+// }
+
+// v.1.1.4 ====================================================
+// v.1.1.3 ====================================================
+// // src/app/checkout/component/CheckoutAddressList.tsx
+
+// "use client";
+
+// import type { CheckoutAddress } from "@/types/checkout";
+
+// import { Button } from "@/components/ui/button";
+// import { Edit, Check } from "lucide-react";
+// import type { Dispatch, SetStateAction } from "react";
+
+// type Props = {
+//   addresses: CheckoutAddress[];
+//   selectedAddress: CheckoutAddress;
+//   onSelectAddress: (address: CheckoutAddress) => void;
+//   onSetDefault: (id: number) => void;
+//   /** ให้ parent (CheckoutAddressSheet) เปิด Dialog แก้ไขโปรไฟล์ */
+//   onEditProfile: (address: CheckoutAddress) => void;
+// };
+
+// export default function CheckoutAddressList({
+//   addresses,
+//   selectedAddress,
+//   onSelectAddress,
+//   onSetDefault,
+//   onEditProfile,
+// }: Props) {
+//   return (
+//     <div className="space-y-4">
+//       {addresses.map((address) => {
+//         const isSelected = selectedAddress.id === address.id;
+//         const tagLabel =
+//           address.type === "HOME" ? "บุคคลธรรมดา" : "นิติบุคคล";
+//         const tagClass =
+//           address.type === "HOME" ? "bg-orange-500" : "bg-emerald-600";
+
+//         return (
+//           <div
+//             key={address.id}
+//             className={`border rounded-xl p-5 transition-all duration-200 hover:shadow-md ${
+//               isSelected
+//                 ? "border-teal-500 bg-teal-50 shadow-sm"
+//                 : "border-gray-200 hover:border-gray-300"
+//             }`}
+//           >
+//             <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+//               <div className="flex flex-wrap items-center gap-2 min-w-0 flex-1">
+//                 {/* ป้ายแสดงโหมดโปรไฟล์ */}
+//                 <span
+//                   className={`text-xs px-3 py-1 rounded-full text-white font-medium ${tagClass}`}
+//                 >
+//                   {tagLabel}
+//                 </span>
+
+//                 <span className="font-semibold text-gray-900 truncate">
+//                   {address.name}
+//                 </span>
+
+//                 {address.phone && (
+//                   <span className="text-gray-600 text-sm">
+//                     {address.phone}
+//                   </span>
+//                 )}
+
+//                 {address.isDefault && (
+//                   <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+//                     ค่าเริ่มต้น
+//                   </span>
+//                 )}
+//               </div>
+
+//               <div className="flex items-center gap-1 flex-shrink-0">
+//                 {/* ปุ่มแก้ไข → เปิด Dialog โปรไฟล์ (Person/Entity) */}
+//                 <Button
+//                   variant="ghost"
+//                   size="sm"
+//                   onClick={(e) => {
+//                     e.stopPropagation();
+//                     onEditProfile(address);
+//                   }}
+//                   className="h-9 w-9 p-0 hover:bg-blue-100 hover:text-blue-600"
+//                   title="แก้ไขข้อมูลโปรไฟล์"
+//                 >
+//                   <Edit className="h-4 w-4" />
+//                 </Button>
+
+//                 {/* ปุ่มตั้งค่า default */}
+//                 <Button
+//                   variant="ghost"
+//                   size="sm"
+//                   onClick={(e) => {
+//                     e.stopPropagation();
+//                     onSetDefault(address.id);
+//                   }}
+//                   className={`h-9 w-9 p-0 ${
+//                     address.isDefault
+//                       ? "text-green-600 hover:bg-green-100"
+//                       : "text-gray-400 hover:bg-gray-100 hover:text-green-600"
+//                   }`}
+//                   title={
+//                     address.isDefault
+//                       ? "ที่อยู่เริ่มต้น"
+//                       : "ตั้งเป็นค่าเริ่มต้น"
+//                   }
+//                 >
+//                   <Check className="h-4 w-4" />
+//                 </Button>
+//               </div>
+//             </div>
+
+//             {/* คลิกตัวเนื้อ address เพื่อเลือก */}
+//             <div
+//               className="text-sm text-gray-600 leading-relaxed cursor-pointer hover:text-gray-800 transition-colors"
+//               onClick={() => onSelectAddress(address)}
+//             >
+//               <p className="break-words">{address.address}</p>
+//             </div>
+
+//             {/* ปุ่มเลือก สำหรับ mobile */}
+//             <div className="mt-4 sm:hidden">
+//               <Button
+//                 variant={isSelected ? "default" : "outline"}
+//                 size="sm"
+//                 className="w-full"
+//                 onClick={() => onSelectAddress(address)}
+//               >
+//                 {isSelected ? "เลือกแล้ว" : "เลือกที่อยู่นี้"}
+//               </Button>
+//             </div>
+//           </div>
+//         );
+//       })}
+//     </div>
+//   );
+// }
 
 // v.1.1.3 ====================================================
 

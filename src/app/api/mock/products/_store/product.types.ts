@@ -85,7 +85,7 @@ export type ProductQuery = {
   category_id?: number | string;
   matchCategoryIds?: Array<number | string>;
   visible?: boolean;
-  sort?: "order" | "newest" | "price_asc" | "price_desc" | "discount_desc" | "rating_desc";
+  sort?: "order" | "newest" | "price_asc" | "price_desc" | "discount_desc" | "discount_asc" | "rating_desc";
   page?: number;     // 1-based
   pageSize?: number; // e.g. 24/48/96
 };

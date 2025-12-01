@@ -1,13 +1,14 @@
 // v.1.1.9 ================================================
 // src/app/page.tsx
 
-import { HeroSection } from "@/components/hero-section";
+// import { HeroSection } from "@/components/hero-section";
 import DiscountRuleStripServer from "@/components/discount-rule-strip.server"; // ⇐ เพิ่มบรรทัดนี้
 import { CategoryGrid } from "@/components/category-grid";
 // import { FlashSale } from "@/components/flash-sale";
 // import { InterlinkMall } from "@/components/interlink-mall";
 import { ProductGridServer } from "@/components/product-grid.server";
 import { absoluteUrl } from "@/lib/base-url";
+import HeroBannerSimple from "@/components/hero-banner-simple";
 
 export const revalidate = 0; // ไม่ cache ขณะพัฒนา
 
@@ -44,7 +45,9 @@ export default async function IndexPage() {
 
   return (
     <>
-      <HeroSection />
+      {/* <HeroSection /> */}
+
+      <HeroBannerSimple />
 
       {/* แถบส่วนลด เรนเดอร์จากฝั่งเซิร์ฟเวอร์ (ขึ้นพร้อม HTML ของหน้า) */}
       <DiscountRuleStripServer />
