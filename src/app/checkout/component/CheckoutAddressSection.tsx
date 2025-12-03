@@ -1,4 +1,4 @@
-// v.1.1.4 =========================================================
+// v.1.1.6 =========================================================
 // src/app/checkout/component/CheckoutAddressSection.tsx
 
 "use client";
@@ -25,6 +25,7 @@ import type {
   CheckoutProfileAddressBook,
   CheckoutProfileMode,
 } from "@/types/checkout";
+import type { PersonProfile, EntityProfile } from "@/types/profile";
 
 import CheckoutAddressSheet from "./CheckoutAddressSheet";
 import CheckoutAddressSummary from "./CheckoutAddressSummary";
@@ -34,12 +35,22 @@ type Props = {
   billingAddress: CheckoutAddress | null;
   profileInfo?: CheckoutProfileInfo;
 
-  /** สมุด 2 การ์ดโปรไฟล์ (person + entity) ที่ service ส่งมาให้ */
+  /** สมุด 2 การ์ดโปรไฟล์ (person + entity) ที่ service/Client คำนวณให้ */
   addressProfiles?: CheckoutProfileAddressBook;
+
+  /** โปรไฟล์ดิบใช้ส่งเข้า dialog แก้ไข */
+  personProfile?: PersonProfile | null;
+  entityProfile?: EntityProfile | null;
 
   onChangeShippingAddress: (addr: CheckoutAddress | null) => void;
   onChangeBillingAddress: (addr: CheckoutAddress | null) => void;
   onChangeProfileInfo: (info: CheckoutProfileInfo | undefined) => void;
+
+  /** แจ้งขึ้น parent (CheckoutClient) เวลาบันทึกโปรไฟล์สำเร็จ */
+  onProfileSaved?: (payload: {
+    person?: PersonProfile | null;
+    entity?: EntityProfile | null;
+  }) => void;
 };
 
 export default function CheckoutAddressSection({
@@ -47,9 +58,12 @@ export default function CheckoutAddressSection({
   billingAddress,
   profileInfo,
   addressProfiles,
+  personProfile,
+  entityProfile,
   onChangeShippingAddress,
   onChangeBillingAddress,
   onChangeProfileInfo,
+  onProfileSaved,
 }: Props) {
   /* ======================================================
    * STATE: sheet เปิด/ปิด
@@ -89,7 +103,7 @@ export default function CheckoutAddressSection({
       mode,
     });
 
-    // 3) ปิด sheet
+    // 3) ปิด sheet หลังเลือกเสร็จ
     setIsSheetOpen(false);
   };
 
@@ -138,12 +152,14 @@ export default function CheckoutAddressSection({
 
             <SheetContent className="w-[400px] sm:w-[540px] max-w-full overflow-hidden">
               <CheckoutAddressSheet
-                // ✅ ส่งสมุด 2 การ์ดเข้า sheet
                 addressProfiles={addressProfiles}
                 selectedMode={profileInfo?.mode ?? null}
                 onSelectProfile={handleSelectProfileFromSheet}
                 onClose={() => setIsSheetOpen(false)}
                 title="เลือกโปรไฟล์สำหรับที่อยู่"
+                personProfile={personProfile ?? null}
+                entityProfile={entityProfile ?? null}
+                onProfileSaved={onProfileSaved}
               />
             </SheetContent>
           </Sheet>
@@ -180,6 +196,392 @@ export default function CheckoutAddressSection({
     </Card>
   );
 }
+
+// v.1.1.6 =========================================================
+
+// v.1.1.5 =========================================================
+// // src/app/checkout/component/CheckoutAddressSection.tsx
+
+// "use client";
+
+// import { useState } from "react";
+// import { MapPin } from "lucide-react";
+
+// import {
+//   Card,
+//   CardHeader,
+//   CardTitle,
+//   CardContent,
+// } from "@/components/ui/card";
+// import { Button } from "@/components/ui/button";
+// import {
+//   Sheet,
+//   SheetContent,
+//   SheetTrigger,
+// } from "@/components/ui/sheet";
+
+// import type {
+//   CheckoutAddress,
+//   CheckoutProfileInfo,
+//   CheckoutProfileAddressBook,
+//   CheckoutProfileMode,
+// } from "@/types/checkout";
+// import type { PersonProfile, EntityProfile } from "@/types/profile";
+
+// import CheckoutAddressSheet from "./CheckoutAddressSheet";
+// import CheckoutAddressSummary from "./CheckoutAddressSummary";
+
+// type Props = {
+//   shippingAddress: CheckoutAddress | null;
+//   billingAddress: CheckoutAddress | null;
+//   profileInfo?: CheckoutProfileInfo;
+
+//   /** สมุด 2 การ์ดโปรไฟล์ (person + entity) ที่ service ส่งมาให้ */
+//   addressProfiles?: CheckoutProfileAddressBook;
+
+//   /** profile จริง (บุคคลธรรมดา / นิติบุคคล) ใช้ใน dialog แก้ไข */
+//   personProfile?: PersonProfile | null;
+//   entityProfile?: EntityProfile | null;
+
+//   /** callback หลังบันทึกโปรไฟล์จาก dialog เสร็จ */
+//   onProfileSaved?: () => void;
+
+//   onChangeShippingAddress: (addr: CheckoutAddress | null) => void;
+//   onChangeBillingAddress: (addr: CheckoutAddress | null) => void;
+//   onChangeProfileInfo: (info: CheckoutProfileInfo | undefined) => void;
+// };
+
+// export default function CheckoutAddressSection({
+//   shippingAddress,
+//   billingAddress,
+//   profileInfo,
+//   addressProfiles,
+//   personProfile,
+//   entityProfile,
+//   onProfileSaved,
+//   onChangeShippingAddress,
+//   onChangeBillingAddress,
+//   onChangeProfileInfo,
+// }: Props) {
+//   /* ======================================================
+//    * STATE: sheet เปิด/ปิด
+//    * ====================================================== */
+
+//   const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+//   /* ======================================================
+//    * HANDLER: เมื่อเลือกการ์ดจาก sheet
+//    * mode: "person" | "entity"
+//    * ====================================================== */
+//   const handleSelectProfileFromSheet = (
+//     mode: Exclude<CheckoutProfileMode, null>,
+//   ) => {
+//     if (!addressProfiles) {
+//       setIsSheetOpen(false);
+//       return;
+//     }
+
+//     const group =
+//       mode === "person"
+//         ? addressProfiles.person
+//         : addressProfiles.entity;
+
+//     if (!group) {
+//       setIsSheetOpen(false);
+//       return;
+//     }
+
+//     // 1) อัปเดตที่อยู่จัดส่ง / ใบกำกับภาษี ตามการ์ดที่เลือก
+//     onChangeShippingAddress(group.shipping ?? null);
+//     onChangeBillingAddress(group.billing ?? null);
+
+//     // 2) อัปเดต profileInfo.mode ให้ badge ด้านบนเปลี่ยนตาม
+//     onChangeProfileInfo({
+//       ...(profileInfo ?? { mode: null }),
+//       mode,
+//     });
+
+//     // 3) ปิด sheet
+//     setIsSheetOpen(false);
+//   };
+
+//   /* ===== ป้ายโปรไฟล์ด้านบนสุด ===== */
+
+//   const modeLabel =
+//     profileInfo?.mode === "person"
+//       ? "บุคคลธรรมดา"
+//       : profileInfo?.mode === "entity"
+//       ? "นิติบุคคล"
+//       : "โปรไฟล์";
+
+//   const badgeClass =
+//     profileInfo?.mode === "person"
+//       ? "bg-orange-500"
+//       : profileInfo?.mode === "entity"
+//       ? "bg-emerald-600"
+//       : "bg-gray-400";
+
+//   return (
+//     <Card>
+//       <CardHeader className="pb-3">
+//         <CardTitle className="flex items-center gap-3 text-lg">
+//           {/* ป้ายบุคคลธรรมดา / นิติบุคคล ด้านบนสุด */}
+//           <span
+//             className={`rounded-full px-3 py-1 text-xs font-semibold text-white ${badgeClass}`}
+//           >
+//             {modeLabel}
+//           </span>
+
+//           <div className="flex items-center gap-2 text-base text-muted-foreground">
+//             <MapPin className="h-5 w-5" />
+//             <span>ที่อยู่สำหรับจัดส่ง / ออกใบกำกับภาษี</span>
+//           </div>
+
+//           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+//             <SheetTrigger asChild>
+//               <Button
+//                 variant="ghost"
+//                 size="sm"
+//                 className="ml-auto text-primary"
+//               >
+//                 แก้ไข
+//               </Button>
+//             </SheetTrigger>
+
+//             <SheetContent className="w-[400px] sm:w-[540px] max-w-full overflow-hidden">
+//               <CheckoutAddressSheet
+//                 // ✅ สมุด 2 การ์ด
+//                 addressProfiles={addressProfiles}
+//                 selectedMode={profileInfo?.mode ?? null}
+//                 onSelectProfile={handleSelectProfileFromSheet}
+//                 onClose={() => setIsSheetOpen(false)}
+//                 title="เลือกโปรไฟล์สำหรับที่อยู่"
+//                 // ✅ โปรไฟล์จริง + callback หลังบันทึก
+//                 personProfile={personProfile ?? null}
+//                 entityProfile={entityProfile ?? null}
+//                 onProfileSaved={onProfileSaved}
+//               />
+//             </SheetContent>
+//           </Sheet>
+//         </CardTitle>
+//       </CardHeader>
+
+//       <CardContent className="space-y-4">
+//         {/* ที่อยู่จัดส่ง */}
+//         <div>
+//           <p className="font-medium">ที่อยู่จัดส่ง</p>
+
+//           {shippingAddress ? (
+//             <CheckoutAddressSummary selectedAddress={shippingAddress} />
+//           ) : (
+//             <p className="text-sm text-muted-foreground">
+//               ยังไม่มีที่อยู่จัดส่ง โปรดเพิ่มข้อมูลในโปรไฟล์
+//             </p>
+//           )}
+//         </div>
+
+//         {/* ที่อยู่ออกใบกำกับภาษี */}
+//         <div>
+//           <p className="font-medium">ที่อยู่ออกใบกำกับภาษี</p>
+
+//           {billingAddress ? (
+//             <CheckoutAddressSummary selectedAddress={billingAddress} />
+//           ) : (
+//             <p className="text-sm text-muted-foreground">
+//               ยังไม่มีที่อยู่ออกใบกำกับภาษี
+//             </p>
+//           )}
+//         </div>
+//       </CardContent>
+//     </Card>
+//   );
+// }
+
+
+// v.1.1.5 =========================================================
+
+// v.1.1.4 =========================================================
+// // src/app/checkout/component/CheckoutAddressSection.tsx
+
+// "use client";
+
+// import { useState } from "react";
+// import { MapPin } from "lucide-react";
+
+// import {
+//   Card,
+//   CardHeader,
+//   CardTitle,
+//   CardContent,
+// } from "@/components/ui/card";
+// import { Button } from "@/components/ui/button";
+// import {
+//   Sheet,
+//   SheetContent,
+//   SheetTrigger,
+// } from "@/components/ui/sheet";
+
+// import type {
+//   CheckoutAddress,
+//   CheckoutProfileInfo,
+//   CheckoutProfileAddressBook,
+//   CheckoutProfileMode,
+// } from "@/types/checkout";
+
+// import CheckoutAddressSheet from "./CheckoutAddressSheet";
+// import CheckoutAddressSummary from "./CheckoutAddressSummary";
+
+// type Props = {
+//   shippingAddress: CheckoutAddress | null;
+//   billingAddress: CheckoutAddress | null;
+//   profileInfo?: CheckoutProfileInfo;
+
+//   /** สมุด 2 การ์ดโปรไฟล์ (person + entity) ที่ service ส่งมาให้ */
+//   addressProfiles?: CheckoutProfileAddressBook;
+
+//   onChangeShippingAddress: (addr: CheckoutAddress | null) => void;
+//   onChangeBillingAddress: (addr: CheckoutAddress | null) => void;
+//   onChangeProfileInfo: (info: CheckoutProfileInfo | undefined) => void;
+// };
+
+// export default function CheckoutAddressSection({
+//   shippingAddress,
+//   billingAddress,
+//   profileInfo,
+//   addressProfiles,
+//   onChangeShippingAddress,
+//   onChangeBillingAddress,
+//   onChangeProfileInfo,
+// }: Props) {
+//   /* ======================================================
+//    * STATE: sheet เปิด/ปิด
+//    * ====================================================== */
+
+//   const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+//   /* ======================================================
+//    * HANDLER: เมื่อเลือกการ์ดจาก sheet
+//    * mode: "person" | "entity"
+//    * ====================================================== */
+//   const handleSelectProfileFromSheet = (
+//     mode: Exclude<CheckoutProfileMode, null>,
+//   ) => {
+//     if (!addressProfiles) {
+//       setIsSheetOpen(false);
+//       return;
+//     }
+
+//     const group =
+//       mode === "person"
+//         ? addressProfiles.person
+//         : addressProfiles.entity;
+
+//     if (!group) {
+//       setIsSheetOpen(false);
+//       return;
+//     }
+
+//     // 1) อัปเดตที่อยู่จัดส่ง / ใบกำกับภาษี ตามการ์ดที่เลือก
+//     onChangeShippingAddress(group.shipping ?? null);
+//     onChangeBillingAddress(group.billing ?? null);
+
+//     // 2) อัปเดต profileInfo.mode ให้ badge ด้านบนเปลี่ยนตาม
+//     onChangeProfileInfo({
+//       ...(profileInfo ?? { mode: null }),
+//       mode,
+//     });
+
+//     // 3) ปิด sheet
+//     setIsSheetOpen(false);
+//   };
+
+//   /* ===== ป้ายโปรไฟล์ด้านบนสุด ===== */
+
+//   const modeLabel =
+//     profileInfo?.mode === "person"
+//       ? "บุคคลธรรมดา"
+//       : profileInfo?.mode === "entity"
+//       ? "นิติบุคคล"
+//       : "โปรไฟล์";
+
+//   const badgeClass =
+//     profileInfo?.mode === "person"
+//       ? "bg-orange-500"
+//       : profileInfo?.mode === "entity"
+//       ? "bg-emerald-600"
+//       : "bg-gray-400";
+
+//   return (
+//     <Card>
+//       <CardHeader className="pb-3">
+//         <CardTitle className="flex items-center gap-3 text-lg">
+//           {/* ป้ายบุคคลธรรมดา / นิติบุคคล ด้านบนสุด */}
+//           <span
+//             className={`rounded-full px-3 py-1 text-xs font-semibold text-white ${badgeClass}`}
+//           >
+//             {modeLabel}
+//           </span>
+
+//           <div className="flex items-center gap-2 text-base text-muted-foreground">
+//             <MapPin className="h-5 w-5" />
+//             <span>ที่อยู่สำหรับจัดส่ง / ออกใบกำกับภาษี</span>
+//           </div>
+
+//           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+//             <SheetTrigger asChild>
+//               <Button
+//                 variant="ghost"
+//                 size="sm"
+//                 className="ml-auto text-primary"
+//               >
+//                 แก้ไข
+//               </Button>
+//             </SheetTrigger>
+
+//             <SheetContent className="w-[400px] sm:w-[540px] max-w-full overflow-hidden">
+//               <CheckoutAddressSheet
+//                 // ✅ ส่งสมุด 2 การ์ดเข้า sheet
+//                 addressProfiles={addressProfiles}
+//                 selectedMode={profileInfo?.mode ?? null}
+//                 onSelectProfile={handleSelectProfileFromSheet}
+//                 onClose={() => setIsSheetOpen(false)}
+//                 title="เลือกโปรไฟล์สำหรับที่อยู่"
+//               />
+//             </SheetContent>
+//           </Sheet>
+//         </CardTitle>
+//       </CardHeader>
+
+//       <CardContent className="space-y-4">
+//         {/* ที่อยู่จัดส่ง */}
+//         <div>
+//           <p className="font-medium">ที่อยู่จัดส่ง</p>
+
+//           {shippingAddress ? (
+//             <CheckoutAddressSummary selectedAddress={shippingAddress} />
+//           ) : (
+//             <p className="text-sm text-muted-foreground">
+//               ยังไม่มีที่อยู่จัดส่ง โปรดเพิ่มข้อมูลในโปรไฟล์
+//             </p>
+//           )}
+//         </div>
+
+//         {/* ที่อยู่ออกใบกำกับภาษี */}
+//         <div>
+//           <p className="font-medium">ที่อยู่ออกใบกำกับภาษี</p>
+
+//           {billingAddress ? (
+//             <CheckoutAddressSummary selectedAddress={billingAddress} />
+//           ) : (
+//             <p className="text-sm text-muted-foreground">
+//               ยังไม่มีที่อยู่ออกใบกำกับภาษี
+//             </p>
+//           )}
+//         </div>
+//       </CardContent>
+//     </Card>
+//   );
+// }
 
 // v.1.1.4 =========================================================
 

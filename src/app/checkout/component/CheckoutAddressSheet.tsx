@@ -1,4 +1,4 @@
-// v.1.1.7 ============================================================
+// v.1.1.9 ============================================================
 // src/app/checkout/component/CheckoutAddressSheet.tsx
 
 "use client";
@@ -11,6 +11,7 @@ import type {
   CheckoutProfileAddressBook,
   CheckoutProfileMode,
 } from "@/types/checkout";
+import type { PersonProfile, EntityProfile } from "@/types/profile";
 
 import CheckoutAddressList from "./CheckoutAddressList";
 import CheckoutProfileEditDialog from "./CheckoutProfileEditDialog";
@@ -29,6 +30,16 @@ type Props = {
   onClose: () => void;
 
   title?: string;
+
+  /** โปรไฟล์ดิบจาก backend ใช้ prefill dialog */
+  personProfile?: PersonProfile | null;
+  entityProfile?: EntityProfile | null;
+
+  /** แจ้งขึ้น parent (CheckoutClient) ว่าข้อมูลโปรไฟล์เปลี่ยนแล้ว */
+  onProfileSaved?: (payload: {
+    person?: PersonProfile | null;
+    entity?: EntityProfile | null;
+  }) => void;
 };
 
 export default function CheckoutAddressSheet({
@@ -37,6 +48,9 @@ export default function CheckoutAddressSheet({
   onSelectProfile,
   onClose,
   title,
+  personProfile,
+  entityProfile,
+  onProfileSaved,
 }: Props) {
   /* ======================================================
    * เปิด Dialog แก้ไขโปรไฟล์ (Person / Entity)
@@ -74,22 +88,237 @@ export default function CheckoutAddressSheet({
         />
       </div>
 
-      {/* แก้ไขโปรไฟล์: จะเชื่อมกับ module profile ของจริง */}
+      {/* แก้ไขโปรไฟล์: reuse จาก module profile */}
       <CheckoutProfileEditDialog
         open={isProfileDialogOpen}
         onOpenChange={setIsProfileDialogOpen}
         mode={profileMode}
-        initialPerson={undefined}
-        initialEntity={undefined}
-        onSaved={() => {
-          // TODO: ภายหลังให้ดึงข้อมูลโปรไฟล์ใหม่ผ่าน service
-          // แล้ว map กลับเป็น CheckoutProfileAddressBook ใหม่
-          // ตอนนี้ให้ flow UI ทำงานก่อน
+        initialPerson={personProfile ?? null}
+        initialEntity={entityProfile ?? null}
+        onSaved={(payload) => {
+          // แจ้งขึ้น parent (CheckoutClient) เพื่ออัปเดต state โปรไฟล์
+          onProfileSaved?.(payload);
+          // ไม่ปิด sheet ตรงนี้ ให้ผู้ใช้คลิกเลือกการ์ดเอง
         }}
       />
     </>
   );
 }
+
+// v.1.1.8 ============================================================
+
+// v.1.1.8 ============================================================
+// // src/app/checkout/component/CheckoutAddressSheet.tsx
+
+// "use client";
+
+// import { useState } from "react";
+
+// import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
+
+// import type {
+//   CheckoutProfileAddressBook,
+//   CheckoutProfileMode,
+// } from "@/types/checkout";
+// import type { PersonProfile, EntityProfile } from "@/types/profile";
+
+// import CheckoutAddressList from "./CheckoutAddressList";
+// import CheckoutProfileEditDialog from "./CheckoutProfileEditDialog";
+
+// type Props = {
+//   /** สมุด 2 การ์ดโปรไฟล์ (person + entity) */
+//   addressProfiles?: CheckoutProfileAddressBook;
+
+//   /** โหมดที่เลือกอยู่ปัจจุบัน (person / entity / null) */
+//   selectedMode: CheckoutProfileMode;
+
+//   /** เวลาเลือกการ์ดใน sheet → แจ้ง parent */
+//   onSelectProfile: (mode: Exclude<CheckoutProfileMode, null>) => void;
+
+//   /** ปิด sheet */
+//   onClose: () => void;
+
+//   /** โปรไฟล์จริงที่โหลดมาจาก service */
+//   personProfile?: PersonProfile | null;
+//   entityProfile?: EntityProfile | null;
+
+//   /** callback หลังบันทึกโปรไฟล์จาก dialog เสร็จ */
+//   onProfileSaved?: () => void;
+
+//   title?: string;
+// };
+
+// export default function CheckoutAddressSheet({
+//   addressProfiles,
+//   selectedMode,
+//   onSelectProfile,
+//   onClose,
+//   personProfile,
+//   entityProfile,
+//   onProfileSaved,
+//   title,
+// }: Props) {
+//   /* ======================================================
+//    * เปิด Dialog แก้ไขโปรไฟล์ (Person / Entity)
+//    * ====================================================== */
+
+//   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+//   const [profileMode, setProfileMode] =
+//     useState<"person" | "entity">("person");
+
+//   const handleOpenProfileEdit = (mode: "person" | "entity") => {
+//     setProfileMode(mode);
+//     setIsProfileDialogOpen(true);
+//   };
+
+//   /* ======================================================
+//    * เลือกการ์ดจาก list → ส่ง mode กลับขึ้น parent
+//    * ====================================================== */
+//   const handleSelectMode = (mode: Exclude<CheckoutProfileMode, null>) => {
+//     onSelectProfile(mode);
+//     onClose(); // ปิด sheet หลังเลือกเสร็จ
+//   };
+
+//   console.log(
+//     "[CheckoutAddressSheet] selectedMode =",
+//     selectedMode,
+//     "personProfile =",
+//     personProfile,
+//     "entityProfile =",
+//     entityProfile
+//   );
+
+//   return (
+//     <>
+//       <SheetHeader>
+//         <SheetTitle>{title ?? "เลือกโปรไฟล์สำหรับที่อยู่"}</SheetTitle>
+//       </SheetHeader>
+
+//       <div className="mt-6 space-y-4 overflow-y-auto max-h-[calc(100vh-140px)]">
+//         <CheckoutAddressList
+//           addressProfiles={addressProfiles}
+//           selectedMode={selectedMode}
+//           onSelectProfile={handleSelectMode}
+//           onEditProfile={handleOpenProfileEdit}
+//         />
+//       </div>
+
+//       {/* แก้ไขโปรไฟล์: เชื่อมกับ module profile ของจริง */}
+//       <CheckoutProfileEditDialog
+//         open={isProfileDialogOpen}
+//         onOpenChange={setIsProfileDialogOpen}
+//         mode={profileMode}
+//         // ✅ ส่งค่าเริ่มต้นเข้า dialog ตามโหมดที่กำลังแก้ไข
+//         initialPerson={profileMode === "person" ? personProfile ?? undefined : undefined}
+//         initialEntity={profileMode === "entity" ? entityProfile ?? undefined : undefined}
+//         onSaved={() => {
+//           // ปิด dialog ก่อน
+//           setIsProfileDialogOpen(false);
+
+//           // ให้ parent จัดการ refresh / ดึงข้อมูลใหม่
+//           if (onProfileSaved) {
+//             onProfileSaved();
+//           }
+//         }}
+//       />
+//     </>
+//   );
+// }
+
+// v.1.1.8 ============================================================
+
+// v.1.1.7 ============================================================
+// // src/app/checkout/component/CheckoutAddressSheet.tsx
+
+// "use client";
+
+// import { useState } from "react";
+
+// import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
+
+// import type {
+//   CheckoutProfileAddressBook,
+//   CheckoutProfileMode,
+// } from "@/types/checkout";
+
+// import CheckoutAddressList from "./CheckoutAddressList";
+// import CheckoutProfileEditDialog from "./CheckoutProfileEditDialog";
+
+// type Props = {
+//   /** สมุด 2 การ์ดโปรไฟล์ (person + entity) */
+//   addressProfiles?: CheckoutProfileAddressBook;
+
+//   /** โหมดที่เลือกอยู่ปัจจุบัน (person / entity / null) */
+//   selectedMode: CheckoutProfileMode;
+
+//   /** เวลาเลือกการ์ดใน sheet → แจ้ง parent */
+//   onSelectProfile: (mode: Exclude<CheckoutProfileMode, null>) => void;
+
+//   /** ปิด sheet */
+//   onClose: () => void;
+
+//   title?: string;
+// };
+
+// export default function CheckoutAddressSheet({
+//   addressProfiles,
+//   selectedMode,
+//   onSelectProfile,
+//   onClose,
+//   title,
+// }: Props) {
+//   /* ======================================================
+//    * เปิด Dialog แก้ไขโปรไฟล์ (Person / Entity)
+//    * ====================================================== */
+
+//   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+//   const [profileMode, setProfileMode] =
+//     useState<"person" | "entity">("person");
+
+//   const handleOpenProfileEdit = (mode: "person" | "entity") => {
+//     setProfileMode(mode);
+//     setIsProfileDialogOpen(true);
+//   };
+
+//   /* ======================================================
+//    * เลือกการ์ดจาก list → ส่ง mode กลับขึ้น parent
+//    * ====================================================== */
+//   const handleSelectMode = (mode: Exclude<CheckoutProfileMode, null>) => {
+//     onSelectProfile(mode);
+//     onClose(); // ปิด sheet หลังเลือกเสร็จ
+//   };
+
+//   return (
+//     <>
+//       <SheetHeader>
+//         <SheetTitle>{title ?? "เลือกโปรไฟล์สำหรับที่อยู่"}</SheetTitle>
+//       </SheetHeader>
+
+//       <div className="mt-6 space-y-4 overflow-y-auto max-h-[calc(100vh-140px)]">
+//         <CheckoutAddressList
+//           addressProfiles={addressProfiles}
+//           selectedMode={selectedMode}
+//           onSelectProfile={handleSelectMode}
+//           onEditProfile={handleOpenProfileEdit}
+//         />
+//       </div>
+
+//       {/* แก้ไขโปรไฟล์: จะเชื่อมกับ module profile ของจริง */}
+//       <CheckoutProfileEditDialog
+//         open={isProfileDialogOpen}
+//         onOpenChange={setIsProfileDialogOpen}
+//         mode={profileMode}
+//         initialPerson={undefined}
+//         initialEntity={undefined}
+//         onSaved={() => {
+//           // TODO: ภายหลังให้ดึงข้อมูลโปรไฟล์ใหม่ผ่าน service
+//           // แล้ว map กลับเป็น CheckoutProfileAddressBook ใหม่
+//           // ตอนนี้ให้ flow UI ทำงานก่อน
+//         }}
+//       />
+//     </>
+//   );
+// }
 
 // v.1.1.7 ============================================================
 

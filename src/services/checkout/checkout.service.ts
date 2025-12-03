@@ -1,4 +1,4 @@
-// v.1.1.6 ==================================================================
+// v.1.1.8 ==================================================================
 // src/services/checkout/checkout.service.ts
 
 import type { CheckoutData } from "@/types/checkout";
@@ -18,6 +18,34 @@ import {
 import { getCartAndProductsForCheckout } from "./checkout.query";
 
 import { ProfileService } from "@/services/profile.service";
+
+/* ======================================================
+ *  Helper: แปลง BigInt → number (recursive)
+ *  เพื่อให้ object ส่งไป client ได้ (JSON-serializable)
+ * ====================================================== */
+
+function deepBigIntToNumber<T>(value: T): T {
+  if (value === null || value === undefined) return value;
+
+  if (typeof value === "bigint") {
+    return Number(value) as unknown as T;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((v) => deepBigIntToNumber(v)) as unknown as T;
+  }
+
+  if (typeof value === "object") {
+    const src: any = value;
+    const out: any = {};
+    for (const [k, v] of Object.entries(src)) {
+      out[k] = deepBigIntToNumber(v as any);
+    }
+    return out as T;
+  }
+
+  return value;
+}
 
 /**
  * Service หลักของ Checkout
@@ -101,18 +129,23 @@ export class CheckoutService {
 
     console.log("[checkout] summary =", summary);
 
-    // 5) profile → address (shipping / billing)
-    const personProfile = profileRaw.person
-      ? (profileRaw.person as any as PersonProfile)
+    // 5) profile ดิบจาก service
+    const personProfileRaw = profileRaw.person ?? null;
+    const entityProfileRaw = profileRaw.entity ?? null;
+
+    // 🔸 แปลง BigInt → number ให้ทั้ง object ก่อนส่งไป client
+    const personProfile = personProfileRaw
+      ? (deepBigIntToNumber(personProfileRaw) as PersonProfile)
       : null;
 
-    const entityProfile = profileRaw.entity
-      ? (profileRaw.entity as any as EntityProfile)
+    const entityProfile = entityProfileRaw
+      ? (deepBigIntToNumber(entityProfileRaw) as EntityProfile)
       : null;
 
-    console.log("[checkout] personProfile =", personProfile);
-    console.log("[checkout] entityProfile =", entityProfile);
+    console.log("[checkout] personProfile (normalized) =", personProfile);
+    console.log("[checkout] entityProfile (normalized) =", entityProfile);
 
+    // 5.1) profile → address (shipping / billing)
     const { shipping, billing } = buildCheckoutAddressesFromProfiles(
       personProfile,
       entityProfile
@@ -124,7 +157,7 @@ export class CheckoutService {
     console.log("[checkout] shippingAddress =", shippingAddress);
     console.log("[checkout] billingAddress =", billingAddress);
 
-    // 5.1) profile → addressProfiles (2 การ์ด person/entity สำหรับ sheet)
+    // 5.2) profile → addressProfiles (2 การ์ด person/entity สำหรับ sheet)
     const addressProfiles =
       buildCheckoutProfileAddressBookFromProfiles(personProfile, entityProfile);
 
@@ -143,8 +176,20 @@ export class CheckoutService {
       billingAddress: billingAddress ?? null,
       profileInfo,
       addressProfiles,
+
+      // ✅ แนบ profile จริง (ที่แปลง BigInt แล้ว) ไปให้ฝั่ง UI
+      personProfile,
+      entityProfile,
     };
 
+    console.log(
+      "[checkout] final CheckoutData.personProfile =",
+      data.personProfile
+    );
+    console.log(
+      "[checkout] final CheckoutData.entityProfile =",
+      data.entityProfile
+    );
     console.log(
       "[checkout] final CheckoutData items length =",
       data.items.length
@@ -153,6 +198,329 @@ export class CheckoutService {
     return data;
   }
 }
+
+
+// v.1.1.8 ==================================================================
+
+// v.1.1.7 ==================================================================
+// // src/services/checkout/checkout.service.ts
+
+// import type { CheckoutData } from "@/types/checkout";
+// import { buildCheckoutProfileInfo } from "@/types/checkout";
+
+// import type { PersonProfile, EntityProfile } from "@/types/profile";
+
+// import {
+//   buildCheckoutItemsFromCart,
+//   buildSummaryFromItems,
+//   buildCheckoutAddressesFromProfiles,
+//   buildCheckoutProfileAddressBookFromProfiles,
+//   pickDefaultAddress,
+//   type CartWithProduct,
+// } from "./checkout.helpers";
+
+// import { getCartAndProductsForCheckout } from "./checkout.query";
+
+// import { ProfileService } from "@/services/profile.service";
+
+// /**
+//  * Service หลักของ Checkout
+//  * รวมข้อมูลจาก:
+//  *  - carts (ตะกร้า) + products_clearance
+//  *  - customer_profile_people / entities
+//  * แล้ว map เป็น CheckoutData สำหรับส่งเข้า UI
+//  */
+// export class CheckoutService {
+//   /**
+//    * โหลดข้อมูลทั้งหมดที่จำเป็นสำหรับหน้า /checkout
+//    */
+//   static async getCheckoutData(
+//     customerId: number | bigint
+//   ): Promise<CheckoutData> {
+//     const cid = BigInt(customerId);
+
+//     console.log("[checkout] getCheckoutData cid =", cid);
+
+//     // 1) ดึง cart + products พร้อมกัน
+//     const [{ cartItems, products }, profileRaw] = await Promise.all([
+//       getCartAndProductsForCheckout(cid),
+//       ProfileService.getProfile(cid),
+//     ]);
+
+//     console.log(
+//       "[checkout] cartItems length =",
+//       cartItems.length,
+//       "products length =",
+//       products.length
+//     );
+//     if (cartItems.length > 0) {
+//       console.log("[checkout] cartItems sample =", cartItems[0]);
+//     }
+//     if (products.length > 0) {
+//       console.log("[checkout] products sample =", products[0]);
+//     }
+
+//     // 2) join cart + products ด้วย SKU (cart.product ↔ product.sku)
+//     const productBySku = new Map<string, (typeof products)[number]>();
+//     for (const p of products) {
+//       productBySku.set(String(p.sku), p);
+//     }
+
+//     const cartWithProduct: CartWithProduct[] = cartItems
+//       .map((cart) => {
+//         const sku = String((cart as any).product);
+//         const product = productBySku.get(sku);
+
+//         if (!product) {
+//           console.log("[checkout] NO product match for cart SKU", sku);
+//           return null;
+//         }
+
+//         return { cart, product };
+//       })
+//       .filter((r): r is CartWithProduct => r !== null);
+
+//     console.log(
+//       "[checkout] cartWithProduct length =",
+//       cartWithProduct.length,
+//       "sample =",
+//       cartWithProduct[0]
+//     );
+
+//     // 3) map → CheckoutItem[]
+//     const checkoutItems = buildCheckoutItemsFromCart(cartWithProduct);
+
+//     console.log(
+//       "[checkout] checkoutItems length =",
+//       checkoutItems.length,
+//       "sample =",
+//       checkoutItems[0]
+//     );
+
+//     // 4) summary เบื้องต้น (ยังไม่คิด shipping/ส่วนลดจริง)
+//     const summary = buildSummaryFromItems(checkoutItems, {
+//       shippingFee: 0,
+//       discount: 0,
+//     });
+
+//     console.log("[checkout] summary =", summary);
+
+//     // 5) profile → address (shipping / billing)
+//     const personProfile = profileRaw.person
+//       ? (profileRaw.person as any as PersonProfile)
+//       : null;
+
+//     const entityProfile = profileRaw.entity
+//       ? (profileRaw.entity as any as EntityProfile)
+//       : null;
+
+//     console.log("[checkout] personProfile =", personProfile);
+//     console.log("[checkout] entityProfile =", entityProfile);
+
+//     const { shipping, billing } = buildCheckoutAddressesFromProfiles(
+//       personProfile,
+//       entityProfile
+//     );
+
+//     const shippingAddress = pickDefaultAddress(shipping);
+//     const billingAddress = pickDefaultAddress(billing);
+
+//     console.log("[checkout] shippingAddress =", shippingAddress);
+//     console.log("[checkout] billingAddress =", billingAddress);
+
+//     // 5.1) profile → addressProfiles (2 การ์ด person/entity สำหรับ sheet)
+//     const addressProfiles =
+//       buildCheckoutProfileAddressBookFromProfiles(personProfile, entityProfile);
+
+//     console.log("[checkout] addressProfiles =", addressProfiles);
+
+//     // 6) profile info (mode + email/taxId)
+//     const profileInfo = buildCheckoutProfileInfo(personProfile, entityProfile);
+
+//     console.log("[checkout] profileInfo =", profileInfo);
+
+//     // 7) ประกอบเป็น CheckoutData
+//     const data: CheckoutData = {
+//       items: checkoutItems,
+//       summary,
+//       shippingAddress: shippingAddress ?? null,
+//       billingAddress: billingAddress ?? null,
+//       profileInfo,
+//       addressProfiles,
+
+//       // ✅ แนบ profile จริงไปให้ฝั่ง UI ใช้เปิด dialog prefill ฟอร์ม
+//       personProfile,
+//       entityProfile,
+//     };
+
+//     console.log("[checkout] final CheckoutData.personProfile =", data.personProfile);
+//     console.log("[checkout] final CheckoutData.entityProfile =", data.entityProfile);
+//     console.log(
+//       "[checkout] final CheckoutData items length =",
+//       data.items.length
+//     );
+
+//     return data;
+//   }
+// }
+
+// v.1.1.7 ==================================================================
+
+// v.1.1.6 ==================================================================
+// // src/services/checkout/checkout.service.ts
+
+// import type { CheckoutData } from "@/types/checkout";
+// import { buildCheckoutProfileInfo } from "@/types/checkout";
+
+// import type { PersonProfile, EntityProfile } from "@/types/profile";
+
+// import {
+//   buildCheckoutItemsFromCart,
+//   buildSummaryFromItems,
+//   buildCheckoutAddressesFromProfiles,
+//   buildCheckoutProfileAddressBookFromProfiles,
+//   pickDefaultAddress,
+//   type CartWithProduct,
+// } from "./checkout.helpers";
+
+// import { getCartAndProductsForCheckout } from "./checkout.query";
+
+// import { ProfileService } from "@/services/profile.service";
+
+// /**
+//  * Service หลักของ Checkout
+//  * รวมข้อมูลจาก:
+//  *  - carts (ตะกร้า) + products_clearance
+//  *  - customer_profile_people / entities
+//  * แล้ว map เป็น CheckoutData สำหรับส่งเข้า UI
+//  */
+// export class CheckoutService {
+//   /**
+//    * โหลดข้อมูลทั้งหมดที่จำเป็นสำหรับหน้า /checkout
+//    */
+//   static async getCheckoutData(
+//     customerId: number | bigint
+//   ): Promise<CheckoutData> {
+//     const cid = BigInt(customerId);
+
+//     console.log("[checkout] getCheckoutData cid =", cid);
+
+//     // 1) ดึง cart + products พร้อมกัน
+//     const [{ cartItems, products }, profileRaw] = await Promise.all([
+//       getCartAndProductsForCheckout(cid),
+//       ProfileService.getProfile(cid),
+//     ]);
+
+//     console.log(
+//       "[checkout] cartItems length =",
+//       cartItems.length,
+//       "products length =",
+//       products.length
+//     );
+//     if (cartItems.length > 0) {
+//       console.log("[checkout] cartItems sample =", cartItems[0]);
+//     }
+//     if (products.length > 0) {
+//       console.log("[checkout] products sample =", products[0]);
+//     }
+
+//     // 2) join cart + products ด้วย SKU (cart.product ↔ product.sku)
+//     const productBySku = new Map<string, (typeof products)[number]>();
+//     for (const p of products) {
+//       productBySku.set(String(p.sku), p);
+//     }
+
+//     const cartWithProduct: CartWithProduct[] = cartItems
+//       .map((cart) => {
+//         const sku = String((cart as any).product);
+//         const product = productBySku.get(sku);
+
+//         if (!product) {
+//           console.log("[checkout] NO product match for cart SKU", sku);
+//           return null;
+//         }
+
+//         return { cart, product };
+//       })
+//       .filter((r): r is CartWithProduct => r !== null);
+
+//     console.log(
+//       "[checkout] cartWithProduct length =",
+//       cartWithProduct.length,
+//       "sample =",
+//       cartWithProduct[0]
+//     );
+
+//     // 3) map → CheckoutItem[]
+//     const checkoutItems = buildCheckoutItemsFromCart(cartWithProduct);
+
+//     console.log(
+//       "[checkout] checkoutItems length =",
+//       checkoutItems.length,
+//       "sample =",
+//       checkoutItems[0]
+//     );
+
+//     // 4) summary เบื้องต้น (ยังไม่คิด shipping/ส่วนลดจริง)
+//     const summary = buildSummaryFromItems(checkoutItems, {
+//       shippingFee: 0,
+//       discount: 0,
+//     });
+
+//     console.log("[checkout] summary =", summary);
+
+//     // 5) profile → address (shipping / billing)
+//     const personProfile = profileRaw.person
+//       ? (profileRaw.person as any as PersonProfile)
+//       : null;
+
+//     const entityProfile = profileRaw.entity
+//       ? (profileRaw.entity as any as EntityProfile)
+//       : null;
+
+//     console.log("[checkout] personProfile =", personProfile);
+//     console.log("[checkout] entityProfile =", entityProfile);
+
+//     const { shipping, billing } = buildCheckoutAddressesFromProfiles(
+//       personProfile,
+//       entityProfile
+//     );
+
+//     const shippingAddress = pickDefaultAddress(shipping);
+//     const billingAddress = pickDefaultAddress(billing);
+
+//     console.log("[checkout] shippingAddress =", shippingAddress);
+//     console.log("[checkout] billingAddress =", billingAddress);
+
+//     // 5.1) profile → addressProfiles (2 การ์ด person/entity สำหรับ sheet)
+//     const addressProfiles =
+//       buildCheckoutProfileAddressBookFromProfiles(personProfile, entityProfile);
+
+//     console.log("[checkout] addressProfiles =", addressProfiles);
+
+//     // 6) profile info (mode + email/taxId)
+//     const profileInfo = buildCheckoutProfileInfo(personProfile, entityProfile);
+
+//     console.log("[checkout] profileInfo =", profileInfo);
+
+//     // 7) ประกอบเป็น CheckoutData
+//     const data: CheckoutData = {
+//       items: checkoutItems,
+//       summary,
+//       shippingAddress: shippingAddress ?? null,
+//       billingAddress: billingAddress ?? null,
+//       profileInfo,
+//       addressProfiles,
+//     };
+
+//     console.log(
+//       "[checkout] final CheckoutData items length =",
+//       data.items.length
+//     );
+
+//     return data;
+//   }
+// }
 
 // v.1.1.6 ==================================================================
 

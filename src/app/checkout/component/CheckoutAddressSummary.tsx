@@ -1,4 +1,5 @@
 // v.1.1.6 ===================================================
+// src/app/checkout/component/CheckoutAddressSummary.tsx
 "use client";
 
 import type { CheckoutAddress } from "@/types/checkout";
