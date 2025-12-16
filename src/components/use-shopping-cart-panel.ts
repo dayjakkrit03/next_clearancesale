@@ -8,6 +8,7 @@ import { useCartStore } from "@/store/cart-store";
 /** shape ที่ UI ใช้จริง */
 export type UICartItem = {
   id: number;
+  productId?: number | null; // ✅ เพิ่มบรรทัดนี้
   sku: string;
   name: string;
   brand?: string | null;
@@ -240,6 +241,9 @@ export function useShoppingCartPanel(
 
           const mappedItem: UICartItem = {
             id: Number(item.id),
+            // ✅ ดึง productId ที่ backend ส่งมา
+            productId:
+              (item as any).productId != null ? Number((item as any).productId) : null,
             sku: sku,
             name: nameFromApi || sku || "สินค้า",
             brand: brandFromApi,

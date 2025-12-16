@@ -17,6 +17,7 @@ import type { CartItem } from "@/types/cart";
 import { getProductImageUrl } from "@/lib/image-path";
 
 type CartItemWithProduct = CartItem & {
+  productId?: number | null; // ✅ เพิ่มบรรทัดนี้
   productName?: string | null;
   productImageUrl?: string | null;
   productUom?: string | null;
@@ -195,6 +196,7 @@ export async function GET(req: NextRequest) {
     const productBySku = new Map<
       string,
       {
+        productId: number | null; // ✅ เพิ่ม
         name: string | null;
         uom: string | null;
         brand: string | null;
@@ -226,6 +228,7 @@ export async function GET(req: NextRequest) {
           : null;
 
       productBySku.set(String(p.product_sku), {
+        productId: Number.isFinite(pidNumber) ? pidNumber : null, // ✅ เพิ่ม
         name: p.product_name ?? null,
         uom: p.product_uom ?? null,
         brand: p.product_brand ?? null,
@@ -263,6 +266,7 @@ export async function GET(req: NextRequest) {
 
       return {
         ...base,
+        productId: extra?.productId ?? null, // ✅ เพิ่ม
         productName: extra?.name ?? null,
         productImageUrl: extra?.imageUrl ?? null,
         productUom: extra?.uom ?? null,

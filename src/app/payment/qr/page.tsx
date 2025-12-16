@@ -191,12 +191,12 @@ export default function PaymentQRPage() {
                   </div>
                 )}
                 
-                {(paymentData.shippingDiscount || 0) > 0 && (
+                {/* {(paymentData.shippingDiscount || 0) > 0 && (
                   <div className="flex justify-between text-sm text-green-600">
                     <span>ส่วนลดค่าจัดส่ง</span>
                     <span>-฿{paymentData.shippingDiscount!.toLocaleString()}</span>
                   </div>
-                )}
+                )} */}
                 
                 {paymentData.appliedVouchers && paymentData.appliedVouchers.map((voucher, index) => (
                   <div key={index} className="flex justify-between text-sm text-green-600">

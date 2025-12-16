@@ -1,11 +1,11 @@
-// v.1.1.9 ========================================================
+// v.1.1.10 ======================================================
 // src/app/product/[id]/component/ProductSalesForm.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { useProductSalesForm } from "./useProductSalesForm";
 import { PriceSection } from "./PriceSection";
@@ -33,8 +33,17 @@ export function ProductSalesForm({
   onAddToCart,
 }: SalesFormProps) {
   const router = useRouter();
+  const params = useSearchParams();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // ✅ ถ้ามาจาก checkout จะมี returnTo=/checkout
+  const returnTo = params.get("returnTo"); // เช่น "/checkout"
+
+  // ====== STATE สำหรับสต๊อกจาก Navision ======
+  const [navStock, setNavStock] = useState<number | null>(null);
+  const [navStockLoading, setNavStockLoading] = useState(false);
+  const [navStockError, setNavStockError] = useState<string | null>(null);
 
   const {
     salesMode,
@@ -60,6 +69,70 @@ export function ProductSalesForm({
     handleQuantityChange,
   } = useProductSalesForm(product, visibleParts, hasConditions);
 
+  // =====================================================
+  //   ดึงสต๊อกจาก Navision ผ่าน /api/legacy/navision/stock
+  // =====================================================
+  useEffect(() => {
+    const sku: string =
+      product?.sku ?? product?.product_sku ?? product?.productSku ?? "";
+
+    if (!sku) {
+      setNavStock(null);
+      setNavStockError("ไม่พบ SKU ของสินค้า");
+      return;
+    }
+
+    const uom: string =
+      hasConditions && salesMode ? "M." : product?.uom ?? unit ?? "";
+
+    if (!uom) {
+      setNavStock(null);
+      setNavStockError("ไม่พบหน่วยสินค้า (UOM)");
+      return;
+    }
+
+    let cancelled = false;
+
+    async function fetchNavStock() {
+      try {
+        setNavStockLoading(true);
+        setNavStockError(null);
+
+        const url = `/api/legacy/navision/stock?sku=${encodeURIComponent(
+          sku,
+        )}&uom=${encodeURIComponent(uom)}`;
+
+        const res = await fetch(url, { cache: "no-store" });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+        if (cancelled) return;
+
+        const qty = Number(data?.quantity);
+        if (!Number.isFinite(qty)) {
+          setNavStock(null);
+          setNavStockError("รูปแบบจำนวนสต๊อกไม่ถูกต้อง");
+        } else {
+          setNavStock(qty);
+        }
+      } catch (err) {
+        console.error("[ProductSalesForm] fetch navision stock error:", err);
+        if (cancelled) return;
+        setNavStock(null);
+        setNavStockError("ไม่สามารถตรวจสอบสต๊อกจาก Navision ได้");
+      } finally {
+        if (!cancelled) setNavStockLoading(false);
+      }
+    }
+
+    fetchNavStock();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [product, hasConditions, salesMode, unit]);
+
   /** ✅ สร้าง payload สำหรับ /api/cart/add แล้วเรียก API */
   const handleAddToCartClick = async () => {
     if (!isStockAvailable || isSubmitting) return;
@@ -67,7 +140,6 @@ export function ProductSalesForm({
     try {
       setIsSubmitting(true);
 
-      // 1) หา SKU ที่จะส่งให้ backend (ลองรองรับทั้ง product.sku และ product.product_sku)
       const sku: string =
         product?.sku ?? product?.product_sku ?? product?.productSku ?? "";
 
@@ -81,27 +153,15 @@ export function ProductSalesForm({
         return;
       }
 
-      // 2) กำหนด UOM + Quantity ตามเงื่อนไขที่ตกลงกัน
-      //    - ถ้ามี conditions (CUT/ROLL) → ส่งเป็นหน่วยเมตร:
-      //         uom = "M."
-      //         quantity = totalLength (เช่น 6,000 M.)
-      //    - ถ้าไม่มี conditions → ใช้ quantity ปกติ และ uom จากสินค้า
       let apiUom: string;
       let apiQty: number;
 
       if (hasConditions && salesMode) {
-        apiUom = "M."; // หน่วยที่ Navision ใช้จริง
+        apiUom = "M.";
         apiQty = Number(totalLength) || 0;
       } else {
-        apiUom =
-          product?.uom ??
-          unit ??
-          ""; /* ถ้า uom มาจาก field อื่น ปรับตรงนี้ได้เลย */
+        apiUom = product?.uom ?? unit ?? "";
         apiQty = Number(quantity) || 0;
-      }
-
-      if (!apiUom) {
-        console.warn("[ProductSalesForm] Missing UOM");
       }
 
       if (apiQty <= 0) {
@@ -113,21 +173,6 @@ export function ProductSalesForm({
         return;
       }
 
-      // 3) DEBUG: log ค่า input ที่ใช้คำนวณก่อนสร้าง payload
-      console.log("[ProductSalesForm] add-to-cart debug:", {
-        salesMode,
-        hasConditions,
-        unit,
-        lengthPerItem,
-        totalLength,
-        quantity,
-        apiUom,
-        apiQty,
-        sku,
-        price: Number(product.price) || 0,
-      });
-
-      // 4) สร้าง payload สำหรับ AddToCartRequest
       const payload: AddToCartRequest = {
         product: sku,
         uom: apiUom,
@@ -135,43 +180,49 @@ export function ProductSalesForm({
         price: Number(product.price) || 0,
       };
 
-      // 4.1 DEBUG: log payload ที่จะส่งเข้า /api/cart/add
-      console.log("[ProductSalesForm] payload for /api/cart/add:", payload);
-
       const res = await fetch("/api/cart/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status} ${res.statusText}`);
-      }
+      if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
 
       const data = (await res.json()) as AddToCartResponse;
 
-      // 4.2 DEBUG: log response จาก backend
-      console.log("[ProductSalesForm] /api/cart/add response:", data);
-
-      // 5) จัดการผลลัพธ์จาก backend
       switch (data.status) {
-        case "success":
+        case "success": {
           toast({
             title: "เพิ่มสินค้าในตะกร้าแล้ว",
             description: `${product.name ?? "สินค้า"} ถูกเพิ่มในตะกร้าของคุณ`,
           });
-          // เปิดแถบตะกร้า (ShoppingCart) ผ่าน callback จาก ProductClient
-          onAddToCart();
-          break;
 
-        case "login":
+          // ✅ ถ้ามี returnTo ให้กลับไป checkout อัตโนมัติ
+          if (returnTo) {
+            router.push(returnTo);
+          } else {
+            // ✅ พฤติกรรมเดิม: เปิด ShoppingCart panel
+            onAddToCart();
+          }
+          break;
+        }
+
+        case "login": {
           toast({
             variant: "destructive",
             title: "กรุณาเข้าสู่ระบบ",
             description: "ต้องเข้าสู่ระบบก่อนจึงจะเพิ่มสินค้าในตะกร้าได้",
           });
-          router.push(`/login?redirect=/product/${product.id ?? ""}`);
+
+          // ✅ รักษา returnTo ไว้ด้วย (login เสร็จกลับมาหน้านี้ แล้วค่อยกลับ checkout)
+          const productId = product?.id ?? "";
+          const backToProduct = returnTo
+            ? `/product/${productId}?returnTo=${encodeURIComponent(returnTo)}`
+            : `/product/${productId}`;
+
+          router.push(`/login?redirect=${encodeURIComponent(backToProduct)}`);
           break;
+        }
 
         case "less-left":
           toast({
@@ -209,7 +260,6 @@ export function ProductSalesForm({
 
   return (
     <div className="space-y-4">
-      {/* 1. ราคา */}
       <PriceSection
         product={product}
         visibleParts={visibleParts}
@@ -220,7 +270,6 @@ export function ProductSalesForm({
         showDiscountBadge={showDiscountBadge}
       />
 
-      {/* 2. ประเภทการขาย */}
       {hasConditions && salesMode && (
         <div className="space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
           <span className="text-muted-foreground font-medium text-sm md:text-base">
@@ -234,7 +283,6 @@ export function ProductSalesForm({
         </div>
       )}
 
-      {/* 3. CUT Section */}
       <CutSection
         hasConditions={hasConditions}
         salesMode={salesMode}
@@ -248,7 +296,6 @@ export function ProductSalesForm({
         handleCutStep={handleCutStep}
       />
 
-      {/* 4. ROLL Section */}
       <RollSection
         hasConditions={hasConditions}
         salesMode={salesMode}
@@ -286,13 +333,24 @@ export function ProductSalesForm({
               </span>
             </>
           )
-        ) : clearanceQty != null && clearanceQty > 0 ? (
+        ) : navStockLoading ? (
+          <>
+            <div className="w-2 h-2 bg-muted-foreground rounded-full" />
+            <span className="text-muted-foreground">
+              กำลังตรวจสอบสต๊อกจากคลังกลาง...
+            </span>
+          </>
+        ) : navStockError ? (
+          <>
+            <div className="w-2 h-2 bg-destructive rounded-full" />
+            <span className="text-destructive font-medium">
+              {navStockError || "ตรวจสอบสต๊อกไม่สำเร็จ"}
+            </span>
+          </>
+        ) : navStock != null && navStock > 0 ? (
           <>
             <div className="w-2 h-2 bg-success rounded-full" />
-            <span className="text-success font-medium">
-              มีสินค้าในสต๊อก
-              {/* มีสินค้าในสต๊อก จำนวน {clearanceQty.toLocaleString()} {unit} */}
-            </span>
+            <span className="text-success font-medium">มีสินค้าในสต๊อก</span>
           </>
         ) : (
           <>
@@ -388,15 +446,6 @@ export function ProductSalesForm({
 
         <div className="flex gap-3">
           <Button
-            variant="outline"
-            size="lg"
-            className="flex-1 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-            onClick={() => router.push("/checkout")}
-            disabled={!isStockAvailable || isSubmitting}
-          >
-            Buy Now
-          </Button>
-          <Button
             size="lg"
             className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
             onClick={handleAddToCartClick}
@@ -409,6 +458,919 @@ export function ProductSalesForm({
     </div>
   );
 }
+
+// v.1.1.10 ======================================================
+
+// v.1.1.10 =======================================================
+// // src/app/product/[id]/component/ProductSalesForm.tsx
+// "use client";
+
+// import { useState, useEffect } from "react";
+// import { Minus, Plus } from "lucide-react";
+// import { Button } from "@/components/ui/button";
+// import { useRouter } from "next/navigation";
+
+// import { useProductSalesForm } from "./useProductSalesForm";
+// import { PriceSection } from "./PriceSection";
+// import { CutSection } from "./CutSection";
+// import { RollSection } from "./RollSection";
+
+// import { useToast } from "@/components/ui/use-toast";
+// import type { AddToCartRequest, AddToCartResponse } from "@/types/cart";
+
+// type UIProduct = any;
+// type CardPartsVisibility = any;
+
+// interface SalesFormProps {
+//   product: UIProduct;
+//   visibleParts: CardPartsVisibility;
+//   hasConditions: boolean;
+//   /** เรียกตอนเพิ่มลงตะกร้า "สำเร็จ" เพื่อเปิด ShoppingCart */
+//   onAddToCart: () => void;
+// }
+
+// export function ProductSalesForm({
+//   product,
+//   visibleParts,
+//   hasConditions,
+//   onAddToCart,
+// }: SalesFormProps) {
+//   const router = useRouter();
+//   const { toast } = useToast();
+//   const [isSubmitting, setIsSubmitting] = useState(false);
+
+//   // ====== STATE สำหรับสต๊อกจาก Navision ======
+//   const [navStock, setNavStock] = useState<number | null>(null);
+//   const [navStockLoading, setNavStockLoading] = useState(false);
+//   const [navStockError, setNavStockError] = useState<string | null>(null);
+
+//   const {
+//     salesMode,
+//     unit,
+//     originalPrice,
+//     showDiscountBadge,
+//     cutMinimum,
+//     cutStepOptions,
+//     cutLength,
+//     rollPairs,
+//     rollLength,
+//     selectedRollStock,
+//     quantity,
+//     lengthPerItem,
+//     totalLength,
+//     totalPrice,
+//     clearanceQty,
+//     noStock,
+//     maxQtyForCut,
+//     isStockAvailable,
+//     setRollLength,
+//     handleCutStep,
+//     handleQuantityChange,
+//   } = useProductSalesForm(product, visibleParts, hasConditions);
+
+//   // =====================================================
+//   //   ดึงสต๊อกจาก Navision ผ่าน /api/legacy/navision/stock
+//   // =====================================================
+//   useEffect(() => {
+//     // หา SKU ที่จะใช้ยิงไปหา Navision
+//     const sku: string =
+//       product?.sku ?? product?.product_sku ?? product?.productSku ?? "";
+
+//     if (!sku) {
+//       setNavStock(null);
+//       setNavStockError("ไม่พบ SKU ของสินค้า");
+//       return;
+//     }
+
+//     // UOM สำหรับเช็คสต๊อก:
+//     // ถ้ามีเงื่อนไข CUT/ROLL → ใช้ "M."
+//     // ถ้าไม่มีก็ใช้ uom ตามสินค้า/หน่วยที่แสดงอยู่
+//     const uom: string =
+//       hasConditions && salesMode
+//         ? "M."
+//         : product?.uom ?? unit ?? "";
+
+//     if (!uom) {
+//       setNavStock(null);
+//       setNavStockError("ไม่พบหน่วยสินค้า (UOM)");
+//       return;
+//     }
+
+//     let cancelled = false;
+
+//     async function fetchNavStock() {
+//       try {
+//         setNavStockLoading(true);
+//         setNavStockError(null);
+
+//         const url = `/api/legacy/navision/stock?sku=${encodeURIComponent(
+//           sku,
+//         )}&uom=${encodeURIComponent(uom)}`;
+
+//         const res = await fetch(url, { cache: "no-store" });
+
+//         if (!res.ok) {
+//           throw new Error(`HTTP ${res.status}`);
+//         }
+
+//         const data = await res.json();
+
+//         if (cancelled) return;
+
+//         const qty = Number(data?.quantity);
+//         if (!Number.isFinite(qty)) {
+//           setNavStock(null);
+//           setNavStockError("รูปแบบจำนวนสต๊อกไม่ถูกต้อง");
+//         } else {
+//           setNavStock(qty);
+//         }
+//       } catch (err) {
+//         console.error("[ProductSalesForm] fetch navision stock error:", err);
+//         if (cancelled) return;
+//         setNavStock(null);
+//         setNavStockError("ไม่สามารถตรวจสอบสต๊อกจาก Navision ได้");
+//       } finally {
+//         if (!cancelled) setNavStockLoading(false);
+//       }
+//     }
+
+//     fetchNavStock();
+
+//     return () => {
+//       cancelled = true;
+//     };
+//   }, [product, hasConditions, salesMode, unit]);
+
+//   /** ✅ สร้าง payload สำหรับ /api/cart/add แล้วเรียก API */
+//   const handleAddToCartClick = async () => {
+//     if (!isStockAvailable || isSubmitting) return;
+
+//     try {
+//       setIsSubmitting(true);
+
+//       // 1) หา SKU ที่จะส่งให้ backend (ลองรองรับทั้ง product.sku และ product.product_sku)
+//       const sku: string =
+//         product?.sku ?? product?.product_sku ?? product?.productSku ?? "";
+
+//       if (!sku) {
+//         console.error("[ProductSalesForm] Missing product SKU");
+//         toast({
+//           variant: "destructive",
+//           title: "ไม่พบข้อมูลสินค้า",
+//           description: "ไม่พบรหัสสินค้า (SKU) สำหรับส่งไปยังระบบตะกร้า",
+//         });
+//         return;
+//       }
+
+//       // 2) กำหนด UOM + Quantity ตามเงื่อนไขที่ตกลงกัน
+//       let apiUom: string;
+//       let apiQty: number;
+
+//       if (hasConditions && salesMode) {
+//         apiUom = "M."; // หน่วยที่ Navision ใช้จริง
+//         apiQty = Number(totalLength) || 0;
+//       } else {
+//         apiUom =
+//           product?.uom ??
+//           unit ??
+//           "";
+//         apiQty = Number(quantity) || 0;
+//       }
+
+//       if (!apiUom) {
+//         console.warn("[ProductSalesForm] Missing UOM");
+//       }
+
+//       if (apiQty <= 0) {
+//         toast({
+//           variant: "destructive",
+//           title: "จำนวนไม่ถูกต้อง",
+//           description: "กรุณาเลือกจำนวนสินค้าให้มากกว่า 0",
+//         });
+//         return;
+//       }
+
+//       console.log("[ProductSalesForm] add-to-cart debug:", {
+//         salesMode,
+//         hasConditions,
+//         unit,
+//         lengthPerItem,
+//         totalLength,
+//         quantity,
+//         apiUom,
+//         apiQty,
+//         sku,
+//         price: Number(product.price) || 0,
+//       });
+
+//       const payload: AddToCartRequest = {
+//         product: sku,
+//         uom: apiUom,
+//         quantity: apiQty,
+//         price: Number(product.price) || 0,
+//       };
+
+//       console.log("[ProductSalesForm] payload for /api/cart/add:", payload);
+
+//       const res = await fetch("/api/cart/add", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify(payload),
+//       });
+
+//       if (!res.ok) {
+//         throw new Error(`HTTP ${res.status} ${res.statusText}`);
+//       }
+
+//       const data = (await res.json()) as AddToCartResponse;
+
+//       console.log("[ProductSalesForm] /api/cart/add response:", data);
+
+//       switch (data.status) {
+//         case "success":
+//           toast({
+//             title: "เพิ่มสินค้าในตะกร้าแล้ว",
+//             description: `${product.name ?? "สินค้า"} ถูกเพิ่มในตะกร้าของคุณ`,
+//           });
+//           onAddToCart();
+//           break;
+
+//         case "login":
+//           toast({
+//             variant: "destructive",
+//             title: "กรุณาเข้าสู่ระบบ",
+//             description: "ต้องเข้าสู่ระบบก่อนจึงจะเพิ่มสินค้าในตะกร้าได้",
+//           });
+//           router.push(`/login?redirect=/product/${product.id ?? ""}`);
+//           break;
+
+//         case "less-left":
+//           toast({
+//             variant: "destructive",
+//             title: "มีสินค้าไม่พอ",
+//             description:
+//               data.itemAvail != null
+//                 ? `คงเหลือเพียง ${
+//                     (data.itemAvail as any).toLocaleString?.() ?? data.itemAvail
+//                   } ${apiUom}`
+//                 : "จำนวนสินค้าที่ต้องการมากกว่าจำนวนคงเหลือ",
+//           });
+//           break;
+
+//         case "sold-out":
+//         default:
+//           toast({
+//             variant: "destructive",
+//             title: "สินค้าหมด",
+//             description: "ไม่สามารถเพิ่มสินค้านี้ลงตะกร้าได้ในขณะนี้",
+//           });
+//           break;
+//       }
+//     } catch (err) {
+//       console.error("[ProductSalesForm] add to cart error", err);
+//       toast({
+//         variant: "destructive",
+//         title: "เกิดข้อผิดพลาด",
+//         description: "ไม่สามารถเพิ่มสินค้าในตะกร้าได้ กรุณาลองใหม่อีกครั้ง",
+//       });
+//     } finally {
+//       setIsSubmitting(false);
+//     }
+//   };
+
+//   return (
+//     <div className="space-y-4">
+//       {/* 1. ราคา */}
+//       <PriceSection
+//         product={product}
+//         visibleParts={visibleParts}
+//         hasConditions={hasConditions}
+//         salesMode={salesMode}
+//         unit={unit}
+//         originalPrice={originalPrice}
+//         showDiscountBadge={showDiscountBadge}
+//       />
+
+//       {/* 2. ประเภทการขาย */}
+//       {hasConditions && salesMode && (
+//         <div className="space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
+//           <span className="text-muted-foreground font-medium text-sm md:text-base">
+//             ประเภทการขาย:
+//           </span>
+//           <div className="flex flex-wrap items-center gap-3">
+//             <span className="inline-flex items-center rounded-lg border border-muted px-3 py-1.5 text-sm bg-white shadow-sm">
+//               {salesMode === "CUT" ? "ตัดแบ่งขาย (Cut)" : "ขายยกม้วน (Roll)"}
+//             </span>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* 3. CUT Section */}
+//       <CutSection
+//         hasConditions={hasConditions}
+//         salesMode={salesMode}
+//         cutMinimum={cutMinimum}
+//         cutStepOptions={cutStepOptions}
+//         cutLength={cutLength}
+//         unit={unit}
+//         clearanceQty={clearanceQty}
+//         quantity={quantity}
+//         noStock={noStock}
+//         handleCutStep={handleCutStep}
+//       />
+
+//       {/* 4. ROLL Section */}
+//       <RollSection
+//         hasConditions={hasConditions}
+//         salesMode={salesMode}
+//         rollPairs={rollPairs}
+//         rollLength={rollLength}
+//         unit={unit}
+//         setRollLength={setRollLength}
+//       />
+
+//       {/* 5. สถานะสต๊อก */}
+//       <div className="flex items-center gap-2">
+//         {salesMode === "ROLL" ? (
+//           // ----- เคสขายเป็นม้วน (ใช้ logic เดิม) -----
+//           selectedRollStock != null ? (
+//             selectedRollStock > 0 ? (
+//               <>
+//                 <div className="w-2 h-2 bg-success rounded-full" />
+//                 <span className="text-success font-medium">
+//                   สต๊อก {selectedRollStock.toLocaleString()} ม้วน (ขนาด{" "}
+//                   {rollLength?.toLocaleString()} {unit})
+//                 </span>
+//               </>
+//             ) : (
+//               <>
+//                 <div className="w-2 h-2 bg-destructive rounded-full" />
+//                 <span className="text-destructive font-medium">
+//                   ขนาดที่เลือกหมดสต๊อก
+//                 </span>
+//               </>
+//             )
+//           ) : (
+//             <>
+//               <div className="w-2 h-2 bg-muted-foreground rounded-full" />
+//               <span className="text-muted-foreground">
+//                 เลือกความยาวม้วนเพื่อดูสต๊อก
+//               </span>
+//             </>
+//           )
+//         ) : // ----- เคสอื่น ๆ ให้ใช้ผลจาก Navision -----
+//         navStockLoading ? (
+//           <>
+//             <div className="w-2 h-2 bg-muted-foreground rounded-full" />
+//             <span className="text-muted-foreground">
+//               กำลังตรวจสอบสต๊อกจากคลังกลาง...
+//             </span>
+//           </>
+//         ) : navStockError ? (
+//           <>
+//             <div className="w-2 h-2 bg-destructive rounded-full" />
+//             <span className="text-destructive font-medium">
+//               {navStockError || "ตรวจสอบสต๊อกไม่สำเร็จ"}
+//             </span>
+//           </>
+//         ) : navStock != null && navStock > 0 ? (
+//           <>
+//             <div className="w-2 h-2 bg-success rounded-full" />
+//             <span className="text-success font-medium">
+//               มีสินค้าในสต๊อก
+//               {/* ถ้าอยากแสดงจำนวนจริงก็เอา comment ด้านล่างออกได้ */}
+//               {/*  จำนวน {navStock.toLocaleString()} {unit || "ชิ้น"} */}
+//             </span>
+//           </>
+//         ) : (
+//           <>
+//             <div className="w-2 h-2 bg-destructive rounded-full" />
+//             <span className="text-destructive font-medium">สินค้าหมด</span>
+//           </>
+//         )}
+//       </div>
+
+//       {/* 6. Quantity & Actions */}
+//       <div className="space-y-4">
+//         <div className="flex items-center gap-4">
+//           <span className="font-medium text-muted-foreground">Quantity:</span>
+//           <div className="flex items-center border rounded-lg">
+//             <Button
+//               variant="ghost"
+//               size="sm"
+//               onClick={() => handleQuantityChange(-1)}
+//               className="h-10 w-10 p-0"
+//               disabled={quantity <= 1 || isSubmitting}
+//             >
+//               <Minus className="h-4 w-4" />
+//             </Button>
+//             <span className="px-4 py-2 min-w-[3rem] text-center">
+//               {quantity}
+//             </span>
+//             <Button
+//               variant="ghost"
+//               size="sm"
+//               onClick={() => handleQuantityChange(1)}
+//               className="h-10 w-10 p-0"
+//               disabled={
+//                 isSubmitting ||
+//                 (salesMode === "ROLL" &&
+//                   selectedRollStock != null &&
+//                   quantity >= selectedRollStock) ||
+//                 ((!hasConditions || !salesMode) &&
+//                   clearanceQty != null &&
+//                   quantity >= clearanceQty) ||
+//                 (salesMode === "CUT" &&
+//                   maxQtyForCut != null &&
+//                   quantity >= maxQtyForCut)
+//               }
+//             >
+//               <Plus className="h-4 w-4" />
+//             </Button>
+//           </div>
+//         </div>
+
+//         {/* Summary */}
+//         <div className="text-sm text-muted-foreground space-y-1">
+//           {hasConditions && salesMode ? (
+//             <>
+//               <div>
+//                 ความยาวรวม:{" "}
+//                 <span className="font-medium text-foreground">
+//                   {totalLength.toLocaleString()} {unit}
+//                 </span>
+//               </div>
+//               <div>
+//                 ราคารวม:{" "}
+//                 <span className="font-bold text-foreground">
+//                   ฿{totalPrice.toLocaleString()}
+//                 </span>
+//               </div>
+//               {salesMode === "ROLL" && selectedRollStock != null && (
+//                 <div className="text-xs">
+//                   สต๊อกสูงสุดสำหรับขนาดนี้:{" "}
+//                   {selectedRollStock.toLocaleString()} ม้วน
+//                 </div>
+//               )}
+//               <div className="text-xs">
+//                 ({quantity.toLocaleString()} ×{" "}
+//                 {Number(lengthPerItem).toLocaleString()} {unit} × ฿
+//                 {Number(product.price).toLocaleString()}/{unit})
+//               </div>
+//             </>
+//           ) : (
+//             <>
+//               <div>
+//                 ราคารวม:{" "}
+//                 <span className="font-bold text-foreground">
+//                   ฿{totalPrice.toLocaleString()}
+//                 </span>
+//               </div>
+//               <div className="text-xs">
+//                 ({quantity.toLocaleString()} × ฿
+//                 {Number(product.price).toLocaleString()} / ชิ้น)
+//               </div>
+//             </>
+//           )}
+//         </div>
+
+//         <div className="flex gap-3">
+//           {/* <Button
+//             variant="outline"
+//             size="lg"
+//             className="flex-1 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+//             onClick={() => router.push("/checkout")}
+//             disabled={!isStockAvailable || isSubmitting}
+//           >
+//             Buy Now
+//           </Button> */}
+//           <Button
+//             size="lg"
+//             className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+//             onClick={handleAddToCartClick}
+//             disabled={!isStockAvailable || isSubmitting}
+//           >
+//             {isSubmitting ? "กำลังเพิ่ม..." : "Add to Cart"}
+//           </Button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+// v.1.1.10 =======================================================
+
+// v.1.1.9 ========================================================
+// // src/app/product/[id]/component/ProductSalesForm.tsx
+// "use client";
+
+// import { useState } from "react";
+// import { Minus, Plus } from "lucide-react";
+// import { Button } from "@/components/ui/button";
+// import { useRouter } from "next/navigation";
+
+// import { useProductSalesForm } from "./useProductSalesForm";
+// import { PriceSection } from "./PriceSection";
+// import { CutSection } from "./CutSection";
+// import { RollSection } from "./RollSection";
+
+// import { useToast } from "@/components/ui/use-toast";
+// import type { AddToCartRequest, AddToCartResponse } from "@/types/cart";
+
+// type UIProduct = any;
+// type CardPartsVisibility = any;
+
+// interface SalesFormProps {
+//   product: UIProduct;
+//   visibleParts: CardPartsVisibility;
+//   hasConditions: boolean;
+//   /** เรียกตอนเพิ่มลงตะกร้า "สำเร็จ" เพื่อเปิด ShoppingCart */
+//   onAddToCart: () => void;
+// }
+
+// export function ProductSalesForm({
+//   product,
+//   visibleParts,
+//   hasConditions,
+//   onAddToCart,
+// }: SalesFormProps) {
+//   const router = useRouter();
+//   const { toast } = useToast();
+//   const [isSubmitting, setIsSubmitting] = useState(false);
+
+//   const {
+//     salesMode,
+//     unit,
+//     originalPrice,
+//     showDiscountBadge,
+//     cutMinimum,
+//     cutStepOptions,
+//     cutLength,
+//     rollPairs,
+//     rollLength,
+//     selectedRollStock,
+//     quantity,
+//     lengthPerItem,
+//     totalLength,
+//     totalPrice,
+//     clearanceQty,
+//     noStock,
+//     maxQtyForCut,
+//     isStockAvailable,
+//     setRollLength,
+//     handleCutStep,
+//     handleQuantityChange,
+//   } = useProductSalesForm(product, visibleParts, hasConditions);
+
+//   /** ✅ สร้าง payload สำหรับ /api/cart/add แล้วเรียก API */
+//   const handleAddToCartClick = async () => {
+//     if (!isStockAvailable || isSubmitting) return;
+
+//     try {
+//       setIsSubmitting(true);
+
+//       // 1) หา SKU ที่จะส่งให้ backend (ลองรองรับทั้ง product.sku และ product.product_sku)
+//       const sku: string =
+//         product?.sku ?? product?.product_sku ?? product?.productSku ?? "";
+
+//       if (!sku) {
+//         console.error("[ProductSalesForm] Missing product SKU");
+//         toast({
+//           variant: "destructive",
+//           title: "ไม่พบข้อมูลสินค้า",
+//           description: "ไม่พบรหัสสินค้า (SKU) สำหรับส่งไปยังระบบตะกร้า",
+//         });
+//         return;
+//       }
+
+//       // 2) กำหนด UOM + Quantity ตามเงื่อนไขที่ตกลงกัน
+//       //    - ถ้ามี conditions (CUT/ROLL) → ส่งเป็นหน่วยเมตร:
+//       //         uom = "M."
+//       //         quantity = totalLength (เช่น 6,000 M.)
+//       //    - ถ้าไม่มี conditions → ใช้ quantity ปกติ และ uom จากสินค้า
+//       let apiUom: string;
+//       let apiQty: number;
+
+//       if (hasConditions && salesMode) {
+//         apiUom = "M."; // หน่วยที่ Navision ใช้จริง
+//         apiQty = Number(totalLength) || 0;
+//       } else {
+//         apiUom =
+//           product?.uom ??
+//           unit ??
+//           ""; /* ถ้า uom มาจาก field อื่น ปรับตรงนี้ได้เลย */
+//         apiQty = Number(quantity) || 0;
+//       }
+
+//       if (!apiUom) {
+//         console.warn("[ProductSalesForm] Missing UOM");
+//       }
+
+//       if (apiQty <= 0) {
+//         toast({
+//           variant: "destructive",
+//           title: "จำนวนไม่ถูกต้อง",
+//           description: "กรุณาเลือกจำนวนสินค้าให้มากกว่า 0",
+//         });
+//         return;
+//       }
+
+//       // 3) DEBUG: log ค่า input ที่ใช้คำนวณก่อนสร้าง payload
+//       console.log("[ProductSalesForm] add-to-cart debug:", {
+//         salesMode,
+//         hasConditions,
+//         unit,
+//         lengthPerItem,
+//         totalLength,
+//         quantity,
+//         apiUom,
+//         apiQty,
+//         sku,
+//         price: Number(product.price) || 0,
+//       });
+
+//       // 4) สร้าง payload สำหรับ AddToCartRequest
+//       const payload: AddToCartRequest = {
+//         product: sku,
+//         uom: apiUom,
+//         quantity: apiQty,
+//         price: Number(product.price) || 0,
+//       };
+
+//       // 4.1 DEBUG: log payload ที่จะส่งเข้า /api/cart/add
+//       console.log("[ProductSalesForm] payload for /api/cart/add:", payload);
+
+//       const res = await fetch("/api/cart/add", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify(payload),
+//       });
+
+//       if (!res.ok) {
+//         throw new Error(`HTTP ${res.status} ${res.statusText}`);
+//       }
+
+//       const data = (await res.json()) as AddToCartResponse;
+
+//       // 4.2 DEBUG: log response จาก backend
+//       console.log("[ProductSalesForm] /api/cart/add response:", data);
+
+//       // 5) จัดการผลลัพธ์จาก backend
+//       switch (data.status) {
+//         case "success":
+//           toast({
+//             title: "เพิ่มสินค้าในตะกร้าแล้ว",
+//             description: `${product.name ?? "สินค้า"} ถูกเพิ่มในตะกร้าของคุณ`,
+//           });
+//           // เปิดแถบตะกร้า (ShoppingCart) ผ่าน callback จาก ProductClient
+//           onAddToCart();
+//           break;
+
+//         case "login":
+//           toast({
+//             variant: "destructive",
+//             title: "กรุณาเข้าสู่ระบบ",
+//             description: "ต้องเข้าสู่ระบบก่อนจึงจะเพิ่มสินค้าในตะกร้าได้",
+//           });
+//           router.push(`/login?redirect=/product/${product.id ?? ""}`);
+//           break;
+
+//         case "less-left":
+//           toast({
+//             variant: "destructive",
+//             title: "มีสินค้าไม่พอ",
+//             description:
+//               data.itemAvail != null
+//                 ? `คงเหลือเพียง ${
+//                     (data.itemAvail as any).toLocaleString?.() ?? data.itemAvail
+//                   } ${apiUom}`
+//                 : "จำนวนสินค้าที่ต้องการมากกว่าจำนวนคงเหลือ",
+//           });
+//           break;
+
+//         case "sold-out":
+//         default:
+//           toast({
+//             variant: "destructive",
+//             title: "สินค้าหมด",
+//             description: "ไม่สามารถเพิ่มสินค้านี้ลงตะกร้าได้ในขณะนี้",
+//           });
+//           break;
+//       }
+//     } catch (err) {
+//       console.error("[ProductSalesForm] add to cart error", err);
+//       toast({
+//         variant: "destructive",
+//         title: "เกิดข้อผิดพลาด",
+//         description: "ไม่สามารถเพิ่มสินค้าในตะกร้าได้ กรุณาลองใหม่อีกครั้ง",
+//       });
+//     } finally {
+//       setIsSubmitting(false);
+//     }
+//   };
+
+//   return (
+//     <div className="space-y-4">
+//       {/* 1. ราคา */}
+//       <PriceSection
+//         product={product}
+//         visibleParts={visibleParts}
+//         hasConditions={hasConditions}
+//         salesMode={salesMode}
+//         unit={unit}
+//         originalPrice={originalPrice}
+//         showDiscountBadge={showDiscountBadge}
+//       />
+
+//       {/* 2. ประเภทการขาย */}
+//       {hasConditions && salesMode && (
+//         <div className="space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
+//           <span className="text-muted-foreground font-medium text-sm md:text-base">
+//             ประเภทการขาย:
+//           </span>
+//           <div className="flex flex-wrap items-center gap-3">
+//             <span className="inline-flex items-center rounded-lg border border-muted px-3 py-1.5 text-sm bg-white shadow-sm">
+//               {salesMode === "CUT" ? "ตัดแบ่งขาย (Cut)" : "ขายยกม้วน (Roll)"}
+//             </span>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* 3. CUT Section */}
+//       <CutSection
+//         hasConditions={hasConditions}
+//         salesMode={salesMode}
+//         cutMinimum={cutMinimum}
+//         cutStepOptions={cutStepOptions}
+//         cutLength={cutLength}
+//         unit={unit}
+//         clearanceQty={clearanceQty}
+//         quantity={quantity}
+//         noStock={noStock}
+//         handleCutStep={handleCutStep}
+//       />
+
+//       {/* 4. ROLL Section */}
+//       <RollSection
+//         hasConditions={hasConditions}
+//         salesMode={salesMode}
+//         rollPairs={rollPairs}
+//         rollLength={rollLength}
+//         unit={unit}
+//         setRollLength={setRollLength}
+//       />
+
+//       {/* 5. สถานะสต๊อก */}
+//       <div className="flex items-center gap-2">
+//         {salesMode === "ROLL" ? (
+//           selectedRollStock != null ? (
+//             selectedRollStock > 0 ? (
+//               <>
+//                 <div className="w-2 h-2 bg-success rounded-full" />
+//                 <span className="text-success font-medium">
+//                   สต๊อก {selectedRollStock.toLocaleString()} ม้วน (ขนาด{" "}
+//                   {rollLength?.toLocaleString()} {unit})
+//                 </span>
+//               </>
+//             ) : (
+//               <>
+//                 <div className="w-2 h-2 bg-destructive rounded-full" />
+//                 <span className="text-destructive font-medium">
+//                   ขนาดที่เลือกหมดสต๊อก
+//                 </span>
+//               </>
+//             )
+//           ) : (
+//             <>
+//               <div className="w-2 h-2 bg-muted-foreground rounded-full" />
+//               <span className="text-muted-foreground">
+//                 เลือกความยาวม้วนเพื่อดูสต๊อก
+//               </span>
+//             </>
+//           )
+//         ) : clearanceQty != null && clearanceQty > 0 ? (
+//           <>
+//             <div className="w-2 h-2 bg-success rounded-full" />
+//             <span className="text-success font-medium">
+//               มีสินค้าในสต๊อก
+//               {/* มีสินค้าในสต๊อก จำนวน {clearanceQty.toLocaleString()} {unit} */}
+//             </span>
+//           </>
+//         ) : (
+//           <>
+//             <div className="w-2 h-2 bg-destructive rounded-full" />
+//             <span className="text-destructive font-medium">สินค้าหมด</span>
+//           </>
+//         )}
+//       </div>
+
+//       {/* 6. Quantity & Actions */}
+//       <div className="space-y-4">
+//         <div className="flex items-center gap-4">
+//           <span className="font-medium text-muted-foreground">Quantity:</span>
+//           <div className="flex items-center border rounded-lg">
+//             <Button
+//               variant="ghost"
+//               size="sm"
+//               onClick={() => handleQuantityChange(-1)}
+//               className="h-10 w-10 p-0"
+//               disabled={quantity <= 1 || isSubmitting}
+//             >
+//               <Minus className="h-4 w-4" />
+//             </Button>
+//             <span className="px-4 py-2 min-w-[3rem] text-center">
+//               {quantity}
+//             </span>
+//             <Button
+//               variant="ghost"
+//               size="sm"
+//               onClick={() => handleQuantityChange(1)}
+//               className="h-10 w-10 p-0"
+//               disabled={
+//                 isSubmitting ||
+//                 (salesMode === "ROLL" &&
+//                   selectedRollStock != null &&
+//                   quantity >= selectedRollStock) ||
+//                 ((!hasConditions || !salesMode) &&
+//                   clearanceQty != null &&
+//                   quantity >= clearanceQty) ||
+//                 (salesMode === "CUT" &&
+//                   maxQtyForCut != null &&
+//                   quantity >= maxQtyForCut)
+//               }
+//             >
+//               <Plus className="h-4 w-4" />
+//             </Button>
+//           </div>
+//         </div>
+
+//         {/* Summary */}
+//         <div className="text-sm text-muted-foreground space-y-1">
+//           {hasConditions && salesMode ? (
+//             <>
+//               <div>
+//                 ความยาวรวม:{" "}
+//                 <span className="font-medium text-foreground">
+//                   {totalLength.toLocaleString()} {unit}
+//                 </span>
+//               </div>
+//               <div>
+//                 ราคารวม:{" "}
+//                 <span className="font-bold text-foreground">
+//                   ฿{totalPrice.toLocaleString()}
+//                 </span>
+//               </div>
+//               {salesMode === "ROLL" && selectedRollStock != null && (
+//                 <div className="text-xs">
+//                   สต๊อกสูงสุดสำหรับขนาดนี้:{" "}
+//                   {selectedRollStock.toLocaleString()} ม้วน
+//                 </div>
+//               )}
+//               <div className="text-xs">
+//                 ({quantity.toLocaleString()} ×{" "}
+//                 {Number(lengthPerItem).toLocaleString()} {unit} × ฿
+//                 {Number(product.price).toLocaleString()}/{unit})
+//               </div>
+//             </>
+//           ) : (
+//             <>
+//               <div>
+//                 ราคารวม:{" "}
+//                 <span className="font-bold text-foreground">
+//                   ฿{totalPrice.toLocaleString()}
+//                 </span>
+//               </div>
+//               <div className="text-xs">
+//                 ({quantity.toLocaleString()} × ฿
+//                 {Number(product.price).toLocaleString()} / ชิ้น)
+//               </div>
+//             </>
+//           )}
+//         </div>
+
+//         <div className="flex gap-3">
+//           <Button
+//             variant="outline"
+//             size="lg"
+//             className="flex-1 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+//             onClick={() => router.push("/checkout")}
+//             disabled={!isStockAvailable || isSubmitting}
+//           >
+//             Buy Now
+//           </Button>
+//           <Button
+//             size="lg"
+//             className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+//             onClick={handleAddToCartClick}
+//             disabled={!isStockAvailable || isSubmitting}
+//           >
+//             {isSubmitting ? "กำลังเพิ่ม..." : "Add to Cart"}
+//           </Button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 
 // v.1.1.9 ========================================================
 

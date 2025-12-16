@@ -1,9 +1,7 @@
-// v.1.1.9 ===============================================================
-// src/app/checkout/CheckoutClient.tsx
-
+// v.1.1.17 =================================================================
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -14,6 +12,7 @@ import CheckoutAddressSection from "./component/CheckoutAddressSection";
 import CheckoutPackagesSection from "./component/CheckoutPackagesSection";
 import CheckoutPaymentSection from "./component/CheckoutPaymentSection";
 import CheckoutSummarySection from "./component/CheckoutSummarySection";
+import PaymentPopup from "./component/PaymentPopup";
 
 import type {
   CheckoutData,
@@ -38,13 +37,13 @@ export default function CheckoutClient({ initialData }: Props) {
     window.scrollTo(0, 0);
   }, []);
 
-  /* ======================================================
-   *  STATE หลัก
-   * ====================================================== */
+  /* ===================== STATE ===================== */
 
   const [checkoutItems, setCheckoutItems] = useState<CheckoutItem[]>(
     initialData.items ?? [],
   );
+
+  const [insufficientSkus, setInsufficientSkus] = useState<string[]>([]);
 
   const [shippingAddress, setShippingAddress] =
     useState<CheckoutAddress | null>(initialData.shippingAddress ?? null);
@@ -55,7 +54,6 @@ export default function CheckoutClient({ initialData }: Props) {
   const [profileInfo, setProfileInfo] =
     useState<CheckoutProfileInfo | undefined>(initialData.profileInfo);
 
-  // โปรไฟล์ดิบจาก backend เอาไว้ใช้กับฟอร์มแก้ไข
   const [personProfile, setPersonProfile] = useState<PersonProfile | null>(
     initialData.personProfile ?? null,
   );
@@ -63,7 +61,6 @@ export default function CheckoutClient({ initialData }: Props) {
     initialData.entityProfile ?? null,
   );
 
-  // สร้างสมุด 2 การ์ดจากโปรไฟล์ปัจจุบัน
   const addressProfiles = buildCheckoutProfileAddressBook(
     personProfile,
     entityProfile,
@@ -75,13 +72,9 @@ export default function CheckoutClient({ initialData }: Props) {
   const [paymentMethod, setPaymentMethod] =
     useState<PaymentMethod>("card");
 
-  const [voucherCode, setVoucherCode] = useState("");
   const [appliedVouchers, setAppliedVouchers] = useState<CheckoutVoucher[]>([]);
-  const [voucherError, setVoucherError] = useState("");
 
-  /* ======================================================
-   *  SUMMARY
-   * ====================================================== */
+  /* ===================== SUMMARY ===================== */
 
   const subtotal = checkoutItems.reduce((sum, item) => {
     const line =
@@ -100,89 +93,68 @@ export default function CheckoutClient({ initialData }: Props) {
 
   const total = subtotal + shippingFee - voucherDiscount;
 
-  /* ======================================================
-   *  LOGIC VOUCHER
-   * ====================================================== */
+  /* ===================== POPUP ===================== */
 
-  const handleApplyVoucher = () => {
-    if (!voucherCode.trim()) return;
+  const [paymentPopupOpen, setPaymentPopupOpen] = useState(false);
 
-    setVoucherError("");
+  // 🔒 กัน submit ซ้ำ
+  const submittingRef = useRef(false);
 
-    const mockVouchers: Record<string, CheckoutVoucher> = {
-      SAVE100: { code: "SAVE100", discount: 100 },
-      DISCOUNT50: { code: "DISCOUNT50", discount: 50 },
-      FREESHIP: { code: "FREESHIP", discount: 65 },
-      VC0001: { code: "VC0001", discount: 100 },
-      VC0002: { code: "VC0002", discount: 200 },
-    };
+  /* ===================== ACTION ===================== */
 
-    const key = voucherCode.toUpperCase();
-    const voucher = mockVouchers[key];
+  const handlePlaceOrder = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
 
-    if (!voucher) {
-      setVoucherError("โค้ดส่วนลดไม่ถูกต้อง");
-      return;
-    }
+    try {
+      const res = await fetch("/api/auth/me");
+      const data = await res.json();
 
-    const isAlreadyApplied = appliedVouchers.some(
-      (v) => v.code === voucher.code,
-    );
-    if (isAlreadyApplied) {
-      setVoucherError("โค้ดนี้ถูกใช้แล้ว");
-      return;
-    }
+      if (!data.ok) {
+        alert("กรุณาเข้าสู่ระบบใหม่");
+        submittingRef.current = false;
+        return;
+      }
 
-    setAppliedVouchers((prev) => [...prev, voucher]);
-    setVoucherCode("");
-  };
+      const customerId = data.user.id;
 
-  const handleRemoveVoucher = (codeToRemove: string) => {
-    setAppliedVouchers((prev) =>
-      prev.filter((v) => v.code !== codeToRemove),
-    );
-  };
+      // 🔹 ตัดสินว่าเป็นบุคคล / นิติบุคคล
+      // Laravel เดิมใช้ radio: 0 = person, 1 = entity
+      const radio =
+        profileInfo?.mode === "entity" ? "1" : "0";
 
-  /* ======================================================
-   *  REMOVE ITEM
-   * ====================================================== */
+      // เปิด popup ก่อน
+      setPaymentPopupOpen(true);
 
-  const handleRemoveItem = (itemId: number) => {
-    setCheckoutItems((items) => items.filter((item) => item.id !== itemId));
-  };
+      // สร้าง form ยิงเข้า Laravel
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = "http://localhost:8081/next/makebuy";
+      form.target = "payment_iframe";
 
-  /* ======================================================
-   *  PLACE ORDER
-   * ====================================================== */
+      const add = (name: string, value: string) => {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      };
 
-  const handlePlaceOrder = () => {
-    const paymentData = {
-      amount: total,
-      orderId: `ORDER-${Date.now()}`,
-      items: checkoutItems,
-      subtotal,
-      shippingFee,
-      shippingDiscount: 65,
-      voucherDiscount,
-      appliedVouchers,
-    };
+      add("customer_id", String(customerId));
+      add("payment_method", paymentMethod === "qr" ? "payqr" : "paycard");
+      add("radio", radio); // ✅ สำคัญ: ส่งบุคคล / นิติบุคคล
 
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("paymentData", JSON.stringify(paymentData));
-    }
+      document.body.appendChild(form);
 
-    if (paymentMethod === "card") {
-      router.push("/payment/card");
-    } else if (paymentMethod === "qr") {
-      router.push("/payment/qr");
-    } else {
-      router.push("/payment/card");
+      requestAnimationFrame(() => {
+        form.submit();
+      });
+    } catch (e) {
+      submittingRef.current = false;
     }
   };
 
-  /* ======================================================
-   *  RENDER
-   * ====================================================== */
+  /* ===================== RENDER ===================== */
 
   return (
     <div className="min-h-screen bg-background">
@@ -206,12 +178,9 @@ export default function CheckoutClient({ initialData }: Props) {
               onChangeShippingAddress={setShippingAddress}
               onChangeBillingAddress={setBillingAddress}
               onChangeProfileInfo={setProfileInfo}
-              // สมุด 2 การ์ดที่คำนวนจากโปรไฟล์ปัจจุบัน
               addressProfiles={addressProfiles}
-              // โปรไฟล์ดิบสำหรับใช้ prefill ฟอร์ม
               personProfile={personProfile}
               entityProfile={entityProfile}
-              // หลังบันทึกจาก dialog แล้ว อัปเดต state โปรไฟล์
               onProfileSaved={(updated) => {
                 if (updated.person !== undefined) {
                   setPersonProfile(updated.person ?? null);
@@ -225,8 +194,40 @@ export default function CheckoutClient({ initialData }: Props) {
             <CheckoutPackagesSection
               checkoutItems={checkoutItems}
               deliveryOption={deliveryOption}
+              insufficientSkus={insufficientSkus}
+              onFixInsufficientItem={async (item) => {
+                const cartRowId = Number(item.cartId ?? item.id);
+                const productId = item.productId;
+
+                setCheckoutItems((prev) =>
+                  prev.filter((x) => x.id !== item.id),
+                );
+
+                try {
+                  await fetch("/api/cart/remove", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: cartRowId }),
+                  });
+                } catch {}
+
+                if (productId) {
+                  router.push(
+                    `/product/${productId}?returnTo=${encodeURIComponent(
+                      "/checkout",
+                    )}`,
+                  );
+                  return;
+                }
+
+                router.push("/products");
+              }}
               onChangeDeliveryOption={setDeliveryOption}
-              onRemoveItem={handleRemoveItem}
+              onRemoveItem={(id) =>
+                setCheckoutItems((items) =>
+                  items.filter((item) => item.id !== id),
+                )
+              }
             />
           </div>
 
@@ -244,13 +245,1931 @@ export default function CheckoutClient({ initialData }: Props) {
               voucherDiscount={voucherDiscount}
               total={total}
               onPlaceOrder={handlePlaceOrder}
+              items={checkoutItems as any}
+              setInsufficientSkus={setInsufficientSkus}
             />
           </div>
         </div>
       </div>
+
+      <PaymentPopup
+        open={paymentPopupOpen}
+        onClose={() => {
+          setPaymentPopupOpen(false);
+          submittingRef.current = false;
+        }}
+        iframeUrl=""
+        title={paymentMethod === "qr" ? "ชำระเงิน QR Code" : "ชำระเงินด้วยบัตร"}
+      />
     </div>
   );
 }
+
+// v.1.1.17 =================================================================
+
+// v.1.1.16 =================================================================
+// // src/app/checkout/CheckoutClient.tsx
+// "use client";
+
+// import { useEffect, useRef, useState } from "react";
+// import Link from "next/link";
+// import { useRouter } from "next/navigation";
+// import { ArrowLeft } from "lucide-react";
+
+// import { Button } from "@/components/ui/button";
+
+// import CheckoutAddressSection from "./component/CheckoutAddressSection";
+// import CheckoutPackagesSection from "./component/CheckoutPackagesSection";
+// import CheckoutPaymentSection from "./component/CheckoutPaymentSection";
+// import CheckoutSummarySection from "./component/CheckoutSummarySection";
+// import PaymentPopup from "./component/PaymentPopup";
+
+// import type {
+//   CheckoutData,
+//   CheckoutItem,
+//   DeliveryOption,
+//   PaymentMethod,
+//   CheckoutVoucher,
+//   CheckoutAddress,
+//   CheckoutProfileInfo,
+// } from "@/types/checkout";
+// import { buildCheckoutProfileAddressBook } from "@/types/checkout";
+// import type { PersonProfile, EntityProfile } from "@/types/profile";
+
+// type Props = {
+//   initialData: CheckoutData;
+// };
+
+// export default function CheckoutClient({ initialData }: Props) {
+//   const router = useRouter();
+
+//   useEffect(() => {
+//     window.scrollTo(0, 0);
+//   }, []);
+
+//   /* ===================== STATE ===================== */
+
+//   const [checkoutItems, setCheckoutItems] = useState<CheckoutItem[]>(
+//     initialData.items ?? [],
+//   );
+
+//   const [insufficientSkus, setInsufficientSkus] = useState<string[]>([]);
+
+//   const [shippingAddress, setShippingAddress] =
+//     useState<CheckoutAddress | null>(initialData.shippingAddress ?? null);
+
+//   const [billingAddress, setBillingAddress] =
+//     useState<CheckoutAddress | null>(initialData.billingAddress ?? null);
+
+//   const [profileInfo, setProfileInfo] =
+//     useState<CheckoutProfileInfo | undefined>(initialData.profileInfo);
+
+//   const [personProfile, setPersonProfile] = useState<PersonProfile | null>(
+//     initialData.personProfile ?? null,
+//   );
+//   const [entityProfile, setEntityProfile] = useState<EntityProfile | null>(
+//     initialData.entityProfile ?? null,
+//   );
+
+//   const addressProfiles = buildCheckoutProfileAddressBook(
+//     personProfile,
+//     entityProfile,
+//   );
+
+//   const [deliveryOption, setDeliveryOption] =
+//     useState<DeliveryOption>("standard");
+
+//   const [paymentMethod, setPaymentMethod] =
+//     useState<PaymentMethod>("card");
+
+//   const [appliedVouchers, setAppliedVouchers] = useState<CheckoutVoucher[]>([]);
+
+//   /* ===================== SUMMARY ===================== */
+
+//   const subtotal = checkoutItems.reduce((sum, item) => {
+//     const line =
+//       typeof item.lineTotal === "number"
+//         ? item.lineTotal
+//         : item.price * item.quantity;
+//     return sum + line;
+//   }, 0);
+
+//   const shippingFee = deliveryOption === "standard" ? 0 : 65;
+
+//   const voucherDiscount = appliedVouchers.reduce(
+//     (sum, voucher) => sum + voucher.discount,
+//     0,
+//   );
+
+//   const total = subtotal + shippingFee - voucherDiscount;
+
+//   /* ===================== POPUP ===================== */
+
+//   const [paymentPopupOpen, setPaymentPopupOpen] = useState(false);
+
+//   // 🔒 กัน submit ซ้ำ (ตัวแก้หลัก)
+//   const submittingRef = useRef(false);
+
+//   /* ===================== ACTION ===================== */
+
+//   const handlePlaceOrder = async () => {
+//     // 🔒 กันกดซ้ำ / event ซ้อน
+//     if (submittingRef.current) return;
+//     submittingRef.current = true;
+
+//     try {
+//       const res = await fetch("/api/auth/me");
+//       const data = await res.json();
+
+//       if (!data.ok) {
+//         alert("กรุณาเข้าสู่ระบบใหม่");
+//         submittingRef.current = false;
+//         return;
+//       }
+
+//       const customerId = data.user.id;
+
+//       // เปิด popup ก่อน (ให้ iframe พร้อม)
+//       setPaymentPopupOpen(true);
+
+//       // สร้าง form ยิงเข้า Laravel
+//       const form = document.createElement("form");
+//       form.method = "POST";
+//       form.action = "http://localhost:8081/next/makebuy";
+//       form.target = "payment_iframe";
+
+//       const add = (name: string, value: string) => {
+//         const input = document.createElement("input");
+//         input.type = "hidden";
+//         input.name = name;
+//         input.value = value;
+//         form.appendChild(input);
+//       };
+
+//       add("customer_id", String(customerId));
+//       add("payment_method", paymentMethod === "qr" ? "payqr" : "paycard");
+
+//       document.body.appendChild(form);
+
+//       // ✅ submit แค่ครั้งเดียว หลัง popup render
+//       requestAnimationFrame(() => {
+//         form.submit();
+//       });
+//     } catch (e) {
+//       submittingRef.current = false;
+//     }
+//   };
+
+//   /* ===================== RENDER ===================== */
+
+//   return (
+//     <div className="min-h-screen bg-background">
+//       <div className="container mx-auto px-4 py-6 max-w-6xl">
+//         <div className="flex items-center gap-4 mb-6">
+//           <Link href="/cart">
+//             <Button variant="ghost" size="icon">
+//               <ArrowLeft className="h-5 w-5" />
+//             </Button>
+//           </Link>
+//           <h1 className="text-2xl font-bold">ชำระเงิน</h1>
+//         </div>
+
+//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+//           {/* ซ้าย */}
+//           <div className="lg:col-span-2 space-y-6">
+//             <CheckoutAddressSection
+//               shippingAddress={shippingAddress}
+//               billingAddress={billingAddress}
+//               profileInfo={profileInfo}
+//               onChangeShippingAddress={setShippingAddress}
+//               onChangeBillingAddress={setBillingAddress}
+//               onChangeProfileInfo={setProfileInfo}
+//               addressProfiles={addressProfiles}
+//               personProfile={personProfile}
+//               entityProfile={entityProfile}
+//               onProfileSaved={(updated) => {
+//                 if (updated.person !== undefined) {
+//                   setPersonProfile(updated.person ?? null);
+//                 }
+//                 if (updated.entity !== undefined) {
+//                   setEntityProfile(updated.entity ?? null);
+//                 }
+//               }}
+//             />
+
+//             <CheckoutPackagesSection
+//               checkoutItems={checkoutItems}
+//               deliveryOption={deliveryOption}
+//               insufficientSkus={insufficientSkus}
+//               onFixInsufficientItem={async (item) => {
+//                 const cartRowId = Number(item.cartId ?? item.id);
+//                 const productId = item.productId;
+
+//                 setCheckoutItems((prev) =>
+//                   prev.filter((x) => x.id !== item.id),
+//                 );
+
+//                 try {
+//                   await fetch("/api/cart/remove", {
+//                     method: "POST",
+//                     headers: { "Content-Type": "application/json" },
+//                     body: JSON.stringify({ id: cartRowId }),
+//                   });
+//                 } catch {}
+
+//                 if (productId) {
+//                   router.push(
+//                     `/product/${productId}?returnTo=${encodeURIComponent(
+//                       "/checkout",
+//                     )}`,
+//                   );
+//                   return;
+//                 }
+
+//                 router.push("/products");
+//               }}
+//               onChangeDeliveryOption={setDeliveryOption}
+//               onRemoveItem={(id) =>
+//                 setCheckoutItems((items) =>
+//                   items.filter((item) => item.id !== id),
+//                 )
+//               }
+//             />
+//           </div>
+
+//           {/* ขวา */}
+//           <div className="space-y-6">
+//             <CheckoutPaymentSection
+//               paymentMethod={paymentMethod}
+//               onChangePaymentMethod={setPaymentMethod}
+//             />
+
+//             <CheckoutSummarySection
+//               itemCount={checkoutItems.length}
+//               subtotal={subtotal}
+//               shippingFee={shippingFee}
+//               voucherDiscount={voucherDiscount}
+//               total={total}
+//               onPlaceOrder={handlePlaceOrder}
+//               items={checkoutItems as any}
+//               setInsufficientSkus={setInsufficientSkus}
+//             />
+//           </div>
+//         </div>
+//       </div>
+
+//       <PaymentPopup
+//         open={paymentPopupOpen}
+//         onClose={() => {
+//           setPaymentPopupOpen(false);
+//           submittingRef.current = false; // เผื่อผู้ใช้ปิดแล้วกดใหม่
+//         }}
+//         iframeUrl=""
+//         title={paymentMethod === "qr" ? "ชำระเงิน QR Code" : "ชำระเงินด้วยบัตร"}
+//       />
+//     </div>
+//   );
+// }
+
+// v.1.1.16 =================================================================
+
+// v.1.1.15 =================================================================
+// // src/app/checkout/CheckoutClient.tsx
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import Link from "next/link";
+// import { useRouter } from "next/navigation";
+// import { ArrowLeft } from "lucide-react";
+
+// import { Button } from "@/components/ui/button";
+
+// import CheckoutAddressSection from "./component/CheckoutAddressSection";
+// import CheckoutPackagesSection from "./component/CheckoutPackagesSection";
+// import CheckoutPaymentSection from "./component/CheckoutPaymentSection";
+// import CheckoutSummarySection from "./component/CheckoutSummarySection";
+// import PaymentPopup from "./component/PaymentPopup";
+
+// import type {
+//   CheckoutData,
+//   CheckoutItem,
+//   DeliveryOption,
+//   PaymentMethod,
+//   CheckoutVoucher,
+//   CheckoutAddress,
+//   CheckoutProfileInfo,
+// } from "@/types/checkout";
+// import { buildCheckoutProfileAddressBook } from "@/types/checkout";
+// import type { PersonProfile, EntityProfile } from "@/types/profile";
+
+// type Props = {
+//   initialData: CheckoutData;
+// };
+
+// export default function CheckoutClient({ initialData }: Props) {
+//   const router = useRouter();
+
+//   useEffect(() => {
+//     window.scrollTo(0, 0);
+//   }, []);
+
+//   /* ===================== STATE ===================== */
+
+//   const [checkoutItems, setCheckoutItems] = useState<CheckoutItem[]>(
+//     initialData.items ?? [],
+//   );
+
+//   const [insufficientSkus, setInsufficientSkus] = useState<string[]>([]);
+
+//   const [shippingAddress, setShippingAddress] =
+//     useState<CheckoutAddress | null>(initialData.shippingAddress ?? null);
+
+//   const [billingAddress, setBillingAddress] =
+//     useState<CheckoutAddress | null>(initialData.billingAddress ?? null);
+
+//   const [profileInfo, setProfileInfo] =
+//     useState<CheckoutProfileInfo | undefined>(initialData.profileInfo);
+
+//   const [personProfile, setPersonProfile] = useState<PersonProfile | null>(
+//     initialData.personProfile ?? null,
+//   );
+//   const [entityProfile, setEntityProfile] = useState<EntityProfile | null>(
+//     initialData.entityProfile ?? null,
+//   );
+
+//   const addressProfiles = buildCheckoutProfileAddressBook(
+//     personProfile,
+//     entityProfile,
+//   );
+
+//   const [deliveryOption, setDeliveryOption] =
+//     useState<DeliveryOption>("standard");
+
+//   const [paymentMethod, setPaymentMethod] =
+//     useState<PaymentMethod>("card");
+
+//   const [appliedVouchers, setAppliedVouchers] = useState<CheckoutVoucher[]>([]);
+
+//   /* ===================== SUMMARY ===================== */
+
+//   const subtotal = checkoutItems.reduce((sum, item) => {
+//     const line =
+//       typeof item.lineTotal === "number"
+//         ? item.lineTotal
+//         : item.price * item.quantity;
+//     return sum + line;
+//   }, 0);
+
+//   const shippingFee = deliveryOption === "standard" ? 0 : 65;
+
+//   const voucherDiscount = appliedVouchers.reduce(
+//     (sum, voucher) => sum + voucher.discount,
+//     0,
+//   );
+
+//   const total = subtotal + shippingFee - voucherDiscount;
+
+//   /* ===================== POPUP ===================== */
+
+//   const [paymentPopupOpen, setPaymentPopupOpen] = useState(false);
+
+//   /* ===================== ACTION ===================== */
+
+//   /** ✅ POST เข้า iframe /next/makebuy */
+//   const handlePlaceOrder = async () => {
+
+//     const res = await fetch("/api/auth/me");
+//     const data = await res.json();
+
+//     if (!data.ok) {
+//       alert("กรุณาเข้าสู่ระบบใหม่");
+//       return;
+//     }
+
+//     const customerId = data.user.id; // ⭐ ตัวนี้แหละ
+
+//   // เปิด popup ก่อน เพื่อให้ iframe ถูก render และมี name="payment_iframe"
+//   setPaymentPopupOpen(true);
+
+//   const form = document.createElement("form");
+//   form.method = "POST";
+//   form.action = "http://localhost:8081/next/makebuy";
+//   form.target = "payment_iframe";
+
+//   const add = (name: string, value: string) => {
+//     const input = document.createElement("input");
+//     input.type = "hidden";
+//     input.name = name;
+//     input.value = value;
+//     form.appendChild(input);
+//   };
+
+//   // ใส่ค่าที่คุณส่งจริง
+//   add("customer_id", customerId);
+//   add("payment_method", paymentMethod === "qr" ? "payqr" : "paycard");
+
+//   // add("customer_id", "573");
+//   // add("payment_method", paymentMethod === "qr" ? "payqr" : "paycard");
+
+//   document.body.appendChild(form);
+
+//   // รอให้ popup/iframe โผล่ก่อนค่อย submit
+//   requestAnimationFrame(() => form.submit());
+// };
+
+
+//   /* ===================== RENDER ===================== */
+
+//   return (
+//     <div className="min-h-screen bg-background">
+//       <div className="container mx-auto px-4 py-6 max-w-6xl">
+//         <div className="flex items-center gap-4 mb-6">
+//           <Link href="/cart">
+//             <Button variant="ghost" size="icon">
+//               <ArrowLeft className="h-5 w-5" />
+//             </Button>
+//           </Link>
+//           <h1 className="text-2xl font-bold">ชำระเงิน</h1>
+//         </div>
+
+//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+//           {/* ซ้าย */}
+//           <div className="lg:col-span-2 space-y-6">
+//             <CheckoutAddressSection
+//               shippingAddress={shippingAddress}
+//               billingAddress={billingAddress}
+//               profileInfo={profileInfo}
+//               onChangeShippingAddress={setShippingAddress}
+//               onChangeBillingAddress={setBillingAddress}
+//               onChangeProfileInfo={setProfileInfo}
+//               addressProfiles={addressProfiles}
+//               personProfile={personProfile}
+//               entityProfile={entityProfile}
+//               onProfileSaved={(updated) => {
+//                 if (updated.person !== undefined) {
+//                   setPersonProfile(updated.person ?? null);
+//                 }
+//                 if (updated.entity !== undefined) {
+//                   setEntityProfile(updated.entity ?? null);
+//                 }
+//               }}
+//             />
+
+//             <CheckoutPackagesSection
+//               checkoutItems={checkoutItems}
+//               deliveryOption={deliveryOption}
+//               insufficientSkus={insufficientSkus}
+//               onFixInsufficientItem={async (item) => {
+//                 const cartRowId = Number(item.cartId ?? item.id);
+//                 const productId = item.productId;
+
+//                 setCheckoutItems((prev) =>
+//                   prev.filter((x) => x.id !== item.id),
+//                 );
+
+//                 try {
+//                   await fetch("/api/cart/remove", {
+//                     method: "POST",
+//                     headers: { "Content-Type": "application/json" },
+//                     body: JSON.stringify({ id: cartRowId }),
+//                   });
+//                 } catch {}
+
+//                 if (productId) {
+//                   router.push(
+//                     `/product/${productId}?returnTo=${encodeURIComponent(
+//                       "/checkout",
+//                     )}`,
+//                   );
+//                   return;
+//                 }
+
+//                 router.push("/products");
+//               }}
+//               onChangeDeliveryOption={setDeliveryOption}
+//               onRemoveItem={(id) =>
+//                 setCheckoutItems((items) =>
+//                   items.filter((item) => item.id !== id),
+//                 )
+//               }
+//             />
+//           </div>
+
+//           {/* ขวา */}
+//           <div className="space-y-6">
+//             <CheckoutPaymentSection
+//               paymentMethod={paymentMethod}
+//               onChangePaymentMethod={setPaymentMethod}
+//             />
+
+//             <CheckoutSummarySection
+//               itemCount={checkoutItems.length}
+//               subtotal={subtotal}
+//               shippingFee={shippingFee}
+//               voucherDiscount={voucherDiscount}
+//               total={total}
+//               onPlaceOrder={handlePlaceOrder}
+//               items={checkoutItems as any}
+//               setInsufficientSkus={setInsufficientSkus}
+//             />
+//           </div>
+//         </div>
+//       </div>
+
+//       <PaymentPopup
+//         open={paymentPopupOpen}
+//         onClose={() => setPaymentPopupOpen(false)}
+//         iframeUrl=""
+//         title={paymentMethod === "qr" ? "ชำระเงิน QR Code" : "ชำระเงินด้วยบัตร"}
+//       />
+//     </div>
+//   );
+// }
+
+
+
+// v.1.1.15 =================================================================
+
+// v.1.1.14 ===============================================================
+// // src/app/checkout/CheckoutClient.tsx
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import Link from "next/link";
+// import { useRouter } from "next/navigation";
+// import { ArrowLeft } from "lucide-react";
+
+// import { Button } from "@/components/ui/button";
+
+// import CheckoutAddressSection from "./component/CheckoutAddressSection";
+// import CheckoutPackagesSection from "./component/CheckoutPackagesSection";
+// import CheckoutPaymentSection from "./component/CheckoutPaymentSection";
+// import CheckoutSummarySection from "./component/CheckoutSummarySection";
+// import PaymentPopup from "./component/PaymentPopup";
+
+// import type {
+//   CheckoutData,
+//   CheckoutItem,
+//   DeliveryOption,
+//   PaymentMethod,
+//   CheckoutVoucher,
+//   CheckoutAddress,
+//   CheckoutProfileInfo,
+// } from "@/types/checkout";
+// import { buildCheckoutProfileAddressBook } from "@/types/checkout";
+// import type { PersonProfile, EntityProfile } from "@/types/profile";
+
+// type Props = {
+//   initialData: CheckoutData;
+// };
+
+// export default function CheckoutClient({ initialData }: Props) {
+//   const router = useRouter();
+
+//   useEffect(() => {
+//     window.scrollTo(0, 0);
+//   }, []);
+
+//   /* ===================== STATE ===================== */
+
+//   const [checkoutItems, setCheckoutItems] = useState<CheckoutItem[]>(
+//     initialData.items ?? [],
+//   );
+
+//   /** ✅ เก็บ SKU ที่สต๊อกไม่พอ (ไว้ไฮไลต์กรอบแดง) */
+//   const [insufficientSkus, setInsufficientSkus] = useState<string[]>([]);
+
+//   const [shippingAddress, setShippingAddress] =
+//     useState<CheckoutAddress | null>(initialData.shippingAddress ?? null);
+
+//   const [billingAddress, setBillingAddress] =
+//     useState<CheckoutAddress | null>(initialData.billingAddress ?? null);
+
+//   const [profileInfo, setProfileInfo] =
+//     useState<CheckoutProfileInfo | undefined>(initialData.profileInfo);
+
+//   const [personProfile, setPersonProfile] = useState<PersonProfile | null>(
+//     initialData.personProfile ?? null,
+//   );
+//   const [entityProfile, setEntityProfile] = useState<EntityProfile | null>(
+//     initialData.entityProfile ?? null,
+//   );
+
+//   const addressProfiles = buildCheckoutProfileAddressBook(
+//     personProfile,
+//     entityProfile,
+//   );
+
+//   const [deliveryOption, setDeliveryOption] =
+//     useState<DeliveryOption>("standard");
+
+//   const [paymentMethod, setPaymentMethod] =
+//     useState<PaymentMethod>("card");
+
+//   const [appliedVouchers, setAppliedVouchers] = useState<CheckoutVoucher[]>([]);
+
+//   /* ===================== SUMMARY ===================== */
+
+//   const subtotal = checkoutItems.reduce((sum, item) => {
+//     const line =
+//       typeof item.lineTotal === "number"
+//         ? item.lineTotal
+//         : item.price * item.quantity;
+//     return sum + line;
+//   }, 0);
+
+//   const shippingFee = deliveryOption === "standard" ? 0 : 65;
+
+//   const voucherDiscount = appliedVouchers.reduce(
+//     (sum, voucher) => sum + voucher.discount,
+//     0,
+//   );
+
+//   const total = subtotal + shippingFee - voucherDiscount;
+
+//   /* ===================== POPUP ===================== */
+
+//   const [paymentPopupOpen, setPaymentPopupOpen] = useState(false);
+//   const [iframeUrl, setIframeUrl] = useState("");
+
+//   /* ===================== ACTION ===================== */
+
+//   /** ✅ payment flow เดิม (ไม่แตะ) */
+//   const handlePlaceOrder = () => {
+//     if (paymentMethod === "qr") {
+//       setIframeUrl("http://localhost:8081//kbankqr/step1.php");
+//     } else {
+//       setIframeUrl("http://localhost:8081//kbackcard/step1.php?mode=debug");
+//     }
+//     setPaymentPopupOpen(true);
+//   };
+
+//   /**
+//    * ✅ คลิก “รายการที่กรอบแดง” → ลบจาก cart แบบเดียวกับตะกร้า (status=3)
+//    * แล้วพาไปหน้า product เพื่อเลือกจำนวนใหม่
+//    */
+//   const handleFixInsufficientItem = async (item: CheckoutItem) => {
+//     const cartRowId = Number(item.cartId ?? item.id);
+//     const productId = item.productId;
+
+//     // optimistic: เอาออกจากรายการหน้า checkout ก่อน
+//     setCheckoutItems((prev) => prev.filter((x) => x.id !== item.id));
+
+//     // ลบแบบเดียวกับตะกร้า (POST /api/cart/remove)
+//     try {
+//       await fetch("/api/cart/remove", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({ id: cartRowId }),
+//       });
+//     } catch (e) {
+//       console.error("[CHECKOUT][REMOVE][ERROR]", e);
+//       // ไม่บล็อก user — ยังพาไปแก้ที่หน้าสินค้าได้
+//     }
+
+//     // ไปหน้า product เพื่อเลือกจำนวนใหม่
+//     if (productId) {
+//       // router.push(`/product/${productId}`);
+//       router.push(`/product/${productId}?returnTo=${encodeURIComponent("/checkout")}`);
+//       return;
+//     }
+
+//     // fallback: ถ้า productId ไม่มี (ไม่ควรเกิด)
+//     if (item.sku) {
+//       router.push(`/products?sku=${encodeURIComponent(item.sku)}`);
+//       return;
+//     }
+
+//     router.push("/products");
+//   };
+
+//   /* ===================== RENDER ===================== */
+
+//   return (
+//     <div className="min-h-screen bg-background">
+//       <div className="container mx-auto px-4 py-6 max-w-6xl">
+//         <div className="flex items-center gap-4 mb-6">
+//           <Link href="/cart">
+//             <Button variant="ghost" size="icon">
+//               <ArrowLeft className="h-5 w-5" />
+//             </Button>
+//           </Link>
+//           <h1 className="text-2xl font-bold">ชำระเงิน</h1>
+//         </div>
+
+//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+//           {/* ซ้าย */}
+//           <div className="lg:col-span-2 space-y-6">
+//             <CheckoutAddressSection
+//               shippingAddress={shippingAddress}
+//               billingAddress={billingAddress}
+//               profileInfo={profileInfo}
+//               onChangeShippingAddress={setShippingAddress}
+//               onChangeBillingAddress={setBillingAddress}
+//               onChangeProfileInfo={setProfileInfo}
+//               addressProfiles={addressProfiles}
+//               personProfile={personProfile}
+//               entityProfile={entityProfile}
+//               onProfileSaved={(updated) => {
+//                 if (updated.person !== undefined) {
+//                   setPersonProfile(updated.person ?? null);
+//                 }
+//                 if (updated.entity !== undefined) {
+//                   setEntityProfile(updated.entity ?? null);
+//                 }
+//               }}
+//             />
+
+//             <CheckoutPackagesSection
+//               checkoutItems={checkoutItems}
+//               deliveryOption={deliveryOption}
+//               insufficientSkus={insufficientSkus}
+//               onFixInsufficientItem={handleFixInsufficientItem}
+//               onChangeDeliveryOption={setDeliveryOption}
+//               onRemoveItem={(id) =>
+//                 setCheckoutItems((items) =>
+//                   items.filter((item) => item.id !== id),
+//                 )
+//               }
+//             />
+//           </div>
+
+//           {/* ขวา */}
+//           <div className="space-y-6">
+//             <CheckoutPaymentSection
+//               paymentMethod={paymentMethod}
+//               onChangePaymentMethod={setPaymentMethod}
+//             />
+
+//             <CheckoutSummarySection
+//               itemCount={checkoutItems.length}
+//               subtotal={subtotal}
+//               shippingFee={shippingFee}
+//               voucherDiscount={voucherDiscount}
+//               total={total}
+//               onPlaceOrder={handlePlaceOrder}
+//               items={checkoutItems}
+//               setInsufficientSkus={setInsufficientSkus}
+//             />
+//           </div>
+//         </div>
+//       </div>
+
+//       <PaymentPopup
+//         open={paymentPopupOpen}
+//         onClose={() => setPaymentPopupOpen(false)}
+//         iframeUrl={iframeUrl}
+//         title={paymentMethod === "qr" ? "ชำระเงิน QR Code" : "ชำระเงินด้วยบัตร"}
+//       />
+//     </div>
+//   );
+// }
+
+// v.1.1.14 ===============================================================
+
+// v.1.1.13 ==============================================================
+// // src/app/checkout/CheckoutClient.tsx
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import Link from "next/link";
+// import { useRouter } from "next/navigation";
+// import { ArrowLeft } from "lucide-react";
+
+// import { Button } from "@/components/ui/button";
+
+// import CheckoutAddressSection from "./component/CheckoutAddressSection";
+// import CheckoutPackagesSection from "./component/CheckoutPackagesSection";
+// import CheckoutPaymentSection from "./component/CheckoutPaymentSection";
+// import CheckoutSummarySection from "./component/CheckoutSummarySection";
+// import PaymentPopup from "./component/PaymentPopup";
+
+// import type {
+//   CheckoutData,
+//   CheckoutItem,
+//   DeliveryOption,
+//   PaymentMethod,
+//   CheckoutVoucher,
+//   CheckoutAddress,
+//   CheckoutProfileInfo,
+// } from "@/types/checkout";
+// import { buildCheckoutProfileAddressBook } from "@/types/checkout";
+// import type { PersonProfile, EntityProfile } from "@/types/profile";
+
+// type Props = {
+//   initialData: CheckoutData;
+// };
+
+// export default function CheckoutClient({ initialData }: Props) {
+//   const router = useRouter();
+
+//   useEffect(() => {
+//     window.scrollTo(0, 0);
+//   }, []);
+
+//   /* ===================== STATE ===================== */
+
+//   const [checkoutItems, setCheckoutItems] = useState<CheckoutItem[]>(
+//     initialData.items ?? [],
+//   );
+
+//   /** ✅ เก็บ SKU ที่สต๊อกไม่พอ */
+//   const [insufficientSkus, setInsufficientSkus] = useState<string[]>([]);
+
+//   const [shippingAddress, setShippingAddress] =
+//     useState<CheckoutAddress | null>(initialData.shippingAddress ?? null);
+
+//   const [billingAddress, setBillingAddress] =
+//     useState<CheckoutAddress | null>(initialData.billingAddress ?? null);
+
+//   const [profileInfo, setProfileInfo] =
+//     useState<CheckoutProfileInfo | undefined>(initialData.profileInfo);
+
+//   const [personProfile, setPersonProfile] = useState<PersonProfile | null>(
+//     initialData.personProfile ?? null,
+//   );
+//   const [entityProfile, setEntityProfile] = useState<EntityProfile | null>(
+//     initialData.entityProfile ?? null,
+//   );
+
+//   const addressProfiles = buildCheckoutProfileAddressBook(
+//     personProfile,
+//     entityProfile,
+//   );
+
+//   const [deliveryOption, setDeliveryOption] =
+//     useState<DeliveryOption>("standard");
+
+//   const [paymentMethod, setPaymentMethod] =
+//     useState<PaymentMethod>("card");
+
+//   const [appliedVouchers, setAppliedVouchers] = useState<CheckoutVoucher[]>([]);
+
+//   /* ===================== SUMMARY ===================== */
+
+//   const subtotal = checkoutItems.reduce((sum, item) => {
+//     const line =
+//       typeof item.lineTotal === "number"
+//         ? item.lineTotal
+//         : item.price * item.quantity;
+//     return sum + line;
+//   }, 0);
+
+//   const shippingFee = deliveryOption === "standard" ? 0 : 65;
+
+//   const voucherDiscount = appliedVouchers.reduce(
+//     (sum, voucher) => sum + voucher.discount,
+//     0,
+//   );
+
+//   const total = subtotal + shippingFee - voucherDiscount;
+
+//   /* ===================== POPUP ===================== */
+
+//   const [paymentPopupOpen, setPaymentPopupOpen] = useState(false);
+//   const [iframeUrl, setIframeUrl] = useState("");
+
+//   /* ===================== ACTION ===================== */
+
+//   const handlePlaceOrder = () => {
+//     if (paymentMethod === "qr") {
+//       setIframeUrl("http://localhost:8081//kbankqr/step1.php");
+//     } else {
+//       setIframeUrl(
+//         "http://localhost:8081//kbackcard/step1.php?mode=debug",
+//       );
+//     }
+//     setPaymentPopupOpen(true);
+//   };
+
+//   /* ===================== RENDER ===================== */
+
+//   return (
+//     <div className="min-h-screen bg-background">
+//       <div className="container mx-auto px-4 py-6 max-w-6xl">
+//         <div className="flex items-center gap-4 mb-6">
+//           <Link href="/cart">
+//             <Button variant="ghost" size="icon">
+//               <ArrowLeft className="h-5 w-5" />
+//             </Button>
+//           </Link>
+//           <h1 className="text-2xl font-bold">ชำระเงิน</h1>
+//         </div>
+
+//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+//           {/* ซ้าย */}
+//           <div className="lg:col-span-2 space-y-6">
+//             <CheckoutAddressSection
+//               shippingAddress={shippingAddress}
+//               billingAddress={billingAddress}
+//               profileInfo={profileInfo}
+//               onChangeShippingAddress={setShippingAddress}
+//               onChangeBillingAddress={setBillingAddress}
+//               onChangeProfileInfo={setProfileInfo}
+//               addressProfiles={addressProfiles}
+//               personProfile={personProfile}
+//               entityProfile={entityProfile}
+//               onProfileSaved={(updated) => {
+//                 if (updated.person !== undefined) {
+//                   setPersonProfile(updated.person ?? null);
+//                 }
+//                 if (updated.entity !== undefined) {
+//                   setEntityProfile(updated.entity ?? null);
+//                 }
+//               }}
+//             />
+
+//             <CheckoutPackagesSection
+//               checkoutItems={checkoutItems}
+//               deliveryOption={deliveryOption}
+//               insufficientSkus={insufficientSkus}   
+//               onChangeDeliveryOption={setDeliveryOption}
+//               onRemoveItem={(id) =>
+//                 setCheckoutItems((items) =>
+//                   items.filter((item) => item.id !== id),
+//                 )
+//               }
+//             />
+//           </div>
+
+//           {/* ขวา */}
+//           <div className="space-y-6">
+//             <CheckoutPaymentSection
+//               paymentMethod={paymentMethod}
+//               onChangePaymentMethod={setPaymentMethod}
+//             />
+
+//             <CheckoutSummarySection
+//               itemCount={checkoutItems.length}
+//               subtotal={subtotal}
+//               shippingFee={shippingFee}
+//               voucherDiscount={voucherDiscount}
+//               total={total}
+//               onPlaceOrder={handlePlaceOrder}
+//               items={checkoutItems}                 
+//               setInsufficientSkus={setInsufficientSkus} 
+//             />
+//           </div>
+//         </div>
+//       </div>
+
+//       <PaymentPopup
+//         open={paymentPopupOpen}
+//         onClose={() => setPaymentPopupOpen(false)}
+//         iframeUrl={iframeUrl}
+//         title={paymentMethod === "qr" ? "ชำระเงิน QR Code" : "ชำระเงินด้วยบัตร"}
+//       />
+//     </div>
+//   );
+// }
+
+// v.1.1.13 ==============================================================
+
+// v.1.1.12 ==============================================================
+// // src/app/checkout/CheckoutClient.tsx
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import Link from "next/link";
+// import { useRouter } from "next/navigation";
+// import { ArrowLeft } from "lucide-react";
+
+// import { Button } from "@/components/ui/button";
+
+// import CheckoutAddressSection from "./component/CheckoutAddressSection";
+// import CheckoutPackagesSection from "./component/CheckoutPackagesSection";
+// import CheckoutPaymentSection from "./component/CheckoutPaymentSection";
+// import CheckoutSummarySection from "./component/CheckoutSummarySection";
+// import PaymentPopup from "./component/PaymentPopup";
+
+// import type {
+//   CheckoutData,
+//   CheckoutItem,
+//   DeliveryOption,
+//   PaymentMethod,
+//   CheckoutVoucher,
+//   CheckoutAddress,
+//   CheckoutProfileInfo,
+// } from "@/types/checkout";
+// import { buildCheckoutProfileAddressBook } from "@/types/checkout";
+// import type { PersonProfile, EntityProfile } from "@/types/profile";
+
+// type Props = {
+//   initialData: CheckoutData;
+// };
+
+// export default function CheckoutClient({ initialData }: Props) {
+//   const router = useRouter();
+
+//   useEffect(() => {
+//     window.scrollTo(0, 0);
+//   }, []);
+
+//   /* ===================== STATE ===================== */
+
+//   const [checkoutItems, setCheckoutItems] = useState<CheckoutItem[]>(
+//     initialData.items ?? [],
+//   );
+
+//   const [shippingAddress, setShippingAddress] =
+//     useState<CheckoutAddress | null>(initialData.shippingAddress ?? null);
+
+//   const [billingAddress, setBillingAddress] =
+//     useState<CheckoutAddress | null>(initialData.billingAddress ?? null);
+
+//   const [profileInfo, setProfileInfo] =
+//     useState<CheckoutProfileInfo | undefined>(initialData.profileInfo);
+
+//   const [personProfile, setPersonProfile] = useState<PersonProfile | null>(
+//     initialData.personProfile ?? null,
+//   );
+//   const [entityProfile, setEntityProfile] = useState<EntityProfile | null>(
+//     initialData.entityProfile ?? null,
+//   );
+
+//   const addressProfiles = buildCheckoutProfileAddressBook(
+//     personProfile,
+//     entityProfile,
+//   );
+
+//   const [deliveryOption, setDeliveryOption] =
+//     useState<DeliveryOption>("standard");
+
+//   const [paymentMethod, setPaymentMethod] =
+//     useState<PaymentMethod>("card");
+
+//   const [appliedVouchers, setAppliedVouchers] = useState<CheckoutVoucher[]>([]);
+
+//   /* ===================== SUMMARY ===================== */
+
+//   const subtotal = checkoutItems.reduce((sum, item) => {
+//     const line =
+//       typeof item.lineTotal === "number"
+//         ? item.lineTotal
+//         : item.price * item.quantity;
+//     return sum + line;
+//   }, 0);
+
+//   const shippingFee = deliveryOption === "standard" ? 0 : 65;
+
+//   const voucherDiscount = appliedVouchers.reduce(
+//     (sum, voucher) => sum + voucher.discount,
+//     0,
+//   );
+
+//   const total = subtotal + shippingFee - voucherDiscount;
+
+//   /* ===================== POPUP ===================== */
+
+//   const [paymentPopupOpen, setPaymentPopupOpen] = useState(false);
+//   const [iframeUrl, setIframeUrl] = useState("");
+
+//   /* ===================== ACTION ===================== */
+
+//   const handlePlaceOrder = () => {
+//     if (paymentMethod === "qr") {
+//       setIframeUrl("http://localhost:8081//kbankqr/step1.php");
+//     } else {
+//       setIframeUrl(
+//         "http://localhost:8081//kbackcard/step1.php?mode=debug",
+//       );
+//     }
+//     setPaymentPopupOpen(true);
+//   };
+
+//   /* ===================== RENDER ===================== */
+
+//   return (
+//     <div className="min-h-screen bg-background">
+//       <div className="container mx-auto px-4 py-6 max-w-6xl">
+//         <div className="flex items-center gap-4 mb-6">
+//           <Link href="/cart">
+//             <Button variant="ghost" size="icon">
+//               <ArrowLeft className="h-5 w-5" />
+//             </Button>
+//           </Link>
+//           <h1 className="text-2xl font-bold">ชำระเงิน</h1>
+//         </div>
+
+//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+//           {/* ซ้าย */}
+//           <div className="lg:col-span-2 space-y-6">
+//             <CheckoutAddressSection
+//               shippingAddress={shippingAddress}
+//               billingAddress={billingAddress}
+//               profileInfo={profileInfo}
+//               onChangeShippingAddress={setShippingAddress}
+//               onChangeBillingAddress={setBillingAddress}
+//               onChangeProfileInfo={setProfileInfo}
+//               addressProfiles={addressProfiles}
+//               personProfile={personProfile}
+//               entityProfile={entityProfile}
+//               onProfileSaved={(updated) => {
+//                 if (updated.person !== undefined) {
+//                   setPersonProfile(updated.person ?? null);
+//                 }
+//                 if (updated.entity !== undefined) {
+//                   setEntityProfile(updated.entity ?? null);
+//                 }
+//               }}
+//             />
+
+//             <CheckoutPackagesSection
+//               checkoutItems={checkoutItems}
+//               deliveryOption={deliveryOption}
+//               onChangeDeliveryOption={setDeliveryOption}
+//               onRemoveItem={(id) =>
+//                 setCheckoutItems((items) =>
+//                   items.filter((item) => item.id !== id),
+//                 )
+//               }
+//             />
+//           </div>
+
+//           {/* ขวา */}
+//           <div className="space-y-6">
+//             <CheckoutPaymentSection
+//               paymentMethod={paymentMethod}
+//               onChangePaymentMethod={setPaymentMethod}
+//             />
+
+//             <CheckoutSummarySection
+//               itemCount={checkoutItems.length}
+//               subtotal={subtotal}
+//               shippingFee={shippingFee}
+//               voucherDiscount={voucherDiscount}
+//               total={total}
+//               onPlaceOrder={handlePlaceOrder}
+//               items={checkoutItems} //เพิ่มใหม่
+//             />
+//           </div>
+//         </div>
+//       </div>
+
+//       <PaymentPopup
+//         open={paymentPopupOpen}
+//         onClose={() => setPaymentPopupOpen(false)}
+//         iframeUrl={iframeUrl}
+//         title={paymentMethod === "qr" ? "ชำระเงิน QR Code" : "ชำระเงินด้วยบัตร"}
+//       />
+//     </div>
+//   );
+// }
+
+// v.1.1.12 ==============================================================
+
+// v.1.1.11 ==============================================================
+// // src/app/checkout/CheckoutClient.tsx
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import Link from "next/link";
+// import { useRouter } from "next/navigation";
+// import { ArrowLeft } from "lucide-react";
+
+// import { Button } from "@/components/ui/button";
+
+// import CheckoutAddressSection from "./component/CheckoutAddressSection";
+// import CheckoutPackagesSection from "./component/CheckoutPackagesSection";
+// import CheckoutPaymentSection from "./component/CheckoutPaymentSection";
+// import CheckoutSummarySection from "./component/CheckoutSummarySection";
+// import PaymentPopup from "./component/PaymentPopup";
+
+// import type {
+//   CheckoutData,
+//   CheckoutItem,
+//   DeliveryOption,
+//   PaymentMethod,
+//   CheckoutVoucher,
+//   CheckoutAddress,
+//   CheckoutProfileInfo,
+// } from "@/types/checkout";
+// import { buildCheckoutProfileAddressBook } from "@/types/checkout";
+// import type { PersonProfile, EntityProfile } from "@/types/profile";
+
+// type Props = {
+//   initialData: CheckoutData;
+// };
+
+// export default function CheckoutClient({ initialData }: Props) {
+//   const router = useRouter();
+
+//   useEffect(() => {
+//     window.scrollTo(0, 0);
+//   }, []);
+
+//   /* ===================== STATE ===================== */
+
+//   const [checkoutItems, setCheckoutItems] = useState<CheckoutItem[]>(
+//     initialData.items ?? [],
+//   );
+
+//   const [shippingAddress, setShippingAddress] =
+//     useState<CheckoutAddress | null>(initialData.shippingAddress ?? null);
+
+//   const [billingAddress, setBillingAddress] =
+//     useState<CheckoutAddress | null>(initialData.billingAddress ?? null);
+
+//   const [profileInfo, setProfileInfo] =
+//     useState<CheckoutProfileInfo | undefined>(initialData.profileInfo);
+
+//   const [personProfile, setPersonProfile] = useState<PersonProfile | null>(
+//     initialData.personProfile ?? null,
+//   );
+//   const [entityProfile, setEntityProfile] = useState<EntityProfile | null>(
+//     initialData.entityProfile ?? null,
+//   );
+
+//   const addressProfiles = buildCheckoutProfileAddressBook(
+//     personProfile,
+//     entityProfile,
+//   );
+
+//   const [deliveryOption, setDeliveryOption] =
+//     useState<DeliveryOption>("standard");
+
+//   const [paymentMethod, setPaymentMethod] =
+//     useState<PaymentMethod>("card");
+
+//   const [appliedVouchers, setAppliedVouchers] = useState<CheckoutVoucher[]>([]);
+
+//   /* ===================== SUMMARY ===================== */
+
+//   const subtotal = checkoutItems.reduce((sum, item) => {
+//     const line =
+//       typeof item.lineTotal === "number"
+//         ? item.lineTotal
+//         : item.price * item.quantity;
+//     return sum + line;
+//   }, 0);
+
+//   const shippingFee = deliveryOption === "standard" ? 0 : 65;
+
+//   const voucherDiscount = appliedVouchers.reduce(
+//     (sum, voucher) => sum + voucher.discount,
+//     0,
+//   );
+
+//   const total = subtotal + shippingFee - voucherDiscount;
+
+//   /* ===================== POPUP ===================== */
+
+//   const [paymentPopupOpen, setPaymentPopupOpen] = useState(false);
+
+//   const iframeUrl =
+//     "https://shop.interlink.co.th/kbackcard/step1.php?mode=debug";
+
+//   /* ===================== ACTION ===================== */
+
+//   const handlePlaceOrder = () => {
+//     // ตอนนี้ใช้แค่เปิด popup เพื่อเทส PHP PayNow
+//     setPaymentPopupOpen(true);
+//   };
+
+//   /* ===================== RENDER ===================== */
+
+//   return (
+//     <div className="min-h-screen bg-background">
+//       <div className="container mx-auto px-4 py-6 max-w-6xl">
+//         <div className="flex items-center gap-4 mb-6">
+//           <Link href="/cart">
+//             <Button variant="ghost" size="icon">
+//               <ArrowLeft className="h-5 w-5" />
+//             </Button>
+//           </Link>
+//           <h1 className="text-2xl font-bold">ชำระเงิน</h1>
+//         </div>
+
+//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+//           {/* ซ้าย */}
+//           <div className="lg:col-span-2 space-y-6">
+//             <CheckoutAddressSection
+//               shippingAddress={shippingAddress}
+//               billingAddress={billingAddress}
+//               profileInfo={profileInfo}
+//               onChangeShippingAddress={setShippingAddress}
+//               onChangeBillingAddress={setBillingAddress}
+//               onChangeProfileInfo={setProfileInfo}
+//               addressProfiles={addressProfiles}
+//               personProfile={personProfile}
+//               entityProfile={entityProfile}
+//               onProfileSaved={(updated) => {
+//                 if (updated.person !== undefined) {
+//                   setPersonProfile(updated.person ?? null);
+//                 }
+//                 if (updated.entity !== undefined) {
+//                   setEntityProfile(updated.entity ?? null);
+//                 }
+//               }}
+//             />
+
+//             <CheckoutPackagesSection
+//               checkoutItems={checkoutItems}
+//               deliveryOption={deliveryOption}
+//               onChangeDeliveryOption={setDeliveryOption}
+//               onRemoveItem={(id) =>
+//                 setCheckoutItems((items) =>
+//                   items.filter((item) => item.id !== id),
+//                 )
+//               }
+//             />
+//           </div>
+
+//           {/* ขวา */}
+//           <div className="space-y-6">
+//             <CheckoutPaymentSection
+//               paymentMethod={paymentMethod}
+//               onChangePaymentMethod={setPaymentMethod}
+//             />
+
+//             <CheckoutSummarySection
+//               itemCount={checkoutItems.length}
+//               subtotal={subtotal}
+//               shippingFee={shippingFee}
+//               voucherDiscount={voucherDiscount}
+//               total={total}
+//               onPlaceOrder={handlePlaceOrder}
+//             />
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Popup PayNow */}
+//       <PaymentPopup
+//         open={paymentPopupOpen}
+//         onClose={() => setPaymentPopupOpen(false)}
+//         iframeUrl={iframeUrl}
+//       />
+//     </div>
+//   );
+// }
+
+// v.1.1.11 ==============================================================
+
+// v.1.1.10 ==============================================================
+// // src/app/checkout/CheckoutClient.tsx
+
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import Link from "next/link";
+// import { useRouter } from "next/navigation";
+// import { ArrowLeft } from "lucide-react";
+
+// import { Button } from "@/components/ui/button";
+
+// import CheckoutAddressSection from "./component/CheckoutAddressSection";
+// import CheckoutPackagesSection from "./component/CheckoutPackagesSection";
+// import CheckoutPaymentSection from "./component/CheckoutPaymentSection";
+// import CheckoutSummarySection from "./component/CheckoutSummarySection";
+
+// import type {
+//   CheckoutData,
+//   CheckoutItem,
+//   DeliveryOption,
+//   PaymentMethod,
+//   CheckoutVoucher,
+//   CheckoutAddress,
+//   CheckoutProfileInfo,
+// } from "@/types/checkout";
+// import { buildCheckoutProfileAddressBook } from "@/types/checkout";
+// import type { PersonProfile, EntityProfile } from "@/types/profile";
+
+// type Props = {
+//   initialData: CheckoutData;
+// };
+
+// export default function CheckoutClient({ initialData }: Props) {
+//   const router = useRouter();
+
+//   useEffect(() => {
+//     window.scrollTo(0, 0);
+//   }, []);
+
+//   /* ======================================================
+//    *  STATE หลัก
+//    * ====================================================== */
+
+//   const [checkoutItems, setCheckoutItems] = useState<CheckoutItem[]>(
+//     initialData.items ?? [],
+//   );
+
+//   const [shippingAddress, setShippingAddress] =
+//     useState<CheckoutAddress | null>(initialData.shippingAddress ?? null);
+
+//   const [billingAddress, setBillingAddress] =
+//     useState<CheckoutAddress | null>(initialData.billingAddress ?? null);
+
+//   const [profileInfo, setProfileInfo] =
+//     useState<CheckoutProfileInfo | undefined>(initialData.profileInfo);
+
+//   // โปรไฟล์ดิบจาก backend เอาไว้ใช้กับฟอร์มแก้ไข
+//   const [personProfile, setPersonProfile] = useState<PersonProfile | null>(
+//     initialData.personProfile ?? null,
+//   );
+//   const [entityProfile, setEntityProfile] = useState<EntityProfile | null>(
+//     initialData.entityProfile ?? null,
+//   );
+
+//   // สร้างสมุด 2 การ์ดจากโปรไฟล์ปัจจุบัน
+//   const addressProfiles = buildCheckoutProfileAddressBook(
+//     personProfile,
+//     entityProfile,
+//   );
+
+//   const [deliveryOption, setDeliveryOption] =
+//     useState<DeliveryOption>("standard");
+
+//   const [paymentMethod, setPaymentMethod] =
+//     useState<PaymentMethod>("card");
+
+//   const [voucherCode, setVoucherCode] = useState("");
+//   const [appliedVouchers, setAppliedVouchers] = useState<CheckoutVoucher[]>([]);
+//   const [voucherError, setVoucherError] = useState("");
+
+//   /* ======================================================
+//    *  SUMMARY
+//    * ====================================================== */
+
+//   const subtotal = checkoutItems.reduce((sum, item) => {
+//     const line =
+//       typeof item.lineTotal === "number"
+//         ? item.lineTotal
+//         : item.price * item.quantity;
+//     return sum + line;
+//   }, 0);
+
+//   const shippingFee = deliveryOption === "standard" ? 0 : 65;
+
+//   const voucherDiscount = appliedVouchers.reduce(
+//     (sum, voucher) => sum + voucher.discount,
+//     0,
+//   );
+
+//   const total = subtotal + shippingFee - voucherDiscount;
+
+//   /* ======================================================
+//    *  LOGIC VOUCHER
+//    * ====================================================== */
+
+//   const handleApplyVoucher = () => {
+//     if (!voucherCode.trim()) return;
+
+//     setVoucherError("");
+
+//     const mockVouchers: Record<string, CheckoutVoucher> = {
+//       SAVE100: { code: "SAVE100", discount: 100 },
+//       DISCOUNT50: { code: "DISCOUNT50", discount: 50 },
+//       FREESHIP: { code: "FREESHIP", discount: 65 },
+//       VC0001: { code: "VC0001", discount: 100 },
+//       VC0002: { code: "VC0002", discount: 200 },
+//     };
+
+//     const key = voucherCode.toUpperCase();
+//     const voucher = mockVouchers[key];
+
+//     if (!voucher) {
+//       setVoucherError("โค้ดส่วนลดไม่ถูกต้อง");
+//       return;
+//     }
+
+//     const isAlreadyApplied = appliedVouchers.some(
+//       (v) => v.code === voucher.code,
+//     );
+//     if (isAlreadyApplied) {
+//       setVoucherError("โค้ดนี้ถูกใช้แล้ว");
+//       return;
+//     }
+
+//     setAppliedVouchers((prev) => [...prev, voucher]);
+//     setVoucherCode("");
+//   };
+
+//   const handleRemoveVoucher = (codeToRemove: string) => {
+//     setAppliedVouchers((prev) =>
+//       prev.filter((v) => v.code !== codeToRemove),
+//     );
+//   };
+
+//   /* ======================================================
+//    *  REMOVE ITEM
+//    * ====================================================== */
+
+//   const handleRemoveItem = (itemId: number) => {
+//     setCheckoutItems((items) => items.filter((item) => item.id !== itemId));
+//   };
+
+//   /* ======================================================
+//    *  PLACE ORDER (เหมือน makeBuy ของ Laravel)
+//    * ====================================================== */
+
+//   const handlePlaceOrder = () => {
+//     (async () => {
+//       try {
+//         // payload ส่งไป backend
+//         const payload = {
+//           paymentMethod,
+//           shippingAddressId: shippingAddress?.id ?? null,
+//           billingAddressId: billingAddress?.id ?? null,
+//           profileMode: profileInfo?.mode ?? null,
+//         };
+
+//         const res = await fetch("/api/checkout/place-order", {
+//           method: "POST",
+//           headers: { "Content-Type": "application/json" },
+//           body: JSON.stringify(payload),
+//         });
+
+//         if (!res.ok) {
+//           console.error("[checkout] place-order HTTP error", res.status);
+//           alert("ไม่สามารถเริ่มคำสั่งซื้อได้ (HTTP " + res.status + ")");
+//           return;
+//         }
+
+//         const data = await res.json();
+
+//         if (!data.ok) {
+//           console.error("[checkout] place-order error body =", data);
+//           alert("ไม่สามารถเริ่มคำสั่งซื้อได้: " + (data.error ?? "unknown"));
+//           return;
+//         }
+
+//         // ใช้ข้อมูลจาก backend (amount, refInv, orderId) + state ปัจจุบัน
+//         const paymentData = {
+//           amount: data.amount,
+//           refInv: data.refInv,
+//           orderId: data.orderId,
+//           paymentMethod: data.paymentMethod as PaymentMethod,
+
+//           items: checkoutItems,
+//           subtotal,
+//           shippingFee,
+//           shippingDiscount: 65, // ยัง mock เหมือนเดิม
+//           voucherDiscount,
+//           appliedVouchers,
+
+//           shippingAddress,
+//           billingAddress,
+//           profileInfo,
+//         };
+
+//         if (typeof window !== "undefined") {
+//           sessionStorage.setItem("paymentData", JSON.stringify(paymentData));
+//         }
+
+//         const refInvParam = encodeURIComponent(data.refInv ?? "");
+//         const orderIdParam = encodeURIComponent(data.orderId ?? "");
+
+//         if (paymentMethod === "card") {
+//           // เทียบกับ view('pay.makebuy_card', ...)
+//           router.push(
+//             `/payment/card?ref_inv=${refInvParam}&order_id=${orderIdParam}`,
+//           );
+//         } else if (paymentMethod === "qr") {
+//           // เทียบกับ view('pay.makebuy_qr', ...)
+//           router.push(
+//             `/payment/qr?ref_inv=${refInvParam}&order_id=${orderIdParam}`,
+//           );
+//         } else {
+//           // fallback
+//           router.push(
+//             `/payment/card?ref_inv=${refInvParam}&order_id=${orderIdParam}`,
+//           );
+//         }
+//       } catch (err: any) {
+//         console.error("[checkout] place-order exception =", err);
+//         alert("เกิดข้อผิดพลาดขณะเริ่มคำสั่งซื้อ");
+//       }
+//     })();
+//   };
+
+//   /* ======================================================
+//    *  RENDER
+//    * ====================================================== */
+
+//   return (
+//     <div className="min-h-screen bg-background">
+//       <div className="container mx-auto px-4 py-6 max-w-6xl">
+//         <div className="flex items-center gap-4 mb-6">
+//           <Link href="/cart">
+//             <Button variant="ghost" size="icon">
+//               <ArrowLeft className="h-5 w-5" />
+//             </Button>
+//           </Link>
+//           <h1 className="text-2xl font-bold">ชำระเงิน</h1>
+//         </div>
+
+//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+//           {/* ซ้าย */}
+//           <div className="lg:col-span-2 space-y-6">
+//             <CheckoutAddressSection
+//               shippingAddress={shippingAddress}
+//               billingAddress={billingAddress}
+//               profileInfo={profileInfo}
+//               onChangeShippingAddress={setShippingAddress}
+//               onChangeBillingAddress={setBillingAddress}
+//               onChangeProfileInfo={setProfileInfo}
+//               // สมุด 2 การ์ดที่คำนวนจากโปรไฟล์ปัจจุบัน
+//               addressProfiles={addressProfiles}
+//               // โปรไฟล์ดิบสำหรับใช้ prefill ฟอร์ม
+//               personProfile={personProfile}
+//               entityProfile={entityProfile}
+//               // หลังบันทึกจาก dialog แล้ว อัปเดต state โปรไฟล์
+//               onProfileSaved={(updated) => {
+//                 if (updated.person !== undefined) {
+//                   setPersonProfile(updated.person ?? null);
+//                 }
+//                 if (updated.entity !== undefined) {
+//                   setEntityProfile(updated.entity ?? null);
+//                 }
+//               }}
+//             />
+
+//             <CheckoutPackagesSection
+//               checkoutItems={checkoutItems}
+//               deliveryOption={deliveryOption}
+//               onChangeDeliveryOption={setDeliveryOption}
+//               onRemoveItem={handleRemoveItem}
+//             />
+//           </div>
+
+//           {/* ขวา */}
+//           <div className="space-y-6">
+//             <CheckoutPaymentSection
+//               paymentMethod={paymentMethod}
+//               onChangePaymentMethod={setPaymentMethod}
+//             />
+
+//             <CheckoutSummarySection
+//               itemCount={checkoutItems.length}
+//               subtotal={subtotal}
+//               shippingFee={shippingFee}
+//               voucherDiscount={voucherDiscount}
+//               total={total}
+//               onPlaceOrder={handlePlaceOrder}
+//             />
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+// v.1.1.10 ==============================================================
+
+// v.1.1.9 ===============================================================
+// // src/app/checkout/CheckoutClient.tsx
+
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import Link from "next/link";
+// import { useRouter } from "next/navigation";
+// import { ArrowLeft } from "lucide-react";
+
+// import { Button } from "@/components/ui/button";
+
+// import CheckoutAddressSection from "./component/CheckoutAddressSection";
+// import CheckoutPackagesSection from "./component/CheckoutPackagesSection";
+// import CheckoutPaymentSection from "./component/CheckoutPaymentSection";
+// import CheckoutSummarySection from "./component/CheckoutSummarySection";
+
+// import type {
+//   CheckoutData,
+//   CheckoutItem,
+//   DeliveryOption,
+//   PaymentMethod,
+//   CheckoutVoucher,
+//   CheckoutAddress,
+//   CheckoutProfileInfo,
+// } from "@/types/checkout";
+// import { buildCheckoutProfileAddressBook } from "@/types/checkout";
+// import type { PersonProfile, EntityProfile } from "@/types/profile";
+
+// type Props = {
+//   initialData: CheckoutData;
+// };
+
+// export default function CheckoutClient({ initialData }: Props) {
+//   const router = useRouter();
+
+//   useEffect(() => {
+//     window.scrollTo(0, 0);
+//   }, []);
+
+//   /* ======================================================
+//    *  STATE หลัก
+//    * ====================================================== */
+
+//   const [checkoutItems, setCheckoutItems] = useState<CheckoutItem[]>(
+//     initialData.items ?? [],
+//   );
+
+//   const [shippingAddress, setShippingAddress] =
+//     useState<CheckoutAddress | null>(initialData.shippingAddress ?? null);
+
+//   const [billingAddress, setBillingAddress] =
+//     useState<CheckoutAddress | null>(initialData.billingAddress ?? null);
+
+//   const [profileInfo, setProfileInfo] =
+//     useState<CheckoutProfileInfo | undefined>(initialData.profileInfo);
+
+//   // โปรไฟล์ดิบจาก backend เอาไว้ใช้กับฟอร์มแก้ไข
+//   const [personProfile, setPersonProfile] = useState<PersonProfile | null>(
+//     initialData.personProfile ?? null,
+//   );
+//   const [entityProfile, setEntityProfile] = useState<EntityProfile | null>(
+//     initialData.entityProfile ?? null,
+//   );
+
+//   // สร้างสมุด 2 การ์ดจากโปรไฟล์ปัจจุบัน
+//   const addressProfiles = buildCheckoutProfileAddressBook(
+//     personProfile,
+//     entityProfile,
+//   );
+
+//   const [deliveryOption, setDeliveryOption] =
+//     useState<DeliveryOption>("standard");
+
+//   const [paymentMethod, setPaymentMethod] =
+//     useState<PaymentMethod>("card");
+
+//   const [voucherCode, setVoucherCode] = useState("");
+//   const [appliedVouchers, setAppliedVouchers] = useState<CheckoutVoucher[]>([]);
+//   const [voucherError, setVoucherError] = useState("");
+
+//   /* ======================================================
+//    *  SUMMARY
+//    * ====================================================== */
+
+//   const subtotal = checkoutItems.reduce((sum, item) => {
+//     const line =
+//       typeof item.lineTotal === "number"
+//         ? item.lineTotal
+//         : item.price * item.quantity;
+//     return sum + line;
+//   }, 0);
+
+//   const shippingFee = deliveryOption === "standard" ? 0 : 65;
+
+//   const voucherDiscount = appliedVouchers.reduce(
+//     (sum, voucher) => sum + voucher.discount,
+//     0,
+//   );
+
+//   const total = subtotal + shippingFee - voucherDiscount;
+
+//   /* ======================================================
+//    *  LOGIC VOUCHER
+//    * ====================================================== */
+
+//   const handleApplyVoucher = () => {
+//     if (!voucherCode.trim()) return;
+
+//     setVoucherError("");
+
+//     const mockVouchers: Record<string, CheckoutVoucher> = {
+//       SAVE100: { code: "SAVE100", discount: 100 },
+//       DISCOUNT50: { code: "DISCOUNT50", discount: 50 },
+//       FREESHIP: { code: "FREESHIP", discount: 65 },
+//       VC0001: { code: "VC0001", discount: 100 },
+//       VC0002: { code: "VC0002", discount: 200 },
+//     };
+
+//     const key = voucherCode.toUpperCase();
+//     const voucher = mockVouchers[key];
+
+//     if (!voucher) {
+//       setVoucherError("โค้ดส่วนลดไม่ถูกต้อง");
+//       return;
+//     }
+
+//     const isAlreadyApplied = appliedVouchers.some(
+//       (v) => v.code === voucher.code,
+//     );
+//     if (isAlreadyApplied) {
+//       setVoucherError("โค้ดนี้ถูกใช้แล้ว");
+//       return;
+//     }
+
+//     setAppliedVouchers((prev) => [...prev, voucher]);
+//     setVoucherCode("");
+//   };
+
+//   const handleRemoveVoucher = (codeToRemove: string) => {
+//     setAppliedVouchers((prev) =>
+//       prev.filter((v) => v.code !== codeToRemove),
+//     );
+//   };
+
+//   /* ======================================================
+//    *  REMOVE ITEM
+//    * ====================================================== */
+
+//   const handleRemoveItem = (itemId: number) => {
+//     setCheckoutItems((items) => items.filter((item) => item.id !== itemId));
+//   };
+
+//   /* ======================================================
+//    *  PLACE ORDER
+//    * ====================================================== */
+
+//   const handlePlaceOrder = () => {
+//     const paymentData = {
+//       amount: total,
+//       orderId: `ORDER-${Date.now()}`,
+//       items: checkoutItems,
+//       subtotal,
+//       shippingFee,
+//       shippingDiscount: 65,
+//       voucherDiscount,
+//       appliedVouchers,
+//     };
+
+//     if (typeof window !== "undefined") {
+//       sessionStorage.setItem("paymentData", JSON.stringify(paymentData));
+//     }
+
+//     if (paymentMethod === "card") {
+//       router.push("/payment/card");
+//     } else if (paymentMethod === "qr") {
+//       router.push("/payment/qr");
+//     } else {
+//       router.push("/payment/card");
+//     }
+//   };
+
+//   /* ======================================================
+//    *  RENDER
+//    * ====================================================== */
+
+//   return (
+//     <div className="min-h-screen bg-background">
+//       <div className="container mx-auto px-4 py-6 max-w-6xl">
+//         <div className="flex items-center gap-4 mb-6">
+//           <Link href="/cart">
+//             <Button variant="ghost" size="icon">
+//               <ArrowLeft className="h-5 w-5" />
+//             </Button>
+//           </Link>
+//           <h1 className="text-2xl font-bold">ชำระเงิน</h1>
+//         </div>
+
+//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+//           {/* ซ้าย */}
+//           <div className="lg:col-span-2 space-y-6">
+//             <CheckoutAddressSection
+//               shippingAddress={shippingAddress}
+//               billingAddress={billingAddress}
+//               profileInfo={profileInfo}
+//               onChangeShippingAddress={setShippingAddress}
+//               onChangeBillingAddress={setBillingAddress}
+//               onChangeProfileInfo={setProfileInfo}
+//               // สมุด 2 การ์ดที่คำนวนจากโปรไฟล์ปัจจุบัน
+//               addressProfiles={addressProfiles}
+//               // โปรไฟล์ดิบสำหรับใช้ prefill ฟอร์ม
+//               personProfile={personProfile}
+//               entityProfile={entityProfile}
+//               // หลังบันทึกจาก dialog แล้ว อัปเดต state โปรไฟล์
+//               onProfileSaved={(updated) => {
+//                 if (updated.person !== undefined) {
+//                   setPersonProfile(updated.person ?? null);
+//                 }
+//                 if (updated.entity !== undefined) {
+//                   setEntityProfile(updated.entity ?? null);
+//                 }
+//               }}
+//             />
+
+//             <CheckoutPackagesSection
+//               checkoutItems={checkoutItems}
+//               deliveryOption={deliveryOption}
+//               onChangeDeliveryOption={setDeliveryOption}
+//               onRemoveItem={handleRemoveItem}
+//             />
+//           </div>
+
+//           {/* ขวา */}
+//           <div className="space-y-6">
+//             <CheckoutPaymentSection
+//               paymentMethod={paymentMethod}
+//               onChangePaymentMethod={setPaymentMethod}
+//             />
+
+//             <CheckoutSummarySection
+//               itemCount={checkoutItems.length}
+//               subtotal={subtotal}
+//               shippingFee={shippingFee}
+//               voucherDiscount={voucherDiscount}
+//               total={total}
+//               onPlaceOrder={handlePlaceOrder}
+//             />
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 
 // v.1.1.9 ===============================================================
 

@@ -1,6 +1,10 @@
+
+// v.1.1.10 =================================================
+
+// v.1.1.10 =================================================
+
 // v.1.1.9 ==================================================
 // src/app/cart/CartEditProductModal.tsx
-
 "use client";
 
 import { useState } from "react";
@@ -45,6 +49,13 @@ const EDIT_VISIBLE_PARTS: CardPartsVisibility = {
   brandLogo: false,
 };
 
+function getCondSalesType(cond: any): "CUT" | "ROLL" | null {
+  const raw = cond?.salesType ?? cond?.type;
+  if (!raw) return null;
+  const t = String(raw).toUpperCase();
+  return t === "CUT" || t === "ROLL" ? (t as any) : null;
+}
+
 export type CartEditProductModalProps = {
   open: boolean;
   onClose: () => void;
@@ -59,20 +70,22 @@ export function CartEditProductModal({
   onUpdated,
 }: CartEditProductModalProps) {
   const [saving, setSaving] = useState(false);
+  const { toast } = useToast();
 
-  // ----- เตรียม conditions จาก cart -----
-  const productConditions: any[] = Array.isArray((item as any).conditions)
+  // ----- raw conditions จาก cart -----
+  const rawConditions: any[] = Array.isArray((item as any).conditions)
     ? ((item as any).conditions as any[])
     : Array.isArray((item as any).productConditions)
     ? ((item as any).productConditions as any[])
     : [];
 
-  const firstCond = productConditions[0];
-  const salesTypeRaw = firstCond?.salesType ?? firstCond?.type;
-  const initialSalesMode: "CUT" | "ROLL" | null = salesTypeRaw
-    ? String(salesTypeRaw).toUpperCase() === "ROLL"
-      ? "ROLL"
-      : "CUT"
+  // ✅ FIX: ใช้ conditions เฉพาะที่เป็น CUT/ROLL จริง และเฉพาะตอน uom === "M."
+  const validConditions = rawConditions.filter((c) => !!getCondSalesType(c));
+  const hasConditions = String(item.uom ?? "").toUpperCase() === "M." && validConditions.length > 0;
+
+  const firstCond = hasConditions ? validConditions[0] : undefined;
+  const initialSalesMode: "CUT" | "ROLL" | null = firstCond
+    ? getCondSalesType(firstCond)
     : null;
 
   const isCutProduct = initialSalesMode === "CUT";
@@ -90,7 +103,8 @@ export function CartEditProductModal({
     uom: item.uom ?? undefined,
     image_url: item.image ?? "/placeholder.png",
 
-    conditions: productConditions,
+    // ✅ FIX: EA. ต้องไม่มีเงื่อนไขเสมอ
+    conditions: hasConditions ? validConditions : [],
 
     clearanceQuantity:
       (item as any).clearanceQuantity != null
@@ -98,22 +112,37 @@ export function CartEditProductModal({
         : undefined,
   };
 
-  const hasConditions =
-    Array.isArray(productForForm.conditions) &&
-    productForForm.conditions.length > 0;
-
   // ----- options สำหรับ useProductSalesForm -----
   const formOptions: any = {};
   const cartQty = item.quantity != null ? Number(item.quantity) : 1;
 
-  if (isCutProduct) {
+  // totalLength (เมตรรวม) = lineTotal(บาทรวม)/price(บาทต่อเมตร)
+  // ใช้เฉพาะตอน M. เท่านั้น
+  const cartTotalLength =
+    hasConditions &&
+    typeof (item as any).lineTotal === "number" &&
+    Number(item.price || 0) > 0
+      ? Number((item as any).lineTotal) / Number(item.price || 1)
+      : undefined;
+
+  if (hasConditions && isCutProduct) {
+    // CUT: ใน cart เราเก็บ quantity เป็น “เมตรรวม”
+    formOptions.initialSalesMode = "CUT";
     formOptions.initialQuantity = 1;
-    formOptions.initialCutLength = cartQty;
-  } else if (isRollProduct) {
-    formOptions.initialQuantity = 1;
-    formOptions.initialRollLength = cartQty;
+    formOptions.initialCutLength = cartQty; // เมตรรวม
+  } else if (hasConditions && isRollProduct) {
+    // ROLL: ใน cart quantity = จำนวนม้วน, ความยาวต่อม้วน = (เมตรรวม / จำนวนม้วน)
+    const rollQty = Math.max(1, cartQty);
+    const perRoll =
+      cartTotalLength && rollQty > 0 ? cartTotalLength / rollQty : undefined;
+
+    formOptions.initialSalesMode = "ROLL";
+    formOptions.initialQuantity = rollQty;
+    formOptions.initialRollLength = perRoll ?? undefined;
   } else {
-    formOptions.initialQuantity = cartQty;
+    // ✅ สินค้า EA. / ไม่มีเงื่อนไข → ใช้จำนวนชิ้นตาม cart
+    formOptions.initialSalesMode = null;
+    formOptions.initialQuantity = Math.max(1, cartQty);
   }
 
   const {
@@ -147,16 +176,14 @@ export function CartEditProductModal({
 
   const isCutMode = hasConditions && salesMode === "CUT";
 
-  const { toast } = useToast();
-
   // ===== Handler: บันทึกการแก้ไข =====
   const handleSave = async () => {
     if (!isStockAvailable) return;
 
     const quantityForCart =
       hasConditions && salesMode
-        ? Number(totalLength) // CUT / ROLL = ความยาวรวม
-        : Number(quantity); // สินค้าปกติ = จำนวนชิ้น
+        ? Number(totalLength) // CUT/ROLL = เมตรรวม
+        : Number(quantity); // ปกติ = จำนวนชิ้น
 
     const priceAmount = Number(totalPrice);
 
@@ -186,14 +213,12 @@ export function CartEditProductModal({
         return;
       }
 
-       // ✅ แสดง Toast แจ้งเตือน
       toast({
         title: "บันทึกสำเร็จ",
         description: "อัปเดตรายการสินค้าในตะกร้าเรียบร้อยแล้ว",
       });
 
       onUpdated?.({ id: item.id, quantityForCart });
-
       onClose();
     } catch (e) {
       console.error("[CartEditProductModal] update error", e);
@@ -226,12 +251,8 @@ export function CartEditProductModal({
             />
 
             <div className="flex-1 min-w-0 space-y-1">
-              <h3 className="font-semibold text-sm line-clamp-2">
-                {item.name}
-              </h3>
-              <div className="text-[11px] text-muted-foreground">
-                SKU: {item.sku}
-              </div>
+              <h3 className="font-semibold text-sm line-clamp-2">{item.name}</h3>
+              <div className="text-[11px] text-muted-foreground">SKU: {item.sku}</div>
               {item.brand && (
                 <div className="text-[11px] text-muted-foreground">
                   Brand: {item.brand}
@@ -258,9 +279,7 @@ export function CartEditProductModal({
                   ประเภทการขาย:
                 </span>
                 <div className="inline-flex items-center rounded-lg border border-muted px-3 py-1.5 text-sm bg-white">
-                  {salesMode === "CUT"
-                    ? "ตัดแบ่งขาย (Cut)"
-                    : "ขายยกม้วน (Roll)"}
+                  {salesMode === "CUT" ? "ตัดแบ่งขาย (Cut)" : "ขายยกม้วน (Roll)"}
                 </div>
               </div>
 
@@ -321,16 +340,13 @@ export function CartEditProductModal({
                   <>
                     <div className="w-2 h-2 bg-success rounded-full" />
                     <span className="text-success font-medium">
-                      มีสินค้าในสต๊อก {Number(clearanceQty).toLocaleString()}{" "}
-                      {unit}
+                      มีสินค้าในสต๊อก {Number(clearanceQty).toLocaleString()} {unit}
                     </span>
                   </>
                 ) : (
                   <>
                     <div className="w-2 h-2 bg-destructive rounded-full" />
-                    <span className="text-destructive font-medium">
-                      สินค้าหมด
-                    </span>
+                    <span className="text-destructive font-medium">สินค้าหมด</span>
                   </>
                 )
               ) : (
@@ -416,10 +432,7 @@ export function CartEditProductModal({
           <Button variant="outline" onClick={onClose} disabled={saving}>
             ยกเลิก
           </Button>
-          <Button
-            disabled={!isStockAvailable || saving}
-            onClick={handleSave}
-          >
+          <Button disabled={!isStockAvailable || saving} onClick={handleSave}>
             {saving ? "กำลังบันทึก..." : "บันทึกการแก้ไข"}
           </Button>
         </DialogFooter>
@@ -427,7 +440,6 @@ export function CartEditProductModal({
     </Dialog>
   );
 }
-
 // v.1.1.9 ==================================================
 
 // v.1.1.8 ===================================================

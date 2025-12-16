@@ -84,7 +84,7 @@ export default function ContactPage() {
                     <Phone className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
                     <div>
                       <h3 className="font-semibold">โทรศัพท์</h3>
-                      <p className="text-muted-foreground">02-123-4567</p>
+                      <p className="text-muted-foreground">02-666-1111</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
@@ -175,7 +175,7 @@ export default function ContactPage() {
         </section>
 
         {/* Map Section */}
-        <section>
+        {/* <section>
           <div className="w-full h-[400px] md:h-[500px]">
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3875.141319308818!2d100.5734544758021!3d13.77037149691083!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30e29e1575141315%3A0x787e6dcd5513a431!2sINTERLINK%20TELECOM%20PUBLIC%20COMPANY%20LIMITED!5e0!3m2!1sen!2sth!4v1721894030139!5m2!1sen!2sth"
@@ -187,7 +187,7 @@ export default function ContactPage() {
               referrerPolicy="no-referrer-when-downgrade"
             ></iframe>
           </div>
-        </section>
+        </section> */}
       </main>
       {/* <Footer /> */}
       <ShoppingCart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />

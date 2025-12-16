@@ -1,29 +1,38 @@
-// v.1.1.10 ====================================================================
+// v.1.1.13 ==================================================================
 // src/app/cart/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import {
-  ArrowLeft,
-  Trash2,
-  Loader2,
-  ShoppingCart as CartIcon,
-} from "lucide-react";
+import { ArrowLeft, Trash2, Loader2, ShoppingCart as CartIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/components/ui/use-toast";
+
 import {
   useShoppingCartPanel,
   type UICartItem,
 } from "@/components/use-shopping-cart-panel";
 
-import { CartEditProductModal } from "./CartEditProductModal";
+type StockCheckError = {
+  sku: string;
+  reason:
+    | "NAVISION_STOCK_NOT_ENOUGH"
+    | "NAVISION_INVALID_RESPONSE"
+    | "ROLL_STOCK_NOT_ENOUGH";
+  meta?: any;
+};
+
+type StockCheckResult = {
+  ok: boolean;
+  errors?: StockCheckError[];
+};
 
 export default function CartPage() {
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -38,33 +47,132 @@ export default function CartPage() {
     selectedTotalPrice,
     toggleItemSelection,
     toggleAllItems,
-    updateQuantity, // ✅ ใช้ให้ sync กับ modal
     deleteItem,
   } = useShoppingCartPanel(true);
 
-  const subtotal: number = selectedTotalPrice;
-  const shippingFee: number = subtotal === 0 ? 0 : 0;
-  const total: number = subtotal + shippingFee;
+  const subtotal = selectedTotalPrice;
+  const shippingFee = subtotal === 0 ? 0 : 0;
+  const total = subtotal + shippingFee;
 
-  const [editingItem, setEditingItem] = useState<UICartItem | null>(null);
-  const [editOpen, setEditOpen] = useState(false);
+  const [checkingStock, setCheckingStock] = useState(false);
 
-  const handleOpenEdit = (item: UICartItem) => {
-    setEditingItem(item);
-    setEditOpen(true);
+  /** highlight รายการที่สต๊อกไม่พอ */
+  const [insufficientIds, setInsufficientIds] = useState<number[]>([]);
+
+  const insufficientIdSet = useMemo(
+    () => new Set(insufficientIds),
+    [insufficientIds],
+  );
+
+  /* ===============================
+   * เช็คสต๊อก ก่อนเข้า checkout
+   * - ส่งเฉพาะรายการที่ถูกเลือก
+   * - uom=M. -> quantity=1, total=เมตรรวม
+   * =============================== */
+  const handleProceedCheckout = async () => {
+    try {
+      setCheckingStock(true);
+      setInsufficientIds([]);
+
+      const selected = items.filter((i) => selectedItems.includes(i.id));
+
+      const payload = {
+        items: selected.map((i) => {
+          if (i.uom === "M.") {
+            return {
+              sku: i.sku,
+              uom: i.uom,
+              quantity: 1, // 1 ROLL
+              total: Number(i.quantity), // เมตรรวม
+            };
+          }
+
+          return {
+            sku: i.sku,
+            uom: i.uom,
+            quantity: Number(i.quantity ?? 0),
+            total: 0,
+          };
+        }),
+      };
+
+      const res = await fetch("/api/stock/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const result = (await res.json()) as StockCheckResult;
+
+      if (!result?.ok) {
+        // map sku -> cart item ids เพื่อทำกรอบแดง
+        const badSkuSet = new Set((result?.errors ?? []).map((e) => e.sku));
+        const badIds = selected
+          .filter((i) => badSkuSet.has(i.sku))
+          .map((i) => i.id);
+
+        setInsufficientIds(badIds);
+
+        toast({
+          title: "สต๊อกไม่เพียงพอ",
+          description:
+            "พบสินค้าบางรายการสต๊อกไม่พอ ระบบไฮไลต์กรอบแดงให้แล้ว กรุณาแก้ไขรายการ",
+          variant: "destructive",
+        });
+
+        // auto-scroll ไปหารายการแรกที่ไม่พอ
+        const firstId = badIds[0];
+        if (firstId != null) {
+          requestAnimationFrame(() => {
+            document
+              .querySelector(`[data-cart-item-id="${firstId}"]`)
+              ?.scrollIntoView({ behavior: "smooth", block: "center" });
+          });
+        }
+
+        return;
+      }
+
+      router.push("/checkout");
+    } catch (err) {
+      console.error("[CART][STOCK][ERROR]", err);
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถตรวจสอบสต๊อกได้",
+        variant: "destructive",
+      });
+    } finally {
+      setCheckingStock(false);
+    }
   };
 
-  const handleCloseEdit = () => {
-    setEditOpen(false);
-    setEditingItem(null);
-  };
+  /* ===============================
+   * แก้ไขรายการ (ทำแบบเดียวกันทุก UOM)
+   * - ลบรายการเดิมออก (status=3 ผ่าน /api/cart/remove)
+   * - เด้งไป /product/[id]?redirect=/cart
+   * =============================== */
+  const handleEditItem = (item: UICartItem) => {
+    const productId = (item as any).productId as number | null | undefined;
 
-  // ✅ callback จาก Modal เมื่อบันทึกสำเร็จ
-  const handleUpdatedFromModal = (payload: {
-    id: number;
-    quantityForCart: number;
-  }) => {
-    updateQuantity(payload.id, payload.quantityForCart);
+    if (!productId) {
+      toast({
+        title: "ไม่พบ productId",
+        description: `ไม่สามารถไปหน้าแก้ไขสินค้าได้ (SKU: ${item.sku})`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "กำลังแก้ไขรายการ",
+      description: "ระบบจะลบรายการเดิมและให้คุณเลือกใหม่อีกครั้ง",
+    });
+
+    // ลบแบบเดียวกับปุ่มลบ (optimistic + ยิง /api/cart/remove)
+    deleteItem(item.id);
+
+    // ไปหน้า product และบอกให้กลับ cart หลังเพิ่มสำเร็จ
+    router.push(`/product/${productId}?redirect=/cart`);
   };
 
   return (
@@ -74,6 +182,7 @@ export default function CartPage() {
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
+
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <CartIcon className="h-5 w-5" />
             ตะกร้าสินค้า
@@ -84,7 +193,7 @@ export default function CartPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* ================= Left: รายการสินค้า ================= */}
+          {/* Left */}
           <div className="lg:col-span-2 space-y-4">
             {loading ? (
               <div className="flex flex-col items-center justify-center h-64 text-muted-foreground text-sm gap-3 bg-card rounded-lg border">
@@ -111,15 +220,16 @@ export default function CartPage() {
                 </div>
 
                 {items.map((item) => {
-                  const discountLabel =
-                    item.discountPercent != null && item.discountPercent > 0
-                      ? `ประหยัด ${item.discountPercent}%`
-                      : null;
+                  const isBad = insufficientIdSet.has(item.id);
 
                   return (
                     <div
                       key={item.id}
-                      className="p-4 bg-card rounded-lg border"
+                      data-cart-item-id={item.id}
+                      className={[
+                        "p-4 bg-card rounded-lg border transition",
+                        isBad ? "border-red-600 ring-2 ring-red-200" : "",
+                      ].join(" ")}
                     >
                       <div className="flex items-start gap-3">
                         <Checkbox
@@ -139,48 +249,12 @@ export default function CartPage() {
                             {item.name}
                           </h3>
 
-                          <div className="text-[11px] font-semibold text-foreground">
+                          <div className="text-[11px] font-semibold">
                             SKU: {item.sku}
                           </div>
 
-                          {item.brand && (
-                            <div className="text-[11px] text-muted-foreground">
-                              Brand: {item.brand}
-                            </div>
-                          )}
-
-                          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
-                            <div className="flex items-baseline gap-1">
-                              <span className="text-primary font-semibold text-sm">
-                                ฿{Number(item.price).toLocaleString()}
-                              </span>
-                              {item.uom && (
-                                <span className="text-[11px] text-muted-foreground">
-                                  / {item.uom}
-                                </span>
-                              )}
-                            </div>
-
-                            {item.originalPrice != null &&
-                              item.originalPrice > item.price && (
-                                <span className="text-[11px] text-muted-foreground line-through">
-                                  ฿{Number(item.originalPrice).toLocaleString()}
-                                </span>
-                              )}
-
-                            {discountLabel && (
-                              <span className="inline-flex items-center rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-600">
-                                {discountLabel}
-                              </span>
-                            )}
-                          </div>
-
                           <div className="text-[11px] text-muted-foreground">
-                            จำนวน:{" "}
-                            <span className="font-medium text-foreground">
-                              {Number(item.quantity).toLocaleString()}{" "}
-                              {item.uom ? item.uom : ""}
-                            </span>
+                            จำนวน: {item.quantity} {item.uom ?? ""}
                           </div>
 
                           <div className="text-sm flex items-center justify-between mt-1">
@@ -191,15 +265,22 @@ export default function CartPage() {
                               </span>
                             </div>
 
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="ml-4"
-                              onClick={() => handleOpenEdit(item)}
-                            >
-                              แก้ไขรายการ
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditItem(item)}
+                              >
+                                แก้ไขรายการ
+                              </Button>
+                            </div>
                           </div>
+
+                          {isBad && (
+                            <div className="text-xs text-red-600 font-medium pt-1">
+                              ❗ สต๊อกไม่พอ กรุณาแก้ไขรายการนี้
+                            </div>
+                          )}
                         </div>
 
                         <Button
@@ -218,7 +299,7 @@ export default function CartPage() {
             )}
           </div>
 
-          {/* ================= Right: สรุปรายการ ================= */}
+          {/* Right */}
           <div className="space-y-4">
             <div className="p-4 bg-card rounded-lg border">
               <h3 className="font-bold mb-4">สรุปคำสั่งซื้อ</h3>
@@ -237,19 +318,7 @@ export default function CartPage() {
 
                     <div className="flex justify-between">
                       <span>ค่าจัดส่ง</span>
-                      <span
-                        className={
-                          shippingFee === 0 && subtotal > 0
-                            ? "text-green-600"
-                            : ""
-                        }
-                      >
-                        {subtotal === 0
-                          ? "-"
-                          : shippingFee === 0
-                          ? "ฟรี"
-                          : `฿${Number(shippingFee).toLocaleString()}`}
-                      </span>
+                      <span>{subtotal === 0 ? "-" : "ฟรี"}</span>
                     </div>
 
                     <Separator />
@@ -261,42 +330,1013 @@ export default function CartPage() {
                       </span>
                     </div>
 
-                    <p className="text-xs text-muted-foreground">
-                      รวม VAT แล้ว
-                    </p>
+                    <p className="text-xs text-muted-foreground">รวม VAT แล้ว</p>
                   </div>
 
-                  <Link href="/checkout">
-                    <Button
-                      className="w-full mt-4"
-                      size="lg"
-                      disabled={selectedItems.length === 0 || items.length === 0}
-                    >
-                      ดำเนินการชำระเงิน ({selectedUniqueItems})
-                    </Button>
-                  </Link>
+                  <Button
+                    className="w-full mt-4"
+                    size="lg"
+                    disabled={
+                      selectedItems.length === 0 ||
+                      items.length === 0 ||
+                      checkingStock
+                    }
+                    onClick={handleProceedCheckout}
+                  >
+                    {checkingStock
+                      ? "กำลังตรวจสอบสต๊อก..."
+                      : `ดำเนินการชำระเงิน (${selectedUniqueItems})`}
+                  </Button>
                 </>
               )}
             </div>
           </div>
         </div>
       </div>
-
-      {/* Modal แก้ไขรายการ
-          ✅ แสดงเฉพาะเมื่อ editingItem ไม่เป็น null
-          ทำให้ CartEditProductModal ไม่ต้องเจอ item = null เลย
-      */}
-      {editingItem && (
-        <CartEditProductModal
-          open={editOpen}
-          onClose={handleCloseEdit}
-          item={editingItem}
-          onUpdated={handleUpdatedFromModal}
-        />
-      )}
     </div>
   );
 }
+
+// v.1.1.13 ==================================================================
+
+// v.1.1.12 ===================================================================
+// // src/app/cart/page.tsx
+// "use client";
+
+// import { useEffect, useMemo, useState } from "react";
+// import { useRouter } from "next/navigation";
+// import { ArrowLeft, Trash2, Loader2, ShoppingCart as CartIcon } from "lucide-react";
+
+// import { cn } from "@/lib/utils";
+// import { Button } from "@/components/ui/button";
+// import { Checkbox } from "@/components/ui/checkbox";
+// import { Separator } from "@/components/ui/separator";
+// import { useShoppingCartPanel } from "@/components/use-shopping-cart-panel";
+// import { useToast } from "@/components/ui/use-toast";
+
+// type InsufficientItem = {
+//   sku: string;
+//   reason?: string;
+//   meta?: any;
+// };
+
+// export default function CartPage() {
+//   const router = useRouter();
+//   const { toast } = useToast();
+
+//   useEffect(() => {
+//     window.scrollTo(0, 0);
+//   }, []);
+
+//   const {
+//     items,
+//     selectedItems,
+//     loading,
+//     totalUniqueItems,
+//     selectedUniqueItems,
+//     selectedTotalPrice,
+//     toggleItemSelection,
+//     toggleAllItems,
+//     deleteItem,
+//   } = useShoppingCartPanel(true);
+
+//   const subtotal = selectedTotalPrice;
+//   const shippingFee = subtotal === 0 ? 0 : 0;
+//   const total = subtotal + shippingFee;
+
+//   const [checkingStock, setCheckingStock] = useState(false);
+
+//   // ✅ เก็บ sku ที่สต๊อกไม่พอ เพื่อทำกรอบแดง + scroll
+//   const [insufficientSkus, setInsufficientSkus] = useState<string[]>([]);
+//   const [insufficientMap, setInsufficientMap] = useState<Record<string, InsufficientItem>>({});
+
+//   // ✅ เฉพาะ items ที่ถูกเลือก (ใช้สำหรับ payload)
+//   const selectedCartItems = useMemo(
+//     () => items.filter((i) => selectedItems.includes(i.id)),
+//     [items, selectedItems],
+//   );
+
+//   /* ===============================
+//    * เช็คสต๊อก ก่อนเข้า checkout (เหมือนหน้า checkout)
+//    * =============================== */
+//   const handleProceedCheckout = async () => {
+//     try {
+//       setCheckingStock(true);
+//       // reset highlight รอบก่อน
+//       setInsufficientSkus([]);
+//       setInsufficientMap({});
+
+//       const payload = {
+//         items: selectedCartItems.map((i) => {
+//           // 🔑 สำคัญมาก
+//           // uom = M. → quantity ใน cart คือ "เมตรรวม"
+//           if (i.uom === "M.") {
+//             return {
+//               sku: i.sku,
+//               uom: i.uom,
+//               quantity: 1, // ✅ 1 ROLL
+//               total: Number(i.quantity), // ✅ เมตรรวม
+//             };
+//           }
+
+//           // สินค้าปกติ
+//           return {
+//             sku: i.sku,
+//             uom: i.uom,
+//             quantity: Number(i.quantity ?? 0),
+//             total: 0,
+//           };
+//         }),
+//       };
+
+//       const res = await fetch("/api/stock/check", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify(payload),
+//       });
+
+//       const result = await res.json();
+
+//       if (!result?.ok) {
+//         // ✅ รองรับได้ 2 แบบ:
+//         // 1) result.insufficientItems: [{ sku, reason, meta }]
+//         // 2) result.errors: [{ sku, reason, meta }]
+//         const raw: any[] = Array.isArray(result?.insufficientItems)
+//           ? result.insufficientItems
+//           : Array.isArray(result?.errors)
+//           ? result.errors
+//           : [];
+
+//         const list: InsufficientItem[] = raw
+//           .map((x) => ({
+//             sku: String(x?.sku ?? "").trim(),
+//             reason: x?.reason,
+//             meta: x?.meta,
+//           }))
+//           .filter((x) => !!x.sku);
+
+//         const skus = Array.from(new Set(list.map((x) => x.sku)));
+
+//         const map: Record<string, InsufficientItem> = {};
+//         for (const it of list) map[it.sku] = it;
+
+//         setInsufficientSkus(skus);
+//         setInsufficientMap(map);
+
+//         toast({
+//           title: "สต๊อกไม่เพียงพอ",
+//           description: skus.length
+//             ? `พบสินค้าไม่พอ ${skus.length} รายการ (ไฮไลต์สีแดงแล้ว) — คลิกรายการสีแดงเพื่อไปเลือกใหม่`
+//             : "สินค้าบางรายการไม่พอ กรุณาตรวจสอบตะกร้า",
+//           variant: "destructive",
+//         });
+
+//         // ✅ auto-scroll ไปหารายการแดงตัวแรก
+//         if (skus.length > 0) {
+//           requestAnimationFrame(() => {
+//             const el = document.querySelector(`[data-sku="${CSS.escape(skus[0])}"]`);
+//             (el as HTMLElement | null)?.scrollIntoView({
+//               behavior: "smooth",
+//               block: "center",
+//             });
+//           });
+//         }
+
+//         return;
+//       }
+
+//       router.push("/checkout");
+//     } catch (err) {
+//       console.error("[CART][STOCK][ERROR]", err);
+//       toast({
+//         title: "เกิดข้อผิดพลาด",
+//         description: "ไม่สามารถตรวจสอบสต๊อกได้",
+//         variant: "destructive",
+//       });
+//     } finally {
+//       setCheckingStock(false);
+//     }
+//   };
+
+//   // ✅ คลิกที่รายการแดง: ลบออก + ไปหน้า product เพื่อเลือกใหม่
+//   const handleClickInsufficientItem = (item: any) => {
+//     // item ต้องมี sku เสมอ
+//     const sku = String(item?.sku ?? "").trim();
+//     if (!sku) return;
+
+//     // 1) ลบจากตะกร้า (เหมือนปุ่มลบ: status=3 ผ่าน /api/cart/remove)
+//     deleteItem(item.id);
+
+//     // 2) ไปหน้า product/[id] ถ้ามี productId
+//     const productId = (item as any).productId ?? null;
+
+//     if (productId != null && String(productId) !== "") {
+//       router.push(`/product/${productId}?returnTo=${encodeURIComponent("/cart")}`);
+//       return;
+//     }
+
+//     // fallback: ถ้าไม่มี productId (กันกรณี backend ยังไม่ส่งมา)
+//     router.push(`/products?sku=${encodeURIComponent(sku)}`);
+//   };
+
+//   return (
+//     <div className="min-h-screen bg-background">
+//       <div className="container mx-auto px-4 py-6 max-w-6xl">
+//         <div className="flex items-center gap-4 mb-6">
+//           <Button variant="ghost" size="icon" onClick={() => router.back()}>
+//             <ArrowLeft className="h-5 w-5" />
+//           </Button>
+//           <h1 className="text-2xl font-bold flex items-center gap-2">
+//             <CartIcon className="h-5 w-5" />
+//             ตะกร้าสินค้า
+//             <span className="text-base font-normal text-muted-foreground">
+//               ({totalUniqueItems} รายการ)
+//             </span>
+//           </h1>
+//         </div>
+
+//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+//           {/* Left */}
+//           <div className="lg:col-span-2 space-y-4">
+//             {loading ? (
+//               <div className="flex flex-col items-center justify-center h-64 text-muted-foreground text-sm gap-3 bg-card rounded-lg border">
+//                 <Loader2 className="h-6 w-6 animate-spin" />
+//                 <p>กำลังโหลดตะกร้าสินค้า...</p>
+//               </div>
+//             ) : items.length === 0 ? (
+//               <div className="flex flex-col items-center justify-center h-64 text-muted-foreground bg-card rounded-lg border">
+//                 <CartIcon className="h-12 w-12 mb-4" />
+//                 <p>ตะกร้าสินค้าว่าง</p>
+//               </div>
+//             ) : (
+//               <>
+//                 <div className="flex items-center gap-3 p-4 bg-card rounded-lg border">
+//                   <Checkbox
+//                     checked={selectedItems.length === items.length && items.length > 0}
+//                     onCheckedChange={toggleAllItems}
+//                   />
+//                   <span className="font-medium">
+//                     เลือกทั้งหมด ({totalUniqueItems} รายการ)
+//                   </span>
+//                 </div>
+
+//                 {items.map((item: any) => {
+//                   const sku = String(item.sku ?? "");
+//                   const isBad = sku && insufficientSkus.includes(sku);
+//                   const err = sku ? insufficientMap[sku] : undefined;
+
+//                   return (
+//                     <div
+//                       key={item.id}
+//                       data-sku={sku}
+//                       className={cn(
+//                         "p-4 bg-card rounded-lg border transition",
+//                         isBad && "border-red-500 bg-red-50/60",
+//                         isBad && "cursor-pointer hover:bg-red-50",
+//                       )}
+//                       onClick={() => {
+//                         if (isBad) handleClickInsufficientItem(item);
+//                       }}
+//                     >
+//                       <div className="flex items-start gap-3">
+//                         <Checkbox
+//                           checked={selectedItems.includes(item.id)}
+//                           onCheckedChange={() => toggleItemSelection(item.id)}
+//                           onClick={(e) => e.stopPropagation()}
+//                         />
+
+//                         {/* eslint-disable-next-line @next/next/no-img-element */}
+//                         <img
+//                           src={item.image}
+//                           alt={item.name}
+//                           className="w-20 h-20 object-cover rounded border"
+//                         />
+
+//                         <div className="flex-1 min-w-0 space-y-1">
+//                           <h3 className="font-semibold text-sm line-clamp-2">
+//                             {item.name}
+//                           </h3>
+
+//                           <div className="text-[11px] font-semibold">
+//                             SKU: {item.sku}
+//                           </div>
+
+//                           <div className="text-[11px] text-muted-foreground">
+//                             จำนวน: {item.quantity} {item.uom ?? ""}
+//                           </div>
+
+//                           <div className="text-sm flex items-center justify-between mt-1">
+//                             <div>
+//                               ราคารวม:{" "}
+//                               <span className="font-bold text-red-600 text-base">
+//                                 ฿{Number(item.lineTotal).toLocaleString()}
+//                               </span>
+//                             </div>
+//                           </div>
+
+//                           {isBad && (
+//                             <div className="mt-2 text-sm font-semibold text-red-700">
+//                               ❌ สต๊อกไม่พอ — คลิกเพื่อไปเลือกใหม่
+//                               {err?.reason ? (
+//                                 <span className="ml-2 text-xs font-normal text-red-700/80">
+//                                   ({err.reason})
+//                                 </span>
+//                               ) : null}
+//                             </div>
+//                           )}
+//                         </div>
+
+//                         <Button
+//                           size="icon"
+//                           variant="ghost"
+//                           className="h-8 w-8 text-destructive"
+//                           onClick={(e) => {
+//                             e.stopPropagation();
+//                             deleteItem(item.id);
+//                           }}
+//                         >
+//                           <Trash2 className="h-4 w-4" />
+//                         </Button>
+//                       </div>
+//                     </div>
+//                   );
+//                 })}
+//               </>
+//             )}
+//           </div>
+
+//           {/* Right */}
+//           <div className="space-y-4">
+//             <div className="p-4 bg-card rounded-lg border">
+//               <h3 className="font-bold mb-4">สรุปคำสั่งซื้อ</h3>
+
+//               {items.length === 0 && !loading ? (
+//                 <p className="text-sm text-muted-foreground">
+//                   ยังไม่มีสินค้าในตะกร้า
+//                 </p>
+//               ) : (
+//                 <>
+//                   <div className="space-y-3 text-sm">
+//                     <div className="flex justify-between">
+//                       <span>ยอดรวม ({selectedUniqueItems} รายการ)</span>
+//                       <span>฿{Number(subtotal).toLocaleString()}</span>
+//                     </div>
+
+//                     <div className="flex justify-between">
+//                       <span>ค่าจัดส่ง</span>
+//                       <span>{subtotal === 0 ? "-" : "ฟรี"}</span>
+//                     </div>
+
+//                     <Separator />
+
+//                     <div className="flex justify-between font-bold text-lg">
+//                       <span>รวมทั้งสิ้น</span>
+//                       <span className="text-primary">
+//                         ฿{Number(total).toLocaleString()}
+//                       </span>
+//                     </div>
+
+//                     <p className="text-xs text-muted-foreground">รวม VAT แล้ว</p>
+//                   </div>
+
+//                   <Button
+//                     className="w-full mt-4"
+//                     size="lg"
+//                     disabled={
+//                       selectedItems.length === 0 ||
+//                       items.length === 0 ||
+//                       checkingStock
+//                     }
+//                     onClick={handleProceedCheckout}
+//                   >
+//                     {checkingStock
+//                       ? "กำลังตรวจสอบสต๊อก..."
+//                       : `ดำเนินการชำระเงิน (${selectedUniqueItems})`}
+//                   </Button>
+//                 </>
+//               )}
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+// v.1.1.12 ===================================================================
+
+// v.1.1.11 ===================================================================
+// // src/app/cart/page.tsx
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import { useRouter } from "next/navigation";
+// import {
+//   ArrowLeft,
+//   Trash2,
+//   Loader2,
+//   ShoppingCart as CartIcon,
+// } from "lucide-react";
+
+// import { Button } from "@/components/ui/button";
+// import { Checkbox } from "@/components/ui/checkbox";
+// import { Separator } from "@/components/ui/separator";
+// import {
+//   useShoppingCartPanel,
+//   type UICartItem,
+// } from "@/components/use-shopping-cart-panel";
+// import { useToast } from "@/components/ui/use-toast";
+
+// import { CartEditProductModal } from "./CartEditProductModal";
+
+// export default function CartPage() {
+//   const router = useRouter();
+//   const { toast } = useToast();
+
+//   useEffect(() => {
+//     window.scrollTo(0, 0);
+//   }, []);
+
+//   const {
+//     items,
+//     selectedItems,
+//     loading,
+//     totalUniqueItems,
+//     selectedUniqueItems,
+//     selectedTotalPrice,
+//     toggleItemSelection,
+//     toggleAllItems,
+//     updateQuantity,
+//     deleteItem,
+//   } = useShoppingCartPanel(true);
+
+//   const subtotal = selectedTotalPrice;
+//   const shippingFee = subtotal === 0 ? 0 : 0;
+//   const total = subtotal + shippingFee;
+
+//   const [editingItem, setEditingItem] = useState<UICartItem | null>(null);
+//   const [editOpen, setEditOpen] = useState(false);
+//   const [checkingStock, setCheckingStock] = useState(false);
+
+//   const handleOpenEdit = (item: UICartItem) => {
+//     setEditingItem(item);
+//     setEditOpen(true);
+//   };
+
+//   const handleCloseEdit = () => {
+//     setEditOpen(false);
+//     setEditingItem(null);
+//   };
+
+//   const handleUpdatedFromModal = (payload: {
+//     id: number;
+//     quantityForCart: number;
+//   }) => {
+//     updateQuantity(payload.id, payload.quantityForCart);
+//   };
+
+//   /* ===============================
+//    * เช็คสต๊อก 2 ชั้น ก่อนเข้า checkout
+//    * =============================== */
+//   const handleProceedCheckout = async () => {
+//     try {
+//       setCheckingStock(true);
+
+//       const payload = {
+//         items: items
+//           .filter((i) => selectedItems.includes(i.id))
+//           .map((i) => {
+//             // 🔑 สำคัญมาก
+//             // uom = M. → quantity ใน cart คือ "เมตรรวม"
+//             if (i.uom === "M.") {
+//               return {
+//                 sku: i.sku,
+//                 uom: i.uom,
+//                 quantity: 1,              // ✅ 1 ROLL
+//                 total: Number(i.quantity) // ✅ เมตรรวม
+//               };
+//             }
+
+//             // สินค้าปกติ
+//             return {
+//               sku: i.sku,
+//               uom: i.uom,
+//               quantity: i.quantity,
+//               total: 0,
+//             };
+//           }),
+//       };
+
+//       const res = await fetch("/api/stock/check", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify(payload),
+//       });
+
+//       const result = await res.json();
+
+//       if (!result?.ok) {
+//         toast({
+//           title: "สต๊อกไม่เพียงพอ",
+//           description:
+//             "สินค้าบางรายการไม่พอสำหรับความยาวที่เลือก กรุณาตรวจสอบตะกร้า",
+//           variant: "destructive",
+//         });
+//         return;
+//       }
+
+//       router.push("/checkout");
+//     } catch (err) {
+//       console.error("[CART][STOCK][ERROR]", err);
+//       toast({
+//         title: "เกิดข้อผิดพลาด",
+//         description: "ไม่สามารถตรวจสอบสต๊อกได้",
+//         variant: "destructive",
+//       });
+//     } finally {
+//       setCheckingStock(false);
+//     }
+//   };
+
+//   return (
+//     <div className="min-h-screen bg-background">
+//       <div className="container mx-auto px-4 py-6 max-w-6xl">
+//         <div className="flex items-center gap-4 mb-6">
+//           <Button variant="ghost" size="icon" onClick={() => router.back()}>
+//             <ArrowLeft className="h-5 w-5" />
+//           </Button>
+//           <h1 className="text-2xl font-bold flex items-center gap-2">
+//             <CartIcon className="h-5 w-5" />
+//             ตะกร้าสินค้า
+//             <span className="text-base font-normal text-muted-foreground">
+//               ({totalUniqueItems} รายการ)
+//             </span>
+//           </h1>
+//         </div>
+
+//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+//           {/* Left */}
+//           <div className="lg:col-span-2 space-y-4">
+//             {loading ? (
+//               <div className="flex flex-col items-center justify-center h-64 text-muted-foreground text-sm gap-3 bg-card rounded-lg border">
+//                 <Loader2 className="h-6 w-6 animate-spin" />
+//                 <p>กำลังโหลดตะกร้าสินค้า...</p>
+//               </div>
+//             ) : items.length === 0 ? (
+//               <div className="flex flex-col items-center justify-center h-64 text-muted-foreground bg-card rounded-lg border">
+//                 <CartIcon className="h-12 w-12 mb-4" />
+//                 <p>ตะกร้าสินค้าว่าง</p>
+//               </div>
+//             ) : (
+//               <>
+//                 <div className="flex items-center gap-3 p-4 bg-card rounded-lg border">
+//                   <Checkbox
+//                     checked={
+//                       selectedItems.length === items.length && items.length > 0
+//                     }
+//                     onCheckedChange={toggleAllItems}
+//                   />
+//                   <span className="font-medium">
+//                     เลือกทั้งหมด ({totalUniqueItems} รายการ)
+//                   </span>
+//                 </div>
+
+//                 {items.map((item) => (
+//                   <div key={item.id} className="p-4 bg-card rounded-lg border">
+//                     <div className="flex items-start gap-3">
+//                       <Checkbox
+//                         checked={selectedItems.includes(item.id)}
+//                         onCheckedChange={() => toggleItemSelection(item.id)}
+//                       />
+
+//                       <img
+//                         src={item.image}
+//                         alt={item.name}
+//                         className="w-20 h-20 object-cover rounded border"
+//                       />
+
+//                       <div className="flex-1 min-w-0 space-y-1">
+//                         <h3 className="font-semibold text-sm line-clamp-2">
+//                           {item.name}
+//                         </h3>
+
+//                         <div className="text-[11px] font-semibold">
+//                           SKU: {item.sku}
+//                         </div>
+
+//                         <div className="text-[11px] text-muted-foreground">
+//                           จำนวน: {item.quantity} {item.uom ?? ""}
+//                         </div>
+
+//                         <div className="text-sm flex items-center justify-between mt-1">
+//                           <div>
+//                             ราคารวม:{" "}
+//                             <span className="font-bold text-red-600 text-base">
+//                               ฿{Number(item.lineTotal).toLocaleString()}
+//                             </span>
+//                           </div>
+
+//                          {item.uom !== "M." && (
+//                             <Button
+//                               variant="outline"
+//                               size="sm"
+//                               className="ml-4"
+//                               onClick={() => handleOpenEdit(item)}
+//                             >
+//                               แก้ไขรายการ
+//                             </Button>
+//                           )}
+//                         </div>
+//                       </div>
+
+//                       <Button
+//                         size="icon"
+//                         variant="ghost"
+//                         className="h-8 w-8 text-destructive"
+//                         onClick={() => deleteItem(item.id)}
+//                       >
+//                         <Trash2 className="h-4 w-4" />
+//                       </Button>
+//                     </div>
+//                   </div>
+//                 ))}
+//               </>
+//             )}
+//           </div>
+
+//           {/* Right */}
+//           <div className="space-y-4">
+//             <div className="p-4 bg-card rounded-lg border">
+//               <h3 className="font-bold mb-4">สรุปคำสั่งซื้อ</h3>
+
+//               {items.length === 0 && !loading ? (
+//                 <p className="text-sm text-muted-foreground">
+//                   ยังไม่มีสินค้าในตะกร้า
+//                 </p>
+//               ) : (
+//                 <>
+//                   <div className="space-y-3 text-sm">
+//                     <div className="flex justify-between">
+//                       <span>ยอดรวม ({selectedUniqueItems} รายการ)</span>
+//                       <span>฿{Number(subtotal).toLocaleString()}</span>
+//                     </div>
+
+//                     <div className="flex justify-between">
+//                       <span>ค่าจัดส่ง</span>
+//                       <span>
+//                         {subtotal === 0 ? "-" : "ฟรี"}
+//                       </span>
+//                     </div>
+
+//                     <Separator />
+
+//                     <div className="flex justify-between font-bold text-lg">
+//                       <span>รวมทั้งสิ้น</span>
+//                       <span className="text-primary">
+//                         ฿{Number(total).toLocaleString()}
+//                       </span>
+//                     </div>
+
+//                     <p className="text-xs text-muted-foreground">
+//                       รวม VAT แล้ว
+//                     </p>
+//                   </div>
+
+//                   <Button
+//                     className="w-full mt-4"
+//                     size="lg"
+//                     disabled={
+//                       selectedItems.length === 0 ||
+//                       items.length === 0 ||
+//                       checkingStock
+//                     }
+//                     onClick={handleProceedCheckout}
+//                   >
+//                     {checkingStock
+//                       ? "กำลังตรวจสอบสต๊อก..."
+//                       : `ดำเนินการชำระเงิน (${selectedUniqueItems})`}
+//                   </Button>
+//                 </>
+//               )}
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       {editingItem && (
+//         <CartEditProductModal
+//           open={editOpen}
+//           onClose={handleCloseEdit}
+//           item={editingItem}
+//           onUpdated={handleUpdatedFromModal}
+//         />
+//       )}
+//     </div>
+//   );
+// }
+
+
+// v.1.1.11 ===================================================================
+
+// v.1.1.10 ====================================================================
+// // src/app/cart/page.tsx
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import { useRouter } from "next/navigation";
+// import Link from "next/link";
+// import {
+//   ArrowLeft,
+//   Trash2,
+//   Loader2,
+//   ShoppingCart as CartIcon,
+// } from "lucide-react";
+
+// import { Button } from "@/components/ui/button";
+// import { Checkbox } from "@/components/ui/checkbox";
+// import { Separator } from "@/components/ui/separator";
+// import {
+//   useShoppingCartPanel,
+//   type UICartItem,
+// } from "@/components/use-shopping-cart-panel";
+
+// import { CartEditProductModal } from "./CartEditProductModal";
+
+// export default function CartPage() {
+//   const router = useRouter();
+
+//   useEffect(() => {
+//     window.scrollTo(0, 0);
+//   }, []);
+
+//   const {
+//     items,
+//     selectedItems,
+//     loading,
+//     totalUniqueItems,
+//     selectedUniqueItems,
+//     selectedTotalPrice,
+//     toggleItemSelection,
+//     toggleAllItems,
+//     updateQuantity, // ✅ ใช้ให้ sync กับ modal
+//     deleteItem,
+//   } = useShoppingCartPanel(true);
+
+//   const subtotal: number = selectedTotalPrice;
+//   const shippingFee: number = subtotal === 0 ? 0 : 0;
+//   const total: number = subtotal + shippingFee;
+
+//   const [editingItem, setEditingItem] = useState<UICartItem | null>(null);
+//   const [editOpen, setEditOpen] = useState(false);
+
+//   const handleOpenEdit = (item: UICartItem) => {
+//     setEditingItem(item);
+//     setEditOpen(true);
+//   };
+
+//   const handleCloseEdit = () => {
+//     setEditOpen(false);
+//     setEditingItem(null);
+//   };
+
+//   // ✅ callback จาก Modal เมื่อบันทึกสำเร็จ
+//   const handleUpdatedFromModal = (payload: {
+//     id: number;
+//     quantityForCart: number;
+//   }) => {
+//     updateQuantity(payload.id, payload.quantityForCart);
+//   };
+
+//   return (
+//     <div className="min-h-screen bg-background">
+//       <div className="container mx-auto px-4 py-6 max-w-6xl">
+//         <div className="flex items-center gap-4 mb-6">
+//           <Button variant="ghost" size="icon" onClick={() => router.back()}>
+//             <ArrowLeft className="h-5 w-5" />
+//           </Button>
+//           <h1 className="text-2xl font-bold flex items-center gap-2">
+//             <CartIcon className="h-5 w-5" />
+//             ตะกร้าสินค้า
+//             <span className="text-base font-normal text-muted-foreground">
+//               ({totalUniqueItems} รายการ)
+//             </span>
+//           </h1>
+//         </div>
+
+//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+//           {/* ================= Left: รายการสินค้า ================= */}
+//           <div className="lg:col-span-2 space-y-4">
+//             {loading ? (
+//               <div className="flex flex-col items-center justify-center h-64 text-muted-foreground text-sm gap-3 bg-card rounded-lg border">
+//                 <Loader2 className="h-6 w-6 animate-spin" />
+//                 <p>กำลังโหลดตะกร้าสินค้า...</p>
+//               </div>
+//             ) : items.length === 0 ? (
+//               <div className="flex flex-col items-center justify-center h-64 text-muted-foreground bg-card rounded-lg border">
+//                 <CartIcon className="h-12 w-12 mb-4" />
+//                 <p>ตะกร้าสินค้าว่าง</p>
+//               </div>
+//             ) : (
+//               <>
+//                 <div className="flex items-center gap-3 p-4 bg-card rounded-lg border">
+//                   <Checkbox
+//                     checked={
+//                       selectedItems.length === items.length && items.length > 0
+//                     }
+//                     onCheckedChange={toggleAllItems}
+//                   />
+//                   <span className="font-medium">
+//                     เลือกทั้งหมด ({totalUniqueItems} รายการ)
+//                   </span>
+//                 </div>
+
+//                 {items.map((item) => {
+//                   const discountLabel =
+//                     item.discountPercent != null && item.discountPercent > 0
+//                       ? `ประหยัด ${item.discountPercent}%`
+//                       : null;
+
+//                   return (
+//                     <div
+//                       key={item.id}
+//                       className="p-4 bg-card rounded-lg border"
+//                     >
+//                       <div className="flex items-start gap-3">
+//                         <Checkbox
+//                           checked={selectedItems.includes(item.id)}
+//                           onCheckedChange={() => toggleItemSelection(item.id)}
+//                         />
+
+//                         {/* eslint-disable-next-line @next/next/no-img-element */}
+//                         <img
+//                           src={item.image}
+//                           alt={item.name}
+//                           className="w-20 h-20 object-cover rounded border"
+//                         />
+
+//                         <div className="flex-1 min-w-0 space-y-1">
+//                           <h3 className="font-semibold text-sm line-clamp-2">
+//                             {item.name}
+//                           </h3>
+
+//                           <div className="text-[11px] font-semibold text-foreground">
+//                             SKU: {item.sku}
+//                           </div>
+
+//                           {item.brand && (
+//                             <div className="text-[11px] text-muted-foreground">
+//                               Brand: {item.brand}
+//                             </div>
+//                           )}
+
+//                           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
+//                             <div className="flex items-baseline gap-1">
+//                               <span className="text-primary font-semibold text-sm">
+//                                 ฿{Number(item.price).toLocaleString()}
+//                               </span>
+//                               {item.uom && (
+//                                 <span className="text-[11px] text-muted-foreground">
+//                                   / {item.uom}
+//                                 </span>
+//                               )}
+//                             </div>
+
+//                             {item.originalPrice != null &&
+//                               item.originalPrice > item.price && (
+//                                 <span className="text-[11px] text-muted-foreground line-through">
+//                                   ฿{Number(item.originalPrice).toLocaleString()}
+//                                 </span>
+//                               )}
+
+//                             {discountLabel && (
+//                               <span className="inline-flex items-center rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-600">
+//                                 {discountLabel}
+//                               </span>
+//                             )}
+//                           </div>
+
+//                           <div className="text-[11px] text-muted-foreground">
+//                             จำนวน:{" "}
+//                             <span className="font-medium text-foreground">
+//                               {Number(item.quantity).toLocaleString()}{" "}
+//                               {item.uom ? item.uom : ""}
+//                             </span>
+//                           </div>
+
+//                           <div className="text-sm flex items-center justify-between mt-1">
+//                             <div>
+//                               ราคารวม:{" "}
+//                               <span className="font-bold text-red-600 text-base">
+//                                 ฿{Number(item.lineTotal).toLocaleString()}
+//                               </span>
+//                             </div>
+
+//                             <Button
+//                               variant="outline"
+//                               size="sm"
+//                               className="ml-4"
+//                               onClick={() => handleOpenEdit(item)}
+//                             >
+//                               แก้ไขรายการ
+//                             </Button>
+//                           </div>
+//                         </div>
+
+//                         <Button
+//                           size="icon"
+//                           variant="ghost"
+//                           className="h-8 w-8 text-destructive"
+//                           onClick={() => deleteItem(item.id)}
+//                         >
+//                           <Trash2 className="h-4 w-4" />
+//                         </Button>
+//                       </div>
+//                     </div>
+//                   );
+//                 })}
+//               </>
+//             )}
+//           </div>
+
+//           {/* ================= Right: สรุปรายการ ================= */}
+//           <div className="space-y-4">
+//             <div className="p-4 bg-card rounded-lg border">
+//               <h3 className="font-bold mb-4">สรุปคำสั่งซื้อ</h3>
+
+//               {items.length === 0 && !loading ? (
+//                 <p className="text-sm text-muted-foreground">
+//                   ยังไม่มีสินค้าในตะกร้า
+//                 </p>
+//               ) : (
+//                 <>
+//                   <div className="space-y-3 text-sm">
+//                     <div className="flex justify-between">
+//                       <span>ยอดรวม ({selectedUniqueItems} รายการ)</span>
+//                       <span>฿{Number(subtotal).toLocaleString()}</span>
+//                     </div>
+
+//                     <div className="flex justify-between">
+//                       <span>ค่าจัดส่ง</span>
+//                       <span
+//                         className={
+//                           shippingFee === 0 && subtotal > 0
+//                             ? "text-green-600"
+//                             : ""
+//                         }
+//                       >
+//                         {subtotal === 0
+//                           ? "-"
+//                           : shippingFee === 0
+//                           ? "ฟรี"
+//                           : `฿${Number(shippingFee).toLocaleString()}`}
+//                       </span>
+//                     </div>
+
+//                     <Separator />
+
+//                     <div className="flex justify-between font-bold text-lg">
+//                       <span>รวมทั้งสิ้น</span>
+//                       <span className="text-primary">
+//                         ฿{Number(total).toLocaleString()}
+//                       </span>
+//                     </div>
+
+//                     <p className="text-xs text-muted-foreground">
+//                       รวม VAT แล้ว
+//                     </p>
+//                   </div>
+
+//                   <Link href="/checkout">
+//                     <Button
+//                       className="w-full mt-4"
+//                       size="lg"
+//                       disabled={selectedItems.length === 0 || items.length === 0}
+//                     >
+//                       ดำเนินการชำระเงิน ({selectedUniqueItems})
+//                     </Button>
+//                   </Link>
+//                 </>
+//               )}
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Modal แก้ไขรายการ
+//           ✅ แสดงเฉพาะเมื่อ editingItem ไม่เป็น null
+//           ทำให้ CartEditProductModal ไม่ต้องเจอ item = null เลย
+//       */}
+//       {editingItem && (
+//         <CartEditProductModal
+//           open={editOpen}
+//           onClose={handleCloseEdit}
+//           item={editingItem}
+//           onUpdated={handleUpdatedFromModal}
+//         />
+//       )}
+//     </div>
+//   );
+// }
 
 // v.1.1.10 ====================================================================
 

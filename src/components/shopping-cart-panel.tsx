@@ -200,7 +200,7 @@ export function ShoppingCartPanel({ isOpen, onClose }: ShoppingCartPanelProps) {
               </div>
 
               <div className="space-y-2">
-                <Button
+                {/* <Button
                   className="w-full"
                   size="lg"
                   disabled={selectedItems.length === 0}
@@ -210,7 +210,7 @@ export function ShoppingCartPanel({ isOpen, onClose }: ShoppingCartPanelProps) {
                   }}
                 >
                   ชำระเงิน ({selectedUniqueItems} รายการ)
-                </Button>
+                </Button> */}
                 <Button
                   variant="outline"
                   className="w-full"

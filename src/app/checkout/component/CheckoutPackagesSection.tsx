@@ -1,50 +1,60 @@
-// v.1.1.6 ===============================================================
+// v.1.1.8 ===============================================================
 // src/app/checkout/component/CheckoutPackagesSection.tsx
-
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-// ✅ ใช้ type กลางจาก src/types/checkout.ts
 import type { CheckoutItem, DeliveryOption } from "@/types/checkout";
 
 type Props = {
   checkoutItems: CheckoutItem[];
-  deliveryOption: DeliveryOption; // ตอนนี้ยังรับไว้ก่อน เผื่ออนาคตใช้
-  onChangeDeliveryOption: (value: DeliveryOption) => void; // ยังไม่ใช้
+  deliveryOption: DeliveryOption;
+  onChangeDeliveryOption: (value: DeliveryOption) => void;
   onRemoveItem: (itemId: number) => void;
+
+  /** ✅ SKU ที่สต๊อกไม่พอ */
+  insufficientSkus?: string[];
+
+  /**
+   * ✅ คลิกกรอบแดงเพื่อ “ลบจาก cart แล้วไปหน้า product”
+   * (ทำใน CheckoutClient)
+   */
+  onFixInsufficientItem?: (item: CheckoutItem) => void;
 };
 
 export default function CheckoutPackagesSection({
   checkoutItems,
-  deliveryOption: _deliveryOption, // ยังไม่ใช้
-  onChangeDeliveryOption: _onChangeDeliveryOption, // ยังไม่ใช้
-  onRemoveItem,
+  deliveryOption: _deliveryOption,
+  onChangeDeliveryOption: _onChangeDeliveryOption,
+  onRemoveItem: _onRemoveItem,
+  insufficientSkus = [],
+  onFixInsufficientItem,
 }: Props) {
   return (
     <Card className="mt-6">
       <CardContent className="pt-6 space-y-3">
         <h2 className="text-lg font-bold text-gray-800 mb-2">รายการสินค้า</h2>
+
         {checkoutItems.map((item) => {
           const lineTotal = item.price * item.quantity;
+
+          const sku = item.sku ?? "";
+          const isInsufficient = !!sku && insufficientSkus.includes(sku);
 
           return (
             <div
               key={item.id}
-              className="border rounded-lg p-4 bg-gray-50 flex gap-3"
+              data-sku={sku || undefined}
+              onClick={() => {
+                if (isInsufficient) onFixInsufficientItem?.(item);
+              }}
+              className={cn(
+                "border rounded-lg p-4 flex gap-3",
+                isInsufficient
+                  ? "border-red-500 bg-red-50 cursor-pointer"
+                  : "bg-gray-50",
+              )}
             >
               {/* รูปสินค้า */}
               <img
@@ -73,7 +83,7 @@ export default function CheckoutPackagesSection({
                   )}
                 </div>
 
-                {/* ราคา/หน่วย + ป้ายส่วนลด */}
+                {/* ราคา/หน่วย */}
                 <div className="mt-1 flex items-center gap-2">
                   <div className="font-semibold text-blue-700">
                     ฿{item.price.toLocaleString()}
@@ -84,62 +94,25 @@ export default function CheckoutPackagesSection({
                       </span>
                     )}
                   </div>
-
-                  {typeof item.discountPercent === "number" && (
-                    <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-600">
-                      ประหยัด {item.discountPercent}%
-                    </span>
-                  )}
                 </div>
 
-                {/* ราคาปกติ (ถ้ามี) */}
-                {typeof item.originalPrice === "number" && (
-                  <div className="text-[11px] text-gray-400 line-through">
-                    ฿{item.originalPrice.toLocaleString()}
-                  </div>
-                )}
-
-                {/* จำนวนที่สั่ง */}
+                {/* จำนวน */}
                 <div className="mt-1 text-[11px] text-gray-600">
                   จำนวน: {item.quantity.toLocaleString()} {item.uom ?? ""}
                 </div>
 
-                {/* ราคารวมต่อรายการ */}
+                {/* ราคารวม */}
                 <div className="mt-1 text-sm font-bold text-red-600">
                   ราคารวม: ฿{lineTotal.toLocaleString()}
                 </div>
-              </div>
 
-              {/* ปุ่มลบ */}
-              {/* <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>ยืนยันการลบสินค้า</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      คุณต้องการลบ "{item.name}" ออกจากรายการสั่งซื้อหรือไม่?
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => onRemoveItem(item.id)}
-                      className="bg-red-600 hover:bg-red-700"
-                    >
-                      ลบ
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog> */}
-              
+                {/* ❌ แจ้งเตือนสต๊อกไม่พอ + วิธีแก้ */}
+                {isInsufficient && (
+                  <div className="mt-2 text-sm font-semibold text-red-700">
+                    ❌ สต๊อกไม่พอ — คลิกเพื่อไปเลือกจำนวนใหม่ (ระบบจะลบรายการนี้ออกจากตะกร้า)
+                  </div>
+                )}
+              </div>
             </div>
           );
         })}
@@ -147,6 +120,301 @@ export default function CheckoutPackagesSection({
     </Card>
   );
 }
+
+// v.1.1.8 ===============================================================
+
+// v.1.1.7 ===============================================================
+//  // src/app/checkout/component/CheckoutPackagesSection.tsx
+//  "use client";
+
+// import { Card, CardContent } from "@/components/ui/card";
+// import { Button } from "@/components/ui/button";
+// import { Trash2 } from "lucide-react";
+// import { cn } from "@/lib/utils";
+
+// // ✅ ใช้ type กลาง
+// import type { CheckoutItem, DeliveryOption } from "@/types/checkout";
+
+// type Props = {
+//   checkoutItems: CheckoutItem[];
+//   deliveryOption: DeliveryOption;
+//   onChangeDeliveryOption: (value: DeliveryOption) => void;
+//   onRemoveItem: (itemId: number) => void;
+
+//   /** ✅ เพิ่ม: SKU ที่สต๊อกไม่พอ */
+//   insufficientSkus?: string[];
+// };
+
+// export default function CheckoutPackagesSection({
+//   checkoutItems,
+//   deliveryOption: _deliveryOption,
+//   onChangeDeliveryOption: _onChangeDeliveryOption,
+//   onRemoveItem,
+//   insufficientSkus = [],
+// }: Props) {
+//   return (
+//     <Card className="mt-6">
+//       <CardContent className="pt-6 space-y-3">
+//         <h2 className="text-lg font-bold text-gray-800 mb-2">
+//           รายการสินค้า
+//         </h2>
+
+//         {checkoutItems.map((item) => {
+//           const lineTotal = item.price * item.quantity;
+
+//           const isInsufficient =
+//             !!item.sku && insufficientSkus.includes(item.sku);
+
+//           return (
+//             <div
+//               key={item.id}
+//               data-sku={item.sku}
+//               className={cn(
+//                 "border rounded-lg p-4 flex gap-3",
+//                 isInsufficient
+//                   ? "border-red-500 bg-red-50"
+//                   : "bg-gray-50",
+//               )}
+//             >
+//               {/* รูปสินค้า */}
+//               <img
+//                 src={item.image}
+//                 alt={item.name}
+//                 className="w-20 h-20 object-cover rounded"
+//               />
+
+//               {/* รายละเอียดสินค้า */}
+//               <div className="flex-1">
+//                 {/* ชื่อสินค้า */}
+//                 <h3 className="font-semibold text-sm text-gray-900">
+//                   {item.name}
+//                 </h3>
+
+//                 {/* SKU + Brand */}
+//                 <div className="mt-1 space-y-0.5 text-[11px] text-gray-500">
+//                   {item.sku && <div>SKU: {item.sku}</div>}
+//                   {item.brand && (
+//                     <div>
+//                       Brand:{" "}
+//                       <span className="font-medium text-gray-700">
+//                         {item.brand}
+//                       </span>
+//                     </div>
+//                   )}
+//                 </div>
+
+//                 {/* ราคา/หน่วย */}
+//                 <div className="mt-1 flex items-center gap-2">
+//                   <div className="font-semibold text-blue-700">
+//                     ฿{item.price.toLocaleString()}
+//                     {item.uom && (
+//                       <span className="text-xs text-gray-500">
+//                         {" "}
+//                         / {item.uom}
+//                       </span>
+//                     )}
+//                   </div>
+
+//                   {typeof item.discountPercent === "number" && (
+//                     <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-600">
+//                       ประหยัด {item.discountPercent}%
+//                     </span>
+//                   )}
+//                 </div>
+
+//                 {/* ราคาปกติ */}
+//                 {typeof item.originalPrice === "number" && (
+//                   <div className="text-[11px] text-gray-400 line-through">
+//                     ฿{item.originalPrice.toLocaleString()}
+//                   </div>
+//                 )}
+
+//                 {/* จำนวน */}
+//                 <div className="mt-1 text-[11px] text-gray-600">
+//                   จำนวน: {item.quantity.toLocaleString()} {item.uom ?? ""}
+//                 </div>
+
+//                 {/* ราคารวม */}
+//                 <div className="mt-1 text-sm font-bold text-red-600">
+//                   ราคารวม: ฿{lineTotal.toLocaleString()}
+//                 </div>
+
+//                 {/* ❌ แจ้งเตือนสต๊อกไม่พอ */}
+//                 {isInsufficient && (
+//                   <div className="mt-2 text-sm font-semibold text-red-700">
+//                     ❌ สต๊อกไม่พอสำหรับจำนวนที่เลือก
+//                   </div>
+//                 )}
+//               </div>
+
+//               {/* ปุ่มลบ (ยังไม่เปิดใช้งาน) */}
+//               {/* <Button
+//                 variant="ghost"
+//                 size="sm"
+//                 className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
+//                 onClick={() => onRemoveItem(item.id)}
+//               >
+//                 <Trash2 className="h-4 w-4" />
+//               </Button> */}
+//             </div>
+//           );
+//         })}
+//       </CardContent>
+//     </Card>
+//   );
+// }
+
+// v.1.1.7 ===============================================================
+
+// v.1.1.6 ===============================================================
+// // src/app/checkout/component/CheckoutPackagesSection.tsx
+
+// "use client";
+
+// import { Card, CardContent } from "@/components/ui/card";
+// import {
+//   AlertDialog,
+//   AlertDialogAction,
+//   AlertDialogCancel,
+//   AlertDialogContent,
+//   AlertDialogDescription,
+//   AlertDialogFooter,
+//   AlertDialogHeader,
+//   AlertDialogTitle,
+//   AlertDialogTrigger,
+// } from "@/components/ui/alert-dialog";
+// import { Button } from "@/components/ui/button";
+// import { Trash2 } from "lucide-react";
+
+// // ✅ ใช้ type กลางจาก src/types/checkout.ts
+// import type { CheckoutItem, DeliveryOption } from "@/types/checkout";
+
+// type Props = {
+//   checkoutItems: CheckoutItem[];
+//   deliveryOption: DeliveryOption; // ตอนนี้ยังรับไว้ก่อน เผื่ออนาคตใช้
+//   onChangeDeliveryOption: (value: DeliveryOption) => void; // ยังไม่ใช้
+//   onRemoveItem: (itemId: number) => void;
+// };
+
+// export default function CheckoutPackagesSection({
+//   checkoutItems,
+//   deliveryOption: _deliveryOption, // ยังไม่ใช้
+//   onChangeDeliveryOption: _onChangeDeliveryOption, // ยังไม่ใช้
+//   onRemoveItem,
+// }: Props) {
+//   return (
+//     <Card className="mt-6">
+//       <CardContent className="pt-6 space-y-3">
+//         <h2 className="text-lg font-bold text-gray-800 mb-2">รายการสินค้า</h2>
+//         {checkoutItems.map((item) => {
+//           const lineTotal = item.price * item.quantity;
+
+//           return (
+//             <div
+//               key={item.id}
+//               className="border rounded-lg p-4 bg-gray-50 flex gap-3"
+//             >
+//               {/* รูปสินค้า */}
+//               <img
+//                 src={item.image}
+//                 alt={item.name}
+//                 className="w-20 h-20 object-cover rounded"
+//               />
+
+//               {/* รายละเอียดสินค้า */}
+//               <div className="flex-1">
+//                 {/* ชื่อสินค้า */}
+//                 <h3 className="font-semibold text-sm text-gray-900">
+//                   {item.name}
+//                 </h3>
+
+//                 {/* SKU + Brand */}
+//                 <div className="mt-1 space-y-0.5 text-[11px] text-gray-500">
+//                   {item.sku && <div>SKU: {item.sku}</div>}
+//                   {item.brand && (
+//                     <div>
+//                       Brand:{" "}
+//                       <span className="font-medium text-gray-700">
+//                         {item.brand}
+//                       </span>
+//                     </div>
+//                   )}
+//                 </div>
+
+//                 {/* ราคา/หน่วย + ป้ายส่วนลด */}
+//                 <div className="mt-1 flex items-center gap-2">
+//                   <div className="font-semibold text-blue-700">
+//                     ฿{item.price.toLocaleString()}
+//                     {item.uom && (
+//                       <span className="text-xs text-gray-500">
+//                         {" "}
+//                         / {item.uom}
+//                       </span>
+//                     )}
+//                   </div>
+
+//                   {typeof item.discountPercent === "number" && (
+//                     <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-600">
+//                       ประหยัด {item.discountPercent}%
+//                     </span>
+//                   )}
+//                 </div>
+
+//                 {/* ราคาปกติ (ถ้ามี) */}
+//                 {typeof item.originalPrice === "number" && (
+//                   <div className="text-[11px] text-gray-400 line-through">
+//                     ฿{item.originalPrice.toLocaleString()}
+//                   </div>
+//                 )}
+
+//                 {/* จำนวนที่สั่ง */}
+//                 <div className="mt-1 text-[11px] text-gray-600">
+//                   จำนวน: {item.quantity.toLocaleString()} {item.uom ?? ""}
+//                 </div>
+
+//                 {/* ราคารวมต่อรายการ */}
+//                 <div className="mt-1 text-sm font-bold text-red-600">
+//                   ราคารวม: ฿{lineTotal.toLocaleString()}
+//                 </div>
+//               </div>
+
+//               {/* ปุ่มลบ */}
+//               {/* <AlertDialog>
+//                 <AlertDialogTrigger asChild>
+//                   <Button
+//                     variant="ghost"
+//                     size="sm"
+//                     className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
+//                   >
+//                     <Trash2 className="h-4 w-4" />
+//                   </Button>
+//                 </AlertDialogTrigger>
+//                 <AlertDialogContent>
+//                   <AlertDialogHeader>
+//                     <AlertDialogTitle>ยืนยันการลบสินค้า</AlertDialogTitle>
+//                     <AlertDialogDescription>
+//                       คุณต้องการลบ "{item.name}" ออกจากรายการสั่งซื้อหรือไม่?
+//                     </AlertDialogDescription>
+//                   </AlertDialogHeader>
+//                   <AlertDialogFooter>
+//                     <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+//                     <AlertDialogAction
+//                       onClick={() => onRemoveItem(item.id)}
+//                       className="bg-red-600 hover:bg-red-700"
+//                     >
+//                       ลบ
+//                     </AlertDialogAction>
+//                   </AlertDialogFooter>
+//                 </AlertDialogContent>
+//               </AlertDialog> */}
+              
+//             </div>
+//           );
+//         })}
+//       </CardContent>
+//     </Card>
+//   );
+// }
 
 // v.1.1.6 ===============================================================
 

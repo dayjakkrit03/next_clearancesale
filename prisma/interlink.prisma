@@ -85,6 +85,7 @@ model product {
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   clearanceSales      Boolean? @default(false)
   clearanceQuantity   Int?     @default(0)
   clearancePrice      Decimal? @db.Decimal(10, 2)
@@ -127,13 +128,16 @@ model category_clearance {
 }
 
 model discountpercentage_clearance_tb {
-  dcp_id           BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
-  product_id       Int      @default(0)
-  product_discount String   @db.Text
-  create_date      DateTime @default(dbgenerated("'0000-00-00 00:00:00'")) @db.DateTime(0)
-  create_name      String   @default("admin") @db.VarChar(250)
-  update_date      DateTime @default(dbgenerated("'0000-00-00 00:00:00'")) @db.DateTime(0)
-  update_name      String   @default("admin") @db.VarChar(250)
+  dcp_id        BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  product_id    Int
+  grade_name    String   @db.VarChar(50)
+  store_name    String   @db.VarChar(100)
+  store_number  Int
+  product_price Decimal  @db.Decimal(10, 2)
+  create_date   DateTime @default(now()) @db.DateTime(0)
+  update_date   DateTime @default(now()) @db.DateTime(0)
+
+  @@index([product_id, grade_name, store_name], map: "idx_product_grade_store")
 }
 
 model discountpercentage_tb {
@@ -233,6 +237,7 @@ model product_clearance {
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   clearanceSales      Boolean? @default(false)
   clearanceQuantity   Int?     @default(0)
   clearancePrice      Decimal? @db.Decimal(10, 2)
@@ -268,6 +273,7 @@ model product_test_upload {
   product_uom         String?  @db.VarChar(10)
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 09 Boolean @default(true) @map("09")
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
@@ -386,6 +392,8 @@ model products_clearance {
   // 09 Boolean @default(true) @map("09")
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 13 Boolean @default(true) @map("13")
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*

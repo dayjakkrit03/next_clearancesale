@@ -6955,6 +6955,7 @@ export namespace Prisma {
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        */
       clearanceSales: boolean | null
       clearanceQuantity: number | null
@@ -9706,41 +9707,48 @@ export namespace Prisma {
   export type Discountpercentage_clearance_tbAvgAggregateOutputType = {
     dcp_id: number | null
     product_id: number | null
+    store_number: number | null
+    product_price: Decimal | null
   }
 
   export type Discountpercentage_clearance_tbSumAggregateOutputType = {
     dcp_id: bigint | null
     product_id: number | null
+    store_number: number | null
+    product_price: Decimal | null
   }
 
   export type Discountpercentage_clearance_tbMinAggregateOutputType = {
     dcp_id: bigint | null
     product_id: number | null
-    product_discount: string | null
+    grade_name: string | null
+    store_name: string | null
+    store_number: number | null
+    product_price: Decimal | null
     create_date: Date | null
-    create_name: string | null
     update_date: Date | null
-    update_name: string | null
   }
 
   export type Discountpercentage_clearance_tbMaxAggregateOutputType = {
     dcp_id: bigint | null
     product_id: number | null
-    product_discount: string | null
+    grade_name: string | null
+    store_name: string | null
+    store_number: number | null
+    product_price: Decimal | null
     create_date: Date | null
-    create_name: string | null
     update_date: Date | null
-    update_name: string | null
   }
 
   export type Discountpercentage_clearance_tbCountAggregateOutputType = {
     dcp_id: number
     product_id: number
-    product_discount: number
+    grade_name: number
+    store_name: number
+    store_number: number
+    product_price: number
     create_date: number
-    create_name: number
     update_date: number
-    update_name: number
     _all: number
   }
 
@@ -9748,41 +9756,48 @@ export namespace Prisma {
   export type Discountpercentage_clearance_tbAvgAggregateInputType = {
     dcp_id?: true
     product_id?: true
+    store_number?: true
+    product_price?: true
   }
 
   export type Discountpercentage_clearance_tbSumAggregateInputType = {
     dcp_id?: true
     product_id?: true
+    store_number?: true
+    product_price?: true
   }
 
   export type Discountpercentage_clearance_tbMinAggregateInputType = {
     dcp_id?: true
     product_id?: true
-    product_discount?: true
+    grade_name?: true
+    store_name?: true
+    store_number?: true
+    product_price?: true
     create_date?: true
-    create_name?: true
     update_date?: true
-    update_name?: true
   }
 
   export type Discountpercentage_clearance_tbMaxAggregateInputType = {
     dcp_id?: true
     product_id?: true
-    product_discount?: true
+    grade_name?: true
+    store_name?: true
+    store_number?: true
+    product_price?: true
     create_date?: true
-    create_name?: true
     update_date?: true
-    update_name?: true
   }
 
   export type Discountpercentage_clearance_tbCountAggregateInputType = {
     dcp_id?: true
     product_id?: true
-    product_discount?: true
+    grade_name?: true
+    store_name?: true
+    store_number?: true
+    product_price?: true
     create_date?: true
-    create_name?: true
     update_date?: true
-    update_name?: true
     _all?: true
   }
 
@@ -9875,11 +9890,12 @@ export namespace Prisma {
   export type Discountpercentage_clearance_tbGroupByOutputType = {
     dcp_id: bigint
     product_id: number
-    product_discount: string
+    grade_name: string
+    store_name: string
+    store_number: number
+    product_price: Decimal
     create_date: Date
-    create_name: string
     update_date: Date
-    update_name: string
     _count: Discountpercentage_clearance_tbCountAggregateOutputType | null
     _avg: Discountpercentage_clearance_tbAvgAggregateOutputType | null
     _sum: Discountpercentage_clearance_tbSumAggregateOutputType | null
@@ -9904,11 +9920,12 @@ export namespace Prisma {
   export type discountpercentage_clearance_tbSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     dcp_id?: boolean
     product_id?: boolean
-    product_discount?: boolean
+    grade_name?: boolean
+    store_name?: boolean
+    store_number?: boolean
+    product_price?: boolean
     create_date?: boolean
-    create_name?: boolean
     update_date?: boolean
-    update_name?: boolean
   }, ExtArgs["result"]["discountpercentage_clearance_tb"]>
 
 
@@ -9916,14 +9933,15 @@ export namespace Prisma {
   export type discountpercentage_clearance_tbSelectScalar = {
     dcp_id?: boolean
     product_id?: boolean
-    product_discount?: boolean
+    grade_name?: boolean
+    store_name?: boolean
+    store_number?: boolean
+    product_price?: boolean
     create_date?: boolean
-    create_name?: boolean
     update_date?: boolean
-    update_name?: boolean
   }
 
-  export type discountpercentage_clearance_tbOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"dcp_id" | "product_id" | "product_discount" | "create_date" | "create_name" | "update_date" | "update_name", ExtArgs["result"]["discountpercentage_clearance_tb"]>
+  export type discountpercentage_clearance_tbOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"dcp_id" | "product_id" | "grade_name" | "store_name" | "store_number" | "product_price" | "create_date" | "update_date", ExtArgs["result"]["discountpercentage_clearance_tb"]>
 
   export type $discountpercentage_clearance_tbPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "discountpercentage_clearance_tb"
@@ -9931,11 +9949,12 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       dcp_id: bigint
       product_id: number
-      product_discount: string
+      grade_name: string
+      store_name: string
+      store_number: number
+      product_price: Prisma.Decimal
       create_date: Date
-      create_name: string
       update_date: Date
-      update_name: string
     }, ExtArgs["result"]["discountpercentage_clearance_tb"]>
     composites: {}
   }
@@ -10307,11 +10326,12 @@ export namespace Prisma {
   interface discountpercentage_clearance_tbFieldRefs {
     readonly dcp_id: FieldRef<"discountpercentage_clearance_tb", 'BigInt'>
     readonly product_id: FieldRef<"discountpercentage_clearance_tb", 'Int'>
-    readonly product_discount: FieldRef<"discountpercentage_clearance_tb", 'String'>
+    readonly grade_name: FieldRef<"discountpercentage_clearance_tb", 'String'>
+    readonly store_name: FieldRef<"discountpercentage_clearance_tb", 'String'>
+    readonly store_number: FieldRef<"discountpercentage_clearance_tb", 'Int'>
+    readonly product_price: FieldRef<"discountpercentage_clearance_tb", 'Decimal'>
     readonly create_date: FieldRef<"discountpercentage_clearance_tb", 'DateTime'>
-    readonly create_name: FieldRef<"discountpercentage_clearance_tb", 'String'>
     readonly update_date: FieldRef<"discountpercentage_clearance_tb", 'DateTime'>
-    readonly update_name: FieldRef<"discountpercentage_clearance_tb", 'String'>
   }
     
 
@@ -16836,6 +16856,7 @@ export namespace Prisma {
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        */
       clearanceSales: boolean | null
       clearanceQuantity: number | null
@@ -18056,6 +18077,7 @@ export namespace Prisma {
       updated_at: Date
       product_uom: string | null
       /**
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
@@ -24366,6 +24388,8 @@ export namespace Prisma {
       visible: boolean
       display_order: number
       /**
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+       * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
        * This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
@@ -34854,11 +34878,12 @@ export namespace Prisma {
   export const Discountpercentage_clearance_tbScalarFieldEnum: {
     dcp_id: 'dcp_id',
     product_id: 'product_id',
-    product_discount: 'product_discount',
+    grade_name: 'grade_name',
+    store_name: 'store_name',
+    store_number: 'store_number',
+    product_price: 'product_price',
     create_date: 'create_date',
-    create_name: 'create_name',
-    update_date: 'update_date',
-    update_name: 'update_name'
+    update_date: 'update_date'
   };
 
   export type Discountpercentage_clearance_tbScalarFieldEnum = (typeof Discountpercentage_clearance_tbScalarFieldEnum)[keyof typeof Discountpercentage_clearance_tbScalarFieldEnum]
@@ -35357,9 +35382,8 @@ export namespace Prisma {
 
 
   export const discountpercentage_clearance_tbOrderByRelevanceFieldEnum: {
-    product_discount: 'product_discount',
-    create_name: 'create_name',
-    update_name: 'update_name'
+    grade_name: 'grade_name',
+    store_name: 'store_name'
   };
 
   export type discountpercentage_clearance_tbOrderByRelevanceFieldEnum = (typeof discountpercentage_clearance_tbOrderByRelevanceFieldEnum)[keyof typeof discountpercentage_clearance_tbOrderByRelevanceFieldEnum]
@@ -36302,21 +36326,23 @@ export namespace Prisma {
     NOT?: discountpercentage_clearance_tbWhereInput | discountpercentage_clearance_tbWhereInput[]
     dcp_id?: BigIntFilter<"discountpercentage_clearance_tb"> | bigint | number
     product_id?: IntFilter<"discountpercentage_clearance_tb"> | number
-    product_discount?: StringFilter<"discountpercentage_clearance_tb"> | string
+    grade_name?: StringFilter<"discountpercentage_clearance_tb"> | string
+    store_name?: StringFilter<"discountpercentage_clearance_tb"> | string
+    store_number?: IntFilter<"discountpercentage_clearance_tb"> | number
+    product_price?: DecimalFilter<"discountpercentage_clearance_tb"> | Decimal | DecimalJsLike | number | string
     create_date?: DateTimeFilter<"discountpercentage_clearance_tb"> | Date | string
-    create_name?: StringFilter<"discountpercentage_clearance_tb"> | string
     update_date?: DateTimeFilter<"discountpercentage_clearance_tb"> | Date | string
-    update_name?: StringFilter<"discountpercentage_clearance_tb"> | string
   }
 
   export type discountpercentage_clearance_tbOrderByWithRelationInput = {
     dcp_id?: SortOrder
     product_id?: SortOrder
-    product_discount?: SortOrder
+    grade_name?: SortOrder
+    store_name?: SortOrder
+    store_number?: SortOrder
+    product_price?: SortOrder
     create_date?: SortOrder
-    create_name?: SortOrder
     update_date?: SortOrder
-    update_name?: SortOrder
     _relevance?: discountpercentage_clearance_tbOrderByRelevanceInput
   }
 
@@ -36326,21 +36352,23 @@ export namespace Prisma {
     OR?: discountpercentage_clearance_tbWhereInput[]
     NOT?: discountpercentage_clearance_tbWhereInput | discountpercentage_clearance_tbWhereInput[]
     product_id?: IntFilter<"discountpercentage_clearance_tb"> | number
-    product_discount?: StringFilter<"discountpercentage_clearance_tb"> | string
+    grade_name?: StringFilter<"discountpercentage_clearance_tb"> | string
+    store_name?: StringFilter<"discountpercentage_clearance_tb"> | string
+    store_number?: IntFilter<"discountpercentage_clearance_tb"> | number
+    product_price?: DecimalFilter<"discountpercentage_clearance_tb"> | Decimal | DecimalJsLike | number | string
     create_date?: DateTimeFilter<"discountpercentage_clearance_tb"> | Date | string
-    create_name?: StringFilter<"discountpercentage_clearance_tb"> | string
     update_date?: DateTimeFilter<"discountpercentage_clearance_tb"> | Date | string
-    update_name?: StringFilter<"discountpercentage_clearance_tb"> | string
   }, "dcp_id">
 
   export type discountpercentage_clearance_tbOrderByWithAggregationInput = {
     dcp_id?: SortOrder
     product_id?: SortOrder
-    product_discount?: SortOrder
+    grade_name?: SortOrder
+    store_name?: SortOrder
+    store_number?: SortOrder
+    product_price?: SortOrder
     create_date?: SortOrder
-    create_name?: SortOrder
     update_date?: SortOrder
-    update_name?: SortOrder
     _count?: discountpercentage_clearance_tbCountOrderByAggregateInput
     _avg?: discountpercentage_clearance_tbAvgOrderByAggregateInput
     _max?: discountpercentage_clearance_tbMaxOrderByAggregateInput
@@ -36354,11 +36382,12 @@ export namespace Prisma {
     NOT?: discountpercentage_clearance_tbScalarWhereWithAggregatesInput | discountpercentage_clearance_tbScalarWhereWithAggregatesInput[]
     dcp_id?: BigIntWithAggregatesFilter<"discountpercentage_clearance_tb"> | bigint | number
     product_id?: IntWithAggregatesFilter<"discountpercentage_clearance_tb"> | number
-    product_discount?: StringWithAggregatesFilter<"discountpercentage_clearance_tb"> | string
+    grade_name?: StringWithAggregatesFilter<"discountpercentage_clearance_tb"> | string
+    store_name?: StringWithAggregatesFilter<"discountpercentage_clearance_tb"> | string
+    store_number?: IntWithAggregatesFilter<"discountpercentage_clearance_tb"> | number
+    product_price?: DecimalWithAggregatesFilter<"discountpercentage_clearance_tb"> | Decimal | DecimalJsLike | number | string
     create_date?: DateTimeWithAggregatesFilter<"discountpercentage_clearance_tb"> | Date | string
-    create_name?: StringWithAggregatesFilter<"discountpercentage_clearance_tb"> | string
     update_date?: DateTimeWithAggregatesFilter<"discountpercentage_clearance_tb"> | Date | string
-    update_name?: StringWithAggregatesFilter<"discountpercentage_clearance_tb"> | string
   }
 
   export type discountpercentage_tbWhereInput = {
@@ -39018,72 +39047,79 @@ export namespace Prisma {
 
   export type discountpercentage_clearance_tbCreateInput = {
     dcp_id?: bigint | number
-    product_id?: number
-    product_discount: string
+    product_id: number
+    grade_name: string
+    store_name: string
+    store_number: number
+    product_price: Decimal | DecimalJsLike | number | string
     create_date?: Date | string
-    create_name?: string
     update_date?: Date | string
-    update_name?: string
   }
 
   export type discountpercentage_clearance_tbUncheckedCreateInput = {
     dcp_id?: bigint | number
-    product_id?: number
-    product_discount: string
+    product_id: number
+    grade_name: string
+    store_name: string
+    store_number: number
+    product_price: Decimal | DecimalJsLike | number | string
     create_date?: Date | string
-    create_name?: string
     update_date?: Date | string
-    update_name?: string
   }
 
   export type discountpercentage_clearance_tbUpdateInput = {
     dcp_id?: BigIntFieldUpdateOperationsInput | bigint | number
     product_id?: IntFieldUpdateOperationsInput | number
-    product_discount?: StringFieldUpdateOperationsInput | string
+    grade_name?: StringFieldUpdateOperationsInput | string
+    store_name?: StringFieldUpdateOperationsInput | string
+    store_number?: IntFieldUpdateOperationsInput | number
+    product_price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     create_date?: DateTimeFieldUpdateOperationsInput | Date | string
-    create_name?: StringFieldUpdateOperationsInput | string
     update_date?: DateTimeFieldUpdateOperationsInput | Date | string
-    update_name?: StringFieldUpdateOperationsInput | string
   }
 
   export type discountpercentage_clearance_tbUncheckedUpdateInput = {
     dcp_id?: BigIntFieldUpdateOperationsInput | bigint | number
     product_id?: IntFieldUpdateOperationsInput | number
-    product_discount?: StringFieldUpdateOperationsInput | string
+    grade_name?: StringFieldUpdateOperationsInput | string
+    store_name?: StringFieldUpdateOperationsInput | string
+    store_number?: IntFieldUpdateOperationsInput | number
+    product_price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     create_date?: DateTimeFieldUpdateOperationsInput | Date | string
-    create_name?: StringFieldUpdateOperationsInput | string
     update_date?: DateTimeFieldUpdateOperationsInput | Date | string
-    update_name?: StringFieldUpdateOperationsInput | string
   }
 
   export type discountpercentage_clearance_tbCreateManyInput = {
     dcp_id?: bigint | number
-    product_id?: number
-    product_discount: string
+    product_id: number
+    grade_name: string
+    store_name: string
+    store_number: number
+    product_price: Decimal | DecimalJsLike | number | string
     create_date?: Date | string
-    create_name?: string
     update_date?: Date | string
-    update_name?: string
   }
 
   export type discountpercentage_clearance_tbUpdateManyMutationInput = {
     dcp_id?: BigIntFieldUpdateOperationsInput | bigint | number
     product_id?: IntFieldUpdateOperationsInput | number
-    product_discount?: StringFieldUpdateOperationsInput | string
+    grade_name?: StringFieldUpdateOperationsInput | string
+    store_name?: StringFieldUpdateOperationsInput | string
+    store_number?: IntFieldUpdateOperationsInput | number
+    product_price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     create_date?: DateTimeFieldUpdateOperationsInput | Date | string
-    create_name?: StringFieldUpdateOperationsInput | string
     update_date?: DateTimeFieldUpdateOperationsInput | Date | string
-    update_name?: StringFieldUpdateOperationsInput | string
   }
 
   export type discountpercentage_clearance_tbUncheckedUpdateManyInput = {
     dcp_id?: BigIntFieldUpdateOperationsInput | bigint | number
     product_id?: IntFieldUpdateOperationsInput | number
-    product_discount?: StringFieldUpdateOperationsInput | string
+    grade_name?: StringFieldUpdateOperationsInput | string
+    store_name?: StringFieldUpdateOperationsInput | string
+    store_number?: IntFieldUpdateOperationsInput | number
+    product_price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     create_date?: DateTimeFieldUpdateOperationsInput | Date | string
-    create_name?: StringFieldUpdateOperationsInput | string
     update_date?: DateTimeFieldUpdateOperationsInput | Date | string
-    update_name?: StringFieldUpdateOperationsInput | string
   }
 
   export type discountpercentage_tbCreateInput = {
@@ -41956,6 +41992,17 @@ export namespace Prisma {
     users_action?: SortOrder
   }
 
+  export type DecimalFilter<$PrismaModel = never> = {
+    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    in?: Decimal[] | DecimalJsLike[] | number[] | string[]
+    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[]
+    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    not?: NestedDecimalFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string
+  }
+
   export type discountpercentage_clearance_tbOrderByRelevanceInput = {
     fields: discountpercentage_clearance_tbOrderByRelevanceFieldEnum | discountpercentage_clearance_tbOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -41965,41 +42012,64 @@ export namespace Prisma {
   export type discountpercentage_clearance_tbCountOrderByAggregateInput = {
     dcp_id?: SortOrder
     product_id?: SortOrder
-    product_discount?: SortOrder
+    grade_name?: SortOrder
+    store_name?: SortOrder
+    store_number?: SortOrder
+    product_price?: SortOrder
     create_date?: SortOrder
-    create_name?: SortOrder
     update_date?: SortOrder
-    update_name?: SortOrder
   }
 
   export type discountpercentage_clearance_tbAvgOrderByAggregateInput = {
     dcp_id?: SortOrder
     product_id?: SortOrder
+    store_number?: SortOrder
+    product_price?: SortOrder
   }
 
   export type discountpercentage_clearance_tbMaxOrderByAggregateInput = {
     dcp_id?: SortOrder
     product_id?: SortOrder
-    product_discount?: SortOrder
+    grade_name?: SortOrder
+    store_name?: SortOrder
+    store_number?: SortOrder
+    product_price?: SortOrder
     create_date?: SortOrder
-    create_name?: SortOrder
     update_date?: SortOrder
-    update_name?: SortOrder
   }
 
   export type discountpercentage_clearance_tbMinOrderByAggregateInput = {
     dcp_id?: SortOrder
     product_id?: SortOrder
-    product_discount?: SortOrder
+    grade_name?: SortOrder
+    store_name?: SortOrder
+    store_number?: SortOrder
+    product_price?: SortOrder
     create_date?: SortOrder
-    create_name?: SortOrder
     update_date?: SortOrder
-    update_name?: SortOrder
   }
 
   export type discountpercentage_clearance_tbSumOrderByAggregateInput = {
     dcp_id?: SortOrder
     product_id?: SortOrder
+    store_number?: SortOrder
+    product_price?: SortOrder
+  }
+
+  export type DecimalWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    in?: Decimal[] | DecimalJsLike[] | number[] | string[]
+    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[]
+    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    not?: NestedDecimalWithAggregatesFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedDecimalFilter<$PrismaModel>
+    _sum?: NestedDecimalFilter<$PrismaModel>
+    _min?: NestedDecimalFilter<$PrismaModel>
+    _max?: NestedDecimalFilter<$PrismaModel>
   }
 
   export type discountpercentage_tbOrderByRelevanceInput = {
@@ -42638,17 +42708,6 @@ export namespace Prisma {
     not?: NestedEnumdiscount_rules_frame_modeFilter<$PrismaModel> | $Enums.discount_rules_frame_mode
   }
 
-  export type DecimalFilter<$PrismaModel = never> = {
-    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    in?: Decimal[] | DecimalJsLike[] | number[] | string[]
-    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[]
-    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    not?: NestedDecimalFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string
-  }
-
   export type Enumdiscount_rules_frame_object_fitFilter<$PrismaModel = never> = {
     equals?: $Enums.discount_rules_frame_object_fit | Enumdiscount_rules_frame_object_fitFieldRefInput<$PrismaModel>
     in?: $Enums.discount_rules_frame_object_fit[]
@@ -42766,22 +42825,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumdiscount_rules_frame_modeFilter<$PrismaModel>
     _max?: NestedEnumdiscount_rules_frame_modeFilter<$PrismaModel>
-  }
-
-  export type DecimalWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    in?: Decimal[] | DecimalJsLike[] | number[] | string[]
-    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[]
-    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    not?: NestedDecimalWithAggregatesFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedDecimalFilter<$PrismaModel>
-    _sum?: NestedDecimalFilter<$PrismaModel>
-    _min?: NestedDecimalFilter<$PrismaModel>
-    _max?: NestedDecimalFilter<$PrismaModel>
   }
 
   export type Enumdiscount_rules_frame_object_fitWithAggregatesFilter<$PrismaModel = never> = {
@@ -43794,20 +43837,20 @@ export namespace Prisma {
     set?: boolean | null
   }
 
-  export type BoolFieldUpdateOperationsInput = {
-    set?: boolean
-  }
-
-  export type Enumdiscount_rules_frame_modeFieldUpdateOperationsInput = {
-    set?: $Enums.discount_rules_frame_mode
-  }
-
   export type DecimalFieldUpdateOperationsInput = {
     set?: Decimal | DecimalJsLike | number | string
     increment?: Decimal | DecimalJsLike | number | string
     decrement?: Decimal | DecimalJsLike | number | string
     multiply?: Decimal | DecimalJsLike | number | string
     divide?: Decimal | DecimalJsLike | number | string
+  }
+
+  export type BoolFieldUpdateOperationsInput = {
+    set?: boolean
+  }
+
+  export type Enumdiscount_rules_frame_modeFieldUpdateOperationsInput = {
+    set?: $Enums.discount_rules_frame_mode
   }
 
   export type Enumdiscount_rules_frame_object_fitFieldUpdateOperationsInput = {
@@ -44232,6 +44275,33 @@ export namespace Prisma {
     _max?: NestedBoolNullableFilter<$PrismaModel>
   }
 
+  export type NestedDecimalFilter<$PrismaModel = never> = {
+    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    in?: Decimal[] | DecimalJsLike[] | number[] | string[]
+    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[]
+    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    not?: NestedDecimalFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string
+  }
+
+  export type NestedDecimalWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    in?: Decimal[] | DecimalJsLike[] | number[] | string[]
+    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[]
+    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    not?: NestedDecimalWithAggregatesFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedDecimalFilter<$PrismaModel>
+    _sum?: NestedDecimalFilter<$PrismaModel>
+    _min?: NestedDecimalFilter<$PrismaModel>
+    _max?: NestedDecimalFilter<$PrismaModel>
+  }
+
   export type NestedBoolFilter<$PrismaModel = never> = {
     equals?: boolean | BooleanFieldRefInput<$PrismaModel>
     not?: NestedBoolFilter<$PrismaModel> | boolean
@@ -44242,17 +44312,6 @@ export namespace Prisma {
     in?: $Enums.discount_rules_frame_mode[]
     notIn?: $Enums.discount_rules_frame_mode[]
     not?: NestedEnumdiscount_rules_frame_modeFilter<$PrismaModel> | $Enums.discount_rules_frame_mode
-  }
-
-  export type NestedDecimalFilter<$PrismaModel = never> = {
-    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    in?: Decimal[] | DecimalJsLike[] | number[] | string[]
-    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[]
-    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    not?: NestedDecimalFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string
   }
 
   export type NestedEnumdiscount_rules_frame_object_fitFilter<$PrismaModel = never> = {
@@ -44289,22 +44348,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumdiscount_rules_frame_modeFilter<$PrismaModel>
     _max?: NestedEnumdiscount_rules_frame_modeFilter<$PrismaModel>
-  }
-
-  export type NestedDecimalWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    in?: Decimal[] | DecimalJsLike[] | number[] | string[]
-    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[]
-    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    not?: NestedDecimalWithAggregatesFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedDecimalFilter<$PrismaModel>
-    _sum?: NestedDecimalFilter<$PrismaModel>
-    _min?: NestedDecimalFilter<$PrismaModel>
-    _max?: NestedDecimalFilter<$PrismaModel>
   }
 
   export type NestedEnumdiscount_rules_frame_object_fitWithAggregatesFilter<$PrismaModel = never> = {

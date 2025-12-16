@@ -1,10 +1,15 @@
-// v.1.1.8 ==================================================================
+// v.1.1.9 ==================================================================
 // src/services/checkout/checkout.service.ts
 
-import type { CheckoutData } from "@/types/checkout";
+import type {
+  CheckoutData,
+  ProductForCheckout,
+  PaymentMethod,
+} from "@/types/checkout";
 import { buildCheckoutProfileInfo } from "@/types/checkout";
 
 import type { PersonProfile, EntityProfile } from "@/types/profile";
+import type { CartItem } from "@/types/cart";
 
 import {
   buildCheckoutItemsFromCart,
@@ -15,13 +20,26 @@ import {
   type CartWithProduct,
 } from "./checkout.helpers";
 
-import { getCartAndProductsForCheckout } from "./checkout.query";
+import {
+  getCartAndProductsForCheckout,
+  getCartItemsForCheckout,
+  getProductsForCheckout,
+} from "./checkout.query";
+
+import {
+  getNextRefInv,
+  createRefToInv,
+  createInvRecord,
+  type CheckoutDataPayload,
+} from "./checkout.crud";
 
 import { ProfileService } from "@/services/profile.service";
 
+const PAYMENT_BASE_URL =
+  process.env.PAYMENT_MOCK_BASE_URL ?? "http://127.0.0.1:8000";
+
 /* ======================================================
  *  Helper: แปลง BigInt → number (recursive)
- *  เพื่อให้ object ส่งไป client ได้ (JSON-serializable)
  * ====================================================== */
 
 function deepBigIntToNumber<T>(value: T): T {
@@ -47,6 +65,54 @@ function deepBigIntToNumber<T>(value: T): T {
   return value;
 }
 
+/* ======================================================
+ *  Helper: join cart + products ด้วย SKU
+ * ====================================================== */
+
+function joinCartAndProducts(
+  cartItems: CartItem[],
+  products: ProductForCheckout[],
+): CartWithProduct[] {
+  const productBySku = new Map<string, ProductForCheckout>();
+  for (const p of products) {
+    productBySku.set(String(p.sku), p);
+  }
+
+  const joined: CartWithProduct[] = [];
+
+  for (const cart of cartItems as any[]) {
+    const sku = String(cart.product);
+    const product = productBySku.get(sku);
+
+    if (!product) {
+      console.log("[checkout] NO product match for cart SKU", sku);
+      continue;
+    }
+
+    joined.push({ cart: cart as CartItem, product });
+  }
+
+  return joined;
+}
+
+/* ======================================================
+ *  Type ผลลัพธ์ตอนสร้าง session จ่ายเงิน
+ * ====================================================== */
+
+export type CreatePaymentSessionResult = {
+  paymentMethod: PaymentMethod;
+  amount: number;
+  refInv: string;
+  invId: number;
+  orderId: string | null;
+  itemForLeadTime: {
+    sku: string;
+    uom: string | null;
+    stock: string;
+  }[];
+  rawResponse: any;
+};
+
 /**
  * Service หลักของ Checkout
  * รวมข้อมูลจาก:
@@ -59,7 +125,7 @@ export class CheckoutService {
    * โหลดข้อมูลทั้งหมดที่จำเป็นสำหรับหน้า /checkout
    */
   static async getCheckoutData(
-    customerId: number | bigint
+    customerId: number | bigint,
   ): Promise<CheckoutData> {
     const cid = BigInt(customerId);
 
@@ -75,7 +141,7 @@ export class CheckoutService {
       "[checkout] cartItems length =",
       cartItems.length,
       "products length =",
-      products.length
+      products.length,
     );
     if (cartItems.length > 0) {
       console.log("[checkout] cartItems sample =", cartItems[0]);
@@ -84,31 +150,14 @@ export class CheckoutService {
       console.log("[checkout] products sample =", products[0]);
     }
 
-    // 2) join cart + products ด้วย SKU (cart.product ↔ product.sku)
-    const productBySku = new Map<string, (typeof products)[number]>();
-    for (const p of products) {
-      productBySku.set(String(p.sku), p);
-    }
-
-    const cartWithProduct: CartWithProduct[] = cartItems
-      .map((cart) => {
-        const sku = String((cart as any).product);
-        const product = productBySku.get(sku);
-
-        if (!product) {
-          console.log("[checkout] NO product match for cart SKU", sku);
-          return null;
-        }
-
-        return { cart, product };
-      })
-      .filter((r): r is CartWithProduct => r !== null);
+    // 2) join cart + products ด้วย SKU
+    const cartWithProduct = joinCartAndProducts(cartItems, products);
 
     console.log(
       "[checkout] cartWithProduct length =",
       cartWithProduct.length,
       "sample =",
-      cartWithProduct[0]
+      cartWithProduct[0],
     );
 
     // 3) map → CheckoutItem[]
@@ -118,7 +167,7 @@ export class CheckoutService {
       "[checkout] checkoutItems length =",
       checkoutItems.length,
       "sample =",
-      checkoutItems[0]
+      checkoutItems[0],
     );
 
     // 4) summary เบื้องต้น (ยังไม่คิด shipping/ส่วนลดจริง)
@@ -148,7 +197,7 @@ export class CheckoutService {
     // 5.1) profile → address (shipping / billing)
     const { shipping, billing } = buildCheckoutAddressesFromProfiles(
       personProfile,
-      entityProfile
+      entityProfile,
     );
 
     const shippingAddress = pickDefaultAddress(shipping);
@@ -184,20 +233,370 @@ export class CheckoutService {
 
     console.log(
       "[checkout] final CheckoutData.personProfile =",
-      data.personProfile
+      data.personProfile,
     );
     console.log(
       "[checkout] final CheckoutData.entityProfile =",
-      data.entityProfile
+      data.entityProfile,
     );
     console.log(
       "[checkout] final CheckoutData items length =",
-      data.items.length
+      data.items.length,
     );
 
     return data;
   }
+
+  /**
+   * สร้าง "payment session" สำหรับเริ่มจ่ายเงิน
+   * - คำนวณ amount จาก cart จริง (เฉพาะรายการ ready for checkout)
+   * - สร้าง ref_inv + ref_to_invs + inv
+   * - ยิง FastAPI mock (/create-payment) แทน KBank
+   *
+   * ใช้แทน logic ใน makeBuy สาขา payqr / paycard
+   */
+  static async createPaymentSession(
+    customerId: number | bigint,
+    paymentMethod: PaymentMethod,
+  ): Promise<CreatePaymentSessionResult> {
+    const cid = BigInt(customerId);
+    console.log(
+      "[checkout] createPaymentSession cid =",
+      cid,
+      "method =",
+      paymentMethod,
+    );
+
+    // 1) ดึง cart สำหรับ checkout
+    const cartItems: CartItem[] = await getCartItemsForCheckout(cid);
+    console.log(
+      "[checkout] createPaymentSession cartItems length =",
+      cartItems.length,
+    );
+
+    if (!cartItems.length) {
+      throw new Error("ไม่มีสินค้าในตะกร้า สำหรับ checkout");
+    }
+
+    // 2) ดึง products ที่เกี่ยวข้อง
+    const skus = Array.from(
+      new Set(
+        cartItems
+          .map((c: any) => c.product)
+          .filter((sku) => sku != null)
+          .map(String),
+      ),
+    );
+
+    const products: ProductForCheckout[] = skus.length
+      ? await getProductsForCheckout(skus)
+      : [];
+
+    // 3) join cart + products → CheckoutItem[]
+    const cartWithProduct = joinCartAndProducts(cartItems, products);
+    const checkoutItems = buildCheckoutItemsFromCart(cartWithProduct);
+
+    // 4) คำนวณ amount แบบ Laravel: sum(price_amount)
+    const amountRaw = checkoutItems.reduce((sum, item) => {
+      const line =
+        typeof item.lineTotal === "number"
+          ? item.lineTotal
+          : item.price * item.quantity;
+      return sum + line;
+    }, 0);
+
+    const amount = Number(amountRaw.toFixed(2));
+    console.log("[checkout] createPaymentSession amount =", amount);
+
+    // 4.1) เตรียม item_forLeadTime (sku/uom/stock)
+    const itemForLeadTime = cartItems.map((c: any) => ({
+      sku: String(c.product),
+      uom: (c.uom as string | null) ?? "EA",
+      stock: "01", // เหมือน Laravel เดิม
+    }));
+
+    // 5) gen ref_inv จาก counts + update counts
+    const { refInv } = await getNextRefInv();
+    console.log("[checkout] createPaymentSession refInv =", refInv);
+
+    // 6) เตรียม payload datasend แบบ Laravel
+    const descriptionBase =
+      paymentMethod === "qr"
+        ? "Interlink Shop Pay Thai QR"
+        : "Interlink Shop Pay Card";
+
+    const datasend: CheckoutDataPayload = {
+      amount: amount.toFixed(2), // string
+      currency: "THB",
+      description: `${descriptionBase} By CustomerID: ${cid.toString()}`,
+      source_type: paymentMethod === "qr" ? "qr" : "card",
+      reference_order: refInv,
+    };
+
+    // 7) บันทึกลง ref_to_invs + inv
+    await createRefToInv(refInv);
+    const { id: invId } = await createInvRecord({
+      customerId: cid,
+      refInv,
+      dataCheckout: datasend,
+    });
+
+    console.log("[checkout] createPaymentSession invId =", invId);
+
+    // 8) เรียก FastAPI mock (/create-payment)
+    let orderId: string | null = null;
+    let rawResponse: any = null;
+
+    try {
+      const params = new URLSearchParams({
+        amount: datasend.amount,
+        currency: datasend.currency,
+        description: datasend.description,
+        source_type: datasend.source_type,
+        reference_order: datasend.reference_order,
+      });
+
+      const url = `${PAYMENT_BASE_URL}/create-payment?${params.toString()}`;
+      console.log("[checkout] calling mock payment url =", url);
+
+      const res = await fetch(url, {
+        method: "GET",
+      });
+
+      if (res.ok) {
+        try {
+          const json = await res.json();
+          rawResponse = json;
+          orderId = (json as any).id ?? (json as any).order_id ?? null;
+        } catch {
+          const text = await res.text();
+          rawResponse = { raw: text };
+        }
+      } else {
+        rawResponse = { error: `HTTP ${res.status}` };
+      }
+    } catch (err: any) {
+      console.error("[checkout] payment mock error:", err);
+      rawResponse = { error: err?.message ?? "payment mock error" };
+    }
+
+    console.log("[checkout] createPaymentSession orderId =", orderId);
+
+    return {
+      paymentMethod,
+      amount,
+      refInv,
+      invId,
+      orderId,
+      itemForLeadTime,
+      rawResponse,
+    };
+  }
 }
+
+
+// v.1.1.9 ==================================================================
+
+// v.1.1.8 ==================================================================
+// // src/services/checkout/checkout.service.ts
+
+// import type { CheckoutData } from "@/types/checkout";
+// import { buildCheckoutProfileInfo } from "@/types/checkout";
+
+// import type { PersonProfile, EntityProfile } from "@/types/profile";
+
+// import {
+//   buildCheckoutItemsFromCart,
+//   buildSummaryFromItems,
+//   buildCheckoutAddressesFromProfiles,
+//   buildCheckoutProfileAddressBookFromProfiles,
+//   pickDefaultAddress,
+//   type CartWithProduct,
+// } from "./checkout.helpers";
+
+// import { getCartAndProductsForCheckout } from "./checkout.query";
+
+// import { ProfileService } from "@/services/profile.service";
+
+// /* ======================================================
+//  *  Helper: แปลง BigInt → number (recursive)
+//  *  เพื่อให้ object ส่งไป client ได้ (JSON-serializable)
+//  * ====================================================== */
+
+// function deepBigIntToNumber<T>(value: T): T {
+//   if (value === null || value === undefined) return value;
+
+//   if (typeof value === "bigint") {
+//     return Number(value) as unknown as T;
+//   }
+
+//   if (Array.isArray(value)) {
+//     return value.map((v) => deepBigIntToNumber(v)) as unknown as T;
+//   }
+
+//   if (typeof value === "object") {
+//     const src: any = value;
+//     const out: any = {};
+//     for (const [k, v] of Object.entries(src)) {
+//       out[k] = deepBigIntToNumber(v as any);
+//     }
+//     return out as T;
+//   }
+
+//   return value;
+// }
+
+// /**
+//  * Service หลักของ Checkout
+//  * รวมข้อมูลจาก:
+//  *  - carts (ตะกร้า) + products_clearance
+//  *  - customer_profile_people / entities
+//  * แล้ว map เป็น CheckoutData สำหรับส่งเข้า UI
+//  */
+// export class CheckoutService {
+//   /**
+//    * โหลดข้อมูลทั้งหมดที่จำเป็นสำหรับหน้า /checkout
+//    */
+//   static async getCheckoutData(
+//     customerId: number | bigint
+//   ): Promise<CheckoutData> {
+//     const cid = BigInt(customerId);
+
+//     console.log("[checkout] getCheckoutData cid =", cid);
+
+//     // 1) ดึง cart + products พร้อมกัน
+//     const [{ cartItems, products }, profileRaw] = await Promise.all([
+//       getCartAndProductsForCheckout(cid),
+//       ProfileService.getProfile(cid),
+//     ]);
+
+//     console.log(
+//       "[checkout] cartItems length =",
+//       cartItems.length,
+//       "products length =",
+//       products.length
+//     );
+//     if (cartItems.length > 0) {
+//       console.log("[checkout] cartItems sample =", cartItems[0]);
+//     }
+//     if (products.length > 0) {
+//       console.log("[checkout] products sample =", products[0]);
+//     }
+
+//     // 2) join cart + products ด้วย SKU (cart.product ↔ product.sku)
+//     const productBySku = new Map<string, (typeof products)[number]>();
+//     for (const p of products) {
+//       productBySku.set(String(p.sku), p);
+//     }
+
+//     const cartWithProduct: CartWithProduct[] = cartItems
+//       .map((cart) => {
+//         const sku = String((cart as any).product);
+//         const product = productBySku.get(sku);
+
+//         if (!product) {
+//           console.log("[checkout] NO product match for cart SKU", sku);
+//           return null;
+//         }
+
+//         return { cart, product };
+//       })
+//       .filter((r): r is CartWithProduct => r !== null);
+
+//     console.log(
+//       "[checkout] cartWithProduct length =",
+//       cartWithProduct.length,
+//       "sample =",
+//       cartWithProduct[0]
+//     );
+
+//     // 3) map → CheckoutItem[]
+//     const checkoutItems = buildCheckoutItemsFromCart(cartWithProduct);
+
+//     console.log(
+//       "[checkout] checkoutItems length =",
+//       checkoutItems.length,
+//       "sample =",
+//       checkoutItems[0]
+//     );
+
+//     // 4) summary เบื้องต้น (ยังไม่คิด shipping/ส่วนลดจริง)
+//     const summary = buildSummaryFromItems(checkoutItems, {
+//       shippingFee: 0,
+//       discount: 0,
+//     });
+
+//     console.log("[checkout] summary =", summary);
+
+//     // 5) profile ดิบจาก service
+//     const personProfileRaw = profileRaw.person ?? null;
+//     const entityProfileRaw = profileRaw.entity ?? null;
+
+//     // 🔸 แปลง BigInt → number ให้ทั้ง object ก่อนส่งไป client
+//     const personProfile = personProfileRaw
+//       ? (deepBigIntToNumber(personProfileRaw) as PersonProfile)
+//       : null;
+
+//     const entityProfile = entityProfileRaw
+//       ? (deepBigIntToNumber(entityProfileRaw) as EntityProfile)
+//       : null;
+
+//     console.log("[checkout] personProfile (normalized) =", personProfile);
+//     console.log("[checkout] entityProfile (normalized) =", entityProfile);
+
+//     // 5.1) profile → address (shipping / billing)
+//     const { shipping, billing } = buildCheckoutAddressesFromProfiles(
+//       personProfile,
+//       entityProfile
+//     );
+
+//     const shippingAddress = pickDefaultAddress(shipping);
+//     const billingAddress = pickDefaultAddress(billing);
+
+//     console.log("[checkout] shippingAddress =", shippingAddress);
+//     console.log("[checkout] billingAddress =", billingAddress);
+
+//     // 5.2) profile → addressProfiles (2 การ์ด person/entity สำหรับ sheet)
+//     const addressProfiles =
+//       buildCheckoutProfileAddressBookFromProfiles(personProfile, entityProfile);
+
+//     console.log("[checkout] addressProfiles =", addressProfiles);
+
+//     // 6) profile info (mode + email/taxId)
+//     const profileInfo = buildCheckoutProfileInfo(personProfile, entityProfile);
+
+//     console.log("[checkout] profileInfo =", profileInfo);
+
+//     // 7) ประกอบเป็น CheckoutData
+//     const data: CheckoutData = {
+//       items: checkoutItems,
+//       summary,
+//       shippingAddress: shippingAddress ?? null,
+//       billingAddress: billingAddress ?? null,
+//       profileInfo,
+//       addressProfiles,
+
+//       // ✅ แนบ profile จริง (ที่แปลง BigInt แล้ว) ไปให้ฝั่ง UI
+//       personProfile,
+//       entityProfile,
+//     };
+
+//     console.log(
+//       "[checkout] final CheckoutData.personProfile =",
+//       data.personProfile
+//     );
+//     console.log(
+//       "[checkout] final CheckoutData.entityProfile =",
+//       data.entityProfile
+//     );
+//     console.log(
+//       "[checkout] final CheckoutData items length =",
+//       data.items.length
+//     );
+
+//     return data;
+//   }
+// }
 
 
 // v.1.1.8 ==================================================================

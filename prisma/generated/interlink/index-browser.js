@@ -221,11 +221,12 @@ exports.Prisma.Category_clearanceScalarFieldEnum = {
 exports.Prisma.Discountpercentage_clearance_tbScalarFieldEnum = {
   dcp_id: 'dcp_id',
   product_id: 'product_id',
-  product_discount: 'product_discount',
+  grade_name: 'grade_name',
+  store_name: 'store_name',
+  store_number: 'store_number',
+  product_price: 'product_price',
   create_date: 'create_date',
-  create_name: 'create_name',
-  update_date: 'update_date',
-  update_name: 'update_name'
+  update_date: 'update_date'
 };
 
 exports.Prisma.Discountpercentage_tbScalarFieldEnum = {
@@ -619,9 +620,8 @@ exports.Prisma.category_clearanceOrderByRelevanceFieldEnum = {
 };
 
 exports.Prisma.discountpercentage_clearance_tbOrderByRelevanceFieldEnum = {
-  product_discount: 'product_discount',
-  create_name: 'create_name',
-  update_name: 'update_name'
+  grade_name: 'grade_name',
+  store_name: 'store_name'
 };
 
 exports.Prisma.discountpercentage_tbOrderByRelevanceFieldEnum = {

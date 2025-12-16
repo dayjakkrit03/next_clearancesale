@@ -1,9 +1,9 @@
-// v.1.1.6 ===============================================================
+// v.1.1.9 ===============================================================
 // src/app/products/page.tsx
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { ShoppingCart } from "@/components/shopping-cart";
 import { ProductCard } from "@/components/product-card";
@@ -16,8 +16,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Grid3X3, List } from "lucide-react";
-// ❌ ไม่ใช้แล้ว
-// import PaginationBar from "@/components/pagination-bar";
+
+const DEFAULT_PAGE_SIZE = 12;
+const LOAD_STEP = 12;
 
 /* ===== Types ===== */
 type UIProduct = {
@@ -86,28 +87,16 @@ type DiscountRuleLite = {
 };
 
 /* ===== Helpers ===== */
-// function mapSortUiToApi(
-//   v: string
-// ): "order" | "price_asc" | "price_desc" | "newest" | "rating_desc" {
-//   switch (v) {
-//     case "price-low":
-//       return "price_asc";
-//     case "price-high":
-//       return "price_desc";
-//     case "newest":
-//       return "newest";
-//     case "rating":
-//       return "rating_desc";
-//     case "best-match":
-//     default:
-//       return "order";
-//   }
-// }
-
-/* ===== Helpers ===== */
 function mapSortUiToApi(
   v: string
-): "order" | "price_asc" | "price_desc" | "newest" | "rating_desc" | "discount_asc" | "discount_desc" {
+):
+  | "order"
+  | "price_asc"
+  | "price_desc"
+  | "newest"
+  | "rating_desc"
+  | "discount_asc"
+  | "discount_desc" {
   switch (v) {
     case "price-low":
       return "price_asc";
@@ -117,21 +106,15 @@ function mapSortUiToApi(
       return "newest";
     case "rating":
       return "rating_desc";
-
-    // ✅ เพิ่มสองอันนี้
     case "discount-high":
       return "discount_desc";
     case "discount-low":
       return "discount_asc";
-
     case "best-match":
     default:
       return "order";
   }
 }
-
-
-
 
 const toFrameInfo = (rule: DiscountRuleLite | null): FrameInfo | null => {
   if (!rule) return null;
@@ -184,15 +167,27 @@ export default function ProductListingPage() {
   const searchTextParam = searchParams.get("search") || "";
   const tagParam = searchParams.get("tag") || "";
 
+  // ✅ ตัวใหม่: รับค่า discount จาก URL เช่น /products?discount=80
+  const discountParam = searchParams.get("discount");
+
   const discountMinParam = searchParams.get("discountMin");
   const discountMaxParam = searchParams.get("discountMax");
+  const takeParam = searchParams.get("take");
 
+  // pageSize (จำนวนสินค้าที่โหลดถึงตอนนี้) อ่านจาก URL ?take=
+  const initialPageSize = useMemo(() => {
+    const n = Number(takeParam ?? DEFAULT_PAGE_SIZE);
+    if (!Number.isFinite(n) || n < DEFAULT_PAGE_SIZE) return DEFAULT_PAGE_SIZE;
+    return n;
+  }, [takeParam]);
+
+  // ✅ ปรับให้ใช้ discountMinParam ถ้ามี, ถ้าไม่มีค่อย fallback เป็น discountParam
   const discountMin = useMemo(() => {
-    if (discountMinParam == null || discountMinParam.trim() === "")
-      return undefined;
-    const n = Number(discountMinParam);
+    const raw = (discountMinParam ?? discountParam ?? "").trim();
+    if (!raw) return undefined;
+    const n = Number(raw);
     return Number.isFinite(n) && n > 0 ? n : undefined;
-  }, [discountMinParam]);
+  }, [discountMinParam, discountParam]);
 
   const discountMax = useMemo(() => {
     if (discountMaxParam == null || discountMaxParam.trim() === "")
@@ -201,35 +196,10 @@ export default function ProductListingPage() {
     return Number.isFinite(n) && n > 0 ? n : undefined;
   }, [discountMaxParam]);
 
-  useEffect(() => {
-    const rawMin = discountMinParam;
-    const rawMax = discountMaxParam;
-    const badMin =
-      rawMin != null &&
-      rawMin !== "" &&
-      Number.isFinite(Number(rawMin)) &&
-      Number(rawMin) <= 0;
-    const badMax =
-      rawMax != null &&
-      rawMax !== "" &&
-      Number.isFinite(Number(rawMax)) &&
-      Number(rawMax) <= 0;
-
-    if (!badMin && !badMax) return;
-
-    const params = new URLSearchParams(searchParams as any);
-    if (badMin) params.delete("discountMin");
-    if (badMax) params.delete("discountMax");
-    const qs = params.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [discountMinParam, discountMaxParam, pathname, router, searchParams]);
-
   // UI
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState("best-match");
-  // const [sortBy, setSortBy] = useState("price-low");
 
   // Data
   const [loading, setLoading] = useState(false);
@@ -238,27 +208,40 @@ export default function ProductListingPage() {
     (UIProduct & { frameInfo?: FrameInfo | null; categoryName?: string })[]
   >([]);
   const [total, setTotal] = useState(0);
-
-  // ✅ Load more pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(12); // กำหนดจำนวนตอการโหลด
+  const [pageSize, setPageSize] = useState(initialPageSize);
   const [hasMore, setHasMore] = useState(true);
 
   // categories + rules + meta.cardParts
   const [categories, setCategories] = useState<CategoryLite[]>([]);
   const [rules, setRules] = useState<DiscountRuleLite[]>([]);
-  const [visibleParts, setVisibleParts] = useState<
-    VisibleParts | undefined
-  >(undefined);
+  const [visibleParts, setVisibleParts] = useState<VisibleParts | undefined>(
+    undefined
+  );
 
-  /* bootstrap: categories */
+  const hasDiscountFilter =
+    (typeof discountMin === "number" && discountMin > 0) ||
+    (typeof discountMax === "number" && discountMax > 0);
+
+  /* ===== Reset pageSize เมื่อ filter จริง ๆ เปลี่ยน ===== */
+  const filtersKey = `${categoryNameParam}|${searchTextParam}|${tagParam}|${
+    discountMin ?? ""
+  }|${discountMax ?? ""}|${sortBy}`;
+  const filtersKeyRef = useRef(filtersKey);
+
+  useEffect(() => {
+    // ถ้าชุด filter เปลี่ยน (หมวด / search / tag / ส่วนลด / sort) → รีเซ็ตกลับไป 12 ชิ้น
+    if (filtersKeyRef.current !== filtersKey) {
+      filtersKeyRef.current = filtersKey;
+      setPageSize(DEFAULT_PAGE_SIZE);
+    }
+  }, [filtersKey]);
+
+  /* ===== Bootstrap: categories ===== */
   useEffect(() => {
     let aborted = false;
     (async () => {
       try {
-        const r = await fetch("/api/mock/categories", {
-          cache: "no-store",
-        });
+        const r = await fetch("/api/mock/categories", { cache: "no-store" });
         const j = await r.json().catch(() => ({}));
         if (!aborted)
           setCategories(Array.isArray(j?.items) ? j.items : []);
@@ -271,7 +254,7 @@ export default function ProductListingPage() {
     };
   }, []);
 
-  /* bootstrap: rules */
+  /* ===== Bootstrap: rules ===== */
   useEffect(() => {
     let aborted = false;
     (async () => {
@@ -293,9 +276,7 @@ export default function ProductListingPage() {
             frameImageUrl:
               r.frameMode === "image" ? r.frameImageUrl : undefined,
             frameInsetPx:
-              typeof r.frameInsetPx === "number"
-                ? r.frameInsetPx
-                : undefined,
+              typeof r.frameInsetPx === "number" ? r.frameInsetPx : undefined,
             frameOpacity:
               typeof r.frameOpacity === "number"
                 ? Math.max(0, Math.min(1, Number(r.frameOpacity)))
@@ -326,7 +307,7 @@ export default function ProductListingPage() {
     };
   }, []);
 
-  /* bootstrap: meta.cardParts */
+  /* ===== Bootstrap: meta.cardParts ===== */
   useEffect(() => {
     let aborted = false;
     (async () => {
@@ -345,33 +326,31 @@ export default function ProductListingPage() {
     };
   }, []);
 
-  const pickRule = useMemo(
-    () => pickRuleFactory(rules),
-    [rules]
-  );
+  /* ===== Memo helpers ===== */
+  const pickRule = useMemo(() => pickRuleFactory(rules), [rules]);
   const catMap = useMemo(
     () => new Map(categories.map((c) => [String(c.id), c.name])),
     [categories]
   );
 
-  const hasDiscountFilter =
-    (typeof discountMin === "number" && discountMin > 0) ||
-    (typeof discountMax === "number" && discountMax > 0);
-
-  /* reset เมื่อ filter เปลี่ยน → กลับไปหน้า 1 และล้าง items */
+  /* ===== Sync pageSize -> URL ?take= ===== */
   useEffect(() => {
-    setCurrentPage(1);
-    setHasMore(true);
-    setItems([]);
-  }, [
-    categoryNameParam,
-    searchTextParam,
-    tagParam,
-    sortBy,
-    hasDiscountFilter,
-  ]);
+    const params = new URLSearchParams(searchParams.toString());
+    const normalized = String(pageSize);
+    const currentTake = params.get("take") ?? undefined;
 
-  /* fetch ตามหน้า + load more */
+    if (pageSize <= DEFAULT_PAGE_SIZE) {
+      // ค่า default ไม่ต้องใส่ param ให้ URL สั้น
+      if (currentTake != null) params.delete("take");
+    } else {
+      if (currentTake !== normalized) params.set("take", normalized);
+    }
+
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [pageSize, pathname, router, searchParams]);
+
+  /* ===== Fetch products (page=1, pageSize = จำนวนที่โหลดถึงตอนนี้) ===== */
   useEffect(() => {
     let aborted = false;
     const controller = new AbortController();
@@ -396,15 +375,20 @@ export default function ProductListingPage() {
           "/api/mock/products",
           window.location.origin
         );
-        if (searchTextParam.trim())
+
+        if (searchTextParam.trim()) {
           url.searchParams.set("q", searchTextParam.trim());
-        if (typeof categoryId !== "undefined")
+        }
+        if (typeof categoryId !== "undefined") {
           url.searchParams.set("category_id", String(categoryId));
+        }
 
         const sortFinal =
           tagParam === "new" ? "newest" : mapSortUiToApi(sortBy);
         url.searchParams.set("sort", sortFinal);
-        url.searchParams.set("page", String(currentPage));
+
+        // page=1 เสมอ แต่เพิ่ม pageSize ตาม LOAD_STEP
+        url.searchParams.set("page", "1");
         url.searchParams.set("pageSize", String(pageSize));
         url.searchParams.set("visible", "true");
 
@@ -422,9 +406,7 @@ export default function ProductListingPage() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const data: ApiListResponse = await res.json();
-
         const rawItems = data.items ?? [];
-        const pageHasMore = rawItems.length === pageSize;
 
         let prepared = rawItems.map((p) => ({
           ...p,
@@ -435,7 +417,7 @@ export default function ProductListingPage() {
               : undefined,
         }));
 
-        // fallback filter ฝั่ง client
+        // fallback filter ส่วนลดฝั่ง client
         if (hasDiscountFilter) {
           prepared = prepared.filter((p) => {
             const d =
@@ -455,38 +437,29 @@ export default function ProductListingPage() {
         }
 
         if (!aborted) {
-          setItems((prev) => {
-            const merged =
-              currentPage === 1 ? prepared : [...prev, ...prepared];
+          const serverTotal = data.total ?? prepared.length;
+          const effectiveTotal = hasDiscountFilter
+            ? prepared.length
+            : serverTotal;
 
-            if (hasDiscountFilter) {
-              const effectiveTotal = merged.length;
-              setTotal(effectiveTotal);
-              setHasMore(pageHasMore);
-            } else {
-              const serverTotal = data.total ?? merged.length;
-              setTotal(serverTotal);
-              setHasMore(merged.length < serverTotal && pageHasMore);
-            }
-
-            return merged;
-          });
+          setItems(prepared);
+          setTotal(effectiveTotal);
+          setHasMore(serverTotal > pageSize);
         }
       } catch (e: any) {
-        if (!aborted)
-          setError(e?.message ?? "โหลดสินค้าล้มเหลว");
+        if (!aborted) setError(e?.message ?? "โหลดสินค้าล้มเหลว");
       } finally {
         if (!aborted) setLoading(false);
       }
     }
 
     run();
+
     return () => {
       aborted = true;
       controller.abort();
     };
   }, [
-    currentPage,
     pageSize,
     categoryNameParam,
     searchTextParam,
@@ -576,49 +549,29 @@ export default function ProductListingPage() {
         </div>
 
         {/* Sort & View */}
-        {/* <div className="flex items-center justify-between mb-6 pb-4 border-b gap-2">
+        <div className="flex items-center justify-between mb-6 pb-4 border-b gap-2">
           <div className="flex items-center gap-2 sm:gap-4">
             <span className="text-xs sm:text-sm text-muted-foreground">
-              Sort By:
+              การจัดเรียง:
             </span>
+
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-32 sm:w-40 text-xs sm:text-sm h-8 sm:h-9">
-                <SelectValue />
+                <SelectValue placeholder="เลือก" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="best-match">
-                  Best Match
+                <SelectItem value="best-match">Best Match</SelectItem>
+                <SelectItem value="price-low">ราคาต่ำ → สูง</SelectItem>
+                <SelectItem value="price-high">ราคาสูง → ต่ำ</SelectItem>
+                <SelectItem value="discount-high">
+                  ส่วนลดมาก → น้อย
                 </SelectItem>
-                <SelectItem value="price-low">
-                  Price Low to High
+                <SelectItem value="discount-low">
+                  ส่วนลดน้อย → มาก
                 </SelectItem>
-                <SelectItem value="price-high">
-                  Price High to Low
-                </SelectItem>
-                <SelectItem value="newest">Newest</SelectItem>
-                <SelectItem value="rating">Top Rated</SelectItem>
               </SelectContent>
             </Select>
-          </div> */}
-
-          {/* Sort & View */}
-          <div className="flex items-center justify-between mb-6 pb-4 border-b gap-2">
-            <div className="flex items-center gap-2 sm:gap-4">
-              <span className="text-xs sm:text-sm text-muted-foreground">การจัดเรียง:</span>
-
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-32 sm:w-40 text-xs sm:text-sm h-8 sm:h-9">
-                  <SelectValue placeholder="เลือก" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="best-match">Best Match</SelectItem>
-                  <SelectItem value="price-low">ราคาต่ำ → สูง</SelectItem>
-                  <SelectItem value="price-high">ราคาสูง → ต่ำ</SelectItem>
-                  <SelectItem value="discount-high">ส่วนลดมาก → น้อย</SelectItem>
-                  <SelectItem value="discount-low">ส่วนลดน้อย → มาก</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          </div>
 
           <div className="flex items-center gap-1 sm:gap-2">
             <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">
@@ -650,7 +603,7 @@ export default function ProductListingPage() {
           </div>
         )}
 
-        {/* Grid */}
+        {/* Grid / List */}
         <div
           className={`grid mb-8 ${
             viewMode === "grid"
@@ -668,7 +621,7 @@ export default function ProductListingPage() {
                 key={`${p.id}-${idx}`}
                 className="opacity-0 animate-fade-in"
                 style={{
-                  animationDelay: `${(idx % pageSize) * 0.06}s`,
+                  animationDelay: `${(idx % LOAD_STEP) * 0.06}s`,
                 }}
               >
                 <ProductCard
@@ -694,8 +647,9 @@ export default function ProductListingPage() {
             );
           })}
 
-          {loading && items.length === 0 &&
-            Array.from({ length: pageSize }).map((_, i) => (
+          {loading &&
+            items.length === 0 &&
+            Array.from({ length: DEFAULT_PAGE_SIZE }).map((_, i) => (
               <div
                 key={`sk-${i}`}
                 className="h-64 bg-muted/40 rounded-xl animate-pulse border border-muted/30"
@@ -703,19 +657,19 @@ export default function ProductListingPage() {
             ))}
         </div>
 
-        {/* กำลังโหลดเพิ่ม (ตอนมีของเก่าแล้ว) */}
+        {/* Loading more */}
         {loading && items.length > 0 && (
           <div className="text-center text-muted-foreground mb-4">
             กำลังโหลดเพิ่มเติม...
           </div>
         )}
 
-        {/* ✅ ปุ่มโหลดเพิ่ม */}
+        {/* ปุ่มโหลดเพิ่ม */}
         {!loading && hasMore && (
           <div className="flex justify-center mb-8">
             <Button
               onClick={() =>
-                setCurrentPage((prev) => prev + 1)
+                setPageSize((prev) => prev + LOAD_STEP)
               }
             >
               โหลดเพิ่ม
@@ -737,6 +691,2071 @@ export default function ProductListingPage() {
     </div>
   );
 }
+
+// v.1.1.9 ===============================================================
+
+// v.1.1.8 ===============================================================
+// // src/app/products/page.tsx
+
+// "use client";
+
+// import { useEffect, useMemo, useState, useRef } from "react";
+// import { useSearchParams, useRouter, usePathname } from "next/navigation";
+// import { ShoppingCart } from "@/components/shopping-cart";
+// import { ProductCard } from "@/components/product-card";
+// import { Button } from "@/components/ui/button";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
+// import { Grid3X3, List } from "lucide-react";
+
+// const DEFAULT_PAGE_SIZE = 12;
+// const LOAD_STEP = 12;
+
+// /* ===== Types ===== */
+// type UIProduct = {
+//   id: number | string;
+//   name: string;
+//   price: number;
+//   discountPercent?: number;
+//   image_url?: string;
+//   rating?: number;
+//   reviews?: number;
+//   brand?: string;
+//   sku?: string;
+//   uom?: string;
+//   category_id?: number | string;
+//   slug?: string;
+//   order?: number;
+// };
+
+// type ApiListResponse = {
+//   items: UIProduct[];
+//   total: number;
+//   page: number;
+//   pageSize: number;
+// };
+
+// type CategoryLite = { id: number | string; name: string; slug?: string };
+
+// type VisibleParts = Partial<{
+//   image: boolean;
+//   discountBadge: boolean;
+//   brandLogo: boolean;
+//   frame: boolean;
+//   brandName: boolean;
+//   sku: boolean;
+//   name: boolean;
+//   ratingReview: boolean;
+//   category: boolean;
+//   price: boolean;
+//   originalPrice: boolean;
+//   uom: boolean;
+// }>;
+
+// type FrameInfo =
+//   | {
+//       mode: "image";
+//       imageUrl: string;
+//       inset: number;
+//       opacity: number;
+//       objectFit: "contain" | "cover" | "fill";
+//     }
+//   | { mode: "draw"; borderWidth: number; borderColorHex: string };
+
+// type DiscountRuleLite = {
+//   id: string | number;
+//   minPercent?: number;
+//   maxPercent?: number;
+//   borderWidth: number;
+//   borderColorHex: string;
+//   frameMode?: "image" | "draw";
+//   frameImageUrl?: string;
+//   frameInsetPx?: number;
+//   frameOpacity?: number;
+//   frameObjectFit?: "contain" | "cover" | "stretch";
+//   enabled?: boolean;
+//   order?: number;
+// };
+
+// /* ===== Helpers ===== */
+// function mapSortUiToApi(
+//   v: string
+// ):
+//   | "order"
+//   | "price_asc"
+//   | "price_desc"
+//   | "newest"
+//   | "rating_desc"
+//   | "discount_asc"
+//   | "discount_desc" {
+//   switch (v) {
+//     case "price-low":
+//       return "price_asc";
+//     case "price-high":
+//       return "price_desc";
+//     case "newest":
+//       return "newest";
+//     case "rating":
+//       return "rating_desc";
+//     case "discount-high":
+//       return "discount_desc";
+//     case "discount-low":
+//       return "discount_asc";
+//     case "best-match":
+//     default:
+//       return "order";
+//   }
+// }
+
+// const toFrameInfo = (rule: DiscountRuleLite | null): FrameInfo | null => {
+//   if (!rule) return null;
+//   if (rule.frameMode === "image" && rule.frameImageUrl) {
+//     const objFit: "contain" | "cover" | "fill" =
+//       rule.frameObjectFit === "stretch"
+//         ? "fill"
+//         : ((rule.frameObjectFit ?? "contain") as any);
+//     return {
+//       mode: "image",
+//       imageUrl: rule.frameImageUrl,
+//       inset: Math.max(0, Number(rule.frameInsetPx ?? 0)),
+//       opacity:
+//         typeof rule.frameOpacity === "number" ? rule.frameOpacity : 1,
+//       objectFit: objFit,
+//     };
+//   }
+//   return {
+//     mode: "draw",
+//     borderWidth: Number(rule.borderWidth) || 2,
+//     borderColorHex: String(rule.borderColorHex || "#000"),
+//   };
+// };
+
+// const pickRuleFactory =
+//   (rules: DiscountRuleLite[]) => (percent?: number): DiscountRuleLite | null => {
+//     if (percent == null) return null;
+//     for (const r of rules) {
+//       const lowerOk = percent >= (r.minPercent ?? 0);
+//       const upperOk =
+//         typeof r.maxPercent === "number" ? percent <= r.maxPercent : true;
+//       if (lowerOk && upperOk) return r;
+//     }
+//     return null;
+//   };
+
+// const getOriginalPrice = (price: number, discountPercent?: number) => {
+//   if (!discountPercent || discountPercent <= 0) return undefined;
+//   const original = price / (1 - discountPercent / 100);
+//   return Math.round(original);
+// };
+
+// /* ===== Page ===== */
+// export default function ProductListingPage() {
+//   const searchParams = useSearchParams();
+//   const router = useRouter();
+//   const pathname = usePathname();
+
+//   const categoryNameParam = searchParams.get("category") || "";
+//   const searchTextParam = searchParams.get("search") || "";
+//   const tagParam = searchParams.get("tag") || "";
+
+//   const discountMinParam = searchParams.get("discountMin");
+//   const discountMaxParam = searchParams.get("discountMax");
+//   const takeParam = searchParams.get("take");
+
+//   // pageSize (จำนวนสินค้าที่โหลดถึงตอนนี้) อ่านจาก URL ?take=
+//   const initialPageSize = useMemo(() => {
+//     const n = Number(takeParam ?? DEFAULT_PAGE_SIZE);
+//     if (!Number.isFinite(n) || n < DEFAULT_PAGE_SIZE) return DEFAULT_PAGE_SIZE;
+//     return n;
+//   }, [takeParam]);
+
+//   const discountMin = useMemo(() => {
+//     if (discountMinParam == null || discountMinParam.trim() === "")
+//       return undefined;
+//     const n = Number(discountMinParam);
+//     return Number.isFinite(n) && n > 0 ? n : undefined;
+//   }, [discountMinParam]);
+
+//   const discountMax = useMemo(() => {
+//     if (discountMaxParam == null || discountMaxParam.trim() === "")
+//       return undefined;
+//     const n = Number(discountMaxParam);
+//     return Number.isFinite(n) && n > 0 ? n : undefined;
+//   }, [discountMaxParam]);
+
+//   // UI
+//   const [isCartOpen, setIsCartOpen] = useState(false);
+//   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+//   const [sortBy, setSortBy] = useState("best-match");
+
+//   // Data
+//   const [loading, setLoading] = useState(false);
+//   const [error, setError] = useState<string | null>(null);
+//   const [items, setItems] = useState<
+//     (UIProduct & { frameInfo?: FrameInfo | null; categoryName?: string })[]
+//   >([]);
+//   const [total, setTotal] = useState(0);
+//   const [pageSize, setPageSize] = useState(initialPageSize);
+//   const [hasMore, setHasMore] = useState(true);
+
+//   // categories + rules + meta.cardParts
+//   const [categories, setCategories] = useState<CategoryLite[]>([]);
+//   const [rules, setRules] = useState<DiscountRuleLite[]>([]);
+//   const [visibleParts, setVisibleParts] = useState<VisibleParts | undefined>(
+//     undefined
+//   );
+
+//   const hasDiscountFilter =
+//     (typeof discountMin === "number" && discountMin > 0) ||
+//     (typeof discountMax === "number" && discountMax > 0);
+
+//   /* ===== Reset pageSize เมื่อ filter จริง ๆ เปลี่ยน ===== */
+//   const filtersKey = `${categoryNameParam}|${searchTextParam}|${tagParam}|${
+//     discountMin ?? ""
+//   }|${discountMax ?? ""}|${sortBy}`;
+//   const filtersKeyRef = useRef(filtersKey);
+
+//   useEffect(() => {
+//     // ถ้าชุด filter เปลี่ยน (หมวด / search / tag / ส่วนลด / sort) → รีเซ็ตกลับไป 12 ชิ้น
+//     if (filtersKeyRef.current !== filtersKey) {
+//       filtersKeyRef.current = filtersKey;
+//       setPageSize(DEFAULT_PAGE_SIZE);
+//     }
+//   }, [filtersKey]);
+
+//   /* ===== Bootstrap: categories ===== */
+//   useEffect(() => {
+//     let aborted = false;
+//     (async () => {
+//       try {
+//         const r = await fetch("/api/mock/categories", { cache: "no-store" });
+//         const j = await r.json().catch(() => ({}));
+//         if (!aborted)
+//           setCategories(Array.isArray(j?.items) ? j.items : []);
+//       } catch {
+//         if (!aborted) setCategories([]);
+//       }
+//     })();
+//     return () => {
+//       aborted = true;
+//     };
+//   }, []);
+
+//   /* ===== Bootstrap: rules ===== */
+//   useEffect(() => {
+//     let aborted = false;
+//     (async () => {
+//       try {
+//         const r = await fetch("/api/mock/discount-rules", {
+//           cache: "no-store",
+//         });
+//         const j = await r.json().catch(() => ({}));
+//         const arr: DiscountRuleLite[] = (j?.items ?? [])
+//           .filter((x: any) => x && (x.enabled ?? true))
+//           .map((r: any) => ({
+//             id: r.id,
+//             minPercent: Number(r.minPercent) || 0,
+//             maxPercent:
+//               typeof r.maxPercent === "number" ? r.maxPercent : undefined,
+//             borderWidth: Number(r.borderWidth) || 2,
+//             borderColorHex: String(r.borderColorHex || "#000000"),
+//             frameMode: r.frameMode === "image" ? "image" : "draw",
+//             frameImageUrl:
+//               r.frameMode === "image" ? r.frameImageUrl : undefined,
+//             frameInsetPx:
+//               typeof r.frameInsetPx === "number" ? r.frameInsetPx : undefined,
+//             frameOpacity:
+//               typeof r.frameOpacity === "number"
+//                 ? Math.max(0, Math.min(1, Number(r.frameOpacity)))
+//                 : undefined,
+//             frameObjectFit:
+//               r.frameObjectFit === "cover"
+//                 ? "cover"
+//                 : r.frameObjectFit === "stretch"
+//                 ? "stretch"
+//                 : r.frameMode === "image"
+//                 ? "contain"
+//                 : undefined,
+//             enabled: r.enabled,
+//             order:
+//               typeof r.order === "number" ? r.order : undefined,
+//           }))
+//           .sort(
+//             (a: DiscountRuleLite, b: DiscountRuleLite) =>
+//               (a.order ?? 0) - (b.order ?? 0)
+//           );
+//         if (!aborted) setRules(arr);
+//       } catch {
+//         if (!aborted) setRules([]);
+//       }
+//     })();
+//     return () => {
+//       aborted = true;
+//     };
+//   }, []);
+
+//   /* ===== Bootstrap: meta.cardParts ===== */
+//   useEffect(() => {
+//     let aborted = false;
+//     (async () => {
+//       try {
+//         const r = await fetch("/api/mock/products/meta", {
+//           cache: "no-store",
+//         });
+//         const j = await r.json().catch(() => ({}));
+//         if (!aborted) setVisibleParts(j?.meta?.cardParts ?? undefined);
+//       } catch {
+//         if (!aborted) setVisibleParts(undefined);
+//       }
+//     })();
+//     return () => {
+//       aborted = true;
+//     };
+//   }, []);
+
+//   /* ===== Memo helpers ===== */
+//   const pickRule = useMemo(() => pickRuleFactory(rules), [rules]);
+//   const catMap = useMemo(
+//     () => new Map(categories.map((c) => [String(c.id), c.name])),
+//     [categories]
+//   );
+
+//   /* ===== Sync pageSize -> URL ?take= ===== */
+//   useEffect(() => {
+//     const params = new URLSearchParams(searchParams.toString());
+//     const normalized = String(pageSize);
+//     const currentTake = params.get("take") ?? undefined;
+
+//     if (pageSize <= DEFAULT_PAGE_SIZE) {
+//       // ค่า default ไม่ต้องใส่ param ให้ URL สั้น
+//       if (currentTake != null) params.delete("take");
+//     } else {
+//       if (currentTake !== normalized) params.set("take", normalized);
+//     }
+
+//     const qs = params.toString();
+//     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+//   }, [pageSize, pathname, router, searchParams]);
+
+//   /* ===== Fetch products (page=1, pageSize = จำนวนที่โหลดถึงตอนนี้) ===== */
+//   useEffect(() => {
+//     let aborted = false;
+//     const controller = new AbortController();
+
+//     async function run() {
+//       try {
+//         setLoading(true);
+//         setError(null);
+
+//         // map ชื่อหมวด → id (ถ้ามี)
+//         let categoryId: string | number | undefined = undefined;
+//         if (categoryNameParam && categories.length) {
+//           const found = categories.find(
+//             (c) =>
+//               (c.name || "").toLowerCase() ===
+//               categoryNameParam.toLowerCase()
+//           );
+//           if (found) categoryId = found.id;
+//         }
+
+//         const url = new URL(
+//           "/api/mock/products",
+//           window.location.origin
+//         );
+
+//         if (searchTextParam.trim()) {
+//           url.searchParams.set("q", searchTextParam.trim());
+//         }
+//         if (typeof categoryId !== "undefined") {
+//           url.searchParams.set("category_id", String(categoryId));
+//         }
+
+//         const sortFinal =
+//           tagParam === "new" ? "newest" : mapSortUiToApi(sortBy);
+//         url.searchParams.set("sort", sortFinal);
+
+//         // page=1 เสมอ แต่เพิ่ม pageSize ตาม LOAD_STEP
+//         url.searchParams.set("page", "1");
+//         url.searchParams.set("pageSize", String(pageSize));
+//         url.searchParams.set("visible", "true");
+
+//         if (typeof discountMin === "number" && discountMin > 0) {
+//           url.searchParams.set("min_discount", String(discountMin));
+//         }
+//         if (typeof discountMax === "number" && discountMax > 0) {
+//           url.searchParams.set("max_discount", String(discountMax));
+//         }
+
+//         const res = await fetch(url.toString(), {
+//           cache: "no-store",
+//           signal: controller.signal,
+//         });
+//         if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+//         const data: ApiListResponse = await res.json();
+//         const rawItems = data.items ?? [];
+
+//         let prepared = rawItems.map((p) => ({
+//           ...p,
+//           frameInfo: toFrameInfo(pickRule(p.discountPercent)),
+//           categoryName:
+//             p.category_id != null
+//               ? catMap.get(String(p.category_id))
+//               : undefined,
+//         }));
+
+//         // fallback filter ส่วนลดฝั่ง client
+//         if (hasDiscountFilter) {
+//           prepared = prepared.filter((p) => {
+//             const d =
+//               typeof p.discountPercent === "number"
+//                 ? p.discountPercent
+//                 : -1;
+//             const lowerOk =
+//               typeof discountMin === "number" && discountMin > 0
+//                 ? d >= discountMin
+//                 : true;
+//             const upperOk =
+//               typeof discountMax === "number" && discountMax > 0
+//                 ? d <= discountMax
+//                 : true;
+//             return lowerOk && upperOk;
+//           });
+//         }
+
+//         if (!aborted) {
+//           const serverTotal = data.total ?? prepared.length;
+//           const effectiveTotal = hasDiscountFilter
+//             ? prepared.length
+//             : serverTotal;
+
+//           setItems(prepared);
+//           setTotal(effectiveTotal);
+//           setHasMore(serverTotal > pageSize);
+//         }
+//       } catch (e: any) {
+//         if (!aborted) setError(e?.message ?? "โหลดสินค้าล้มเหลว");
+//       } finally {
+//         if (!aborted) setLoading(false);
+//       }
+//     }
+
+//     run();
+
+//     return () => {
+//       aborted = true;
+//       controller.abort();
+//     };
+//   }, [
+//     pageSize,
+//     categoryNameParam,
+//     searchTextParam,
+//     tagParam,
+//     sortBy,
+//     categories,
+//     catMap,
+//     pickRule,
+//     discountMin,
+//     discountMax,
+//     hasDiscountFilter,
+//   ]);
+
+//   /* ===== Render ===== */
+//   const discountLabel = hasDiscountFilter
+//     ? ` • ส่วนลด${
+//         typeof discountMin === "number" && discountMin > 0
+//           ? `ตั้งแต่ ${discountMin}%`
+//           : ""
+//       }${
+//         typeof discountMax === "number" && discountMax > 0
+//           ? ` ถึง ${discountMax}%`
+//           : " ขึ้นไป"
+//       }`
+//     : "";
+
+//   return (
+//     <div className="min-h-screen bg-background">
+//       <div className="container mx-auto px-2 sm:px-4 py-6">
+//         {/* Breadcrumb */}
+//         <nav className="text-sm text-muted-foreground mb-4">
+//           <span
+//             className="cursor-pointer hover:text-primary transition-colors"
+//             onClick={() => router.push("/")}
+//           >
+//             หน้าแรก
+//           </span>
+//           {categoryNameParam && (
+//             <>
+//               <span className="mx-2">/</span>
+//               <span className="text-primary font-medium">
+//                 {categoryNameParam}
+//               </span>
+//             </>
+//           )}
+//           {searchTextParam && (
+//             <>
+//               <span className="mx-2">/</span>
+//               <span className="text-primary font-medium">
+//                 ค้นหา: "{searchTextParam}"
+//               </span>
+//             </>
+//           )}
+//           {tagParam && (
+//             <>
+//               <span className="mx-2">/</span>
+//               <span className="text-primary font-medium">
+//                 แท็ก: {tagParam}
+//               </span>
+//             </>
+//           )}
+//           {discountLabel && (
+//             <>
+//               <span className="mx-2">/</span>
+//               <span className="text-primary font-medium">
+//                 {discountLabel.replace(" • ", "")}
+//               </span>
+//             </>
+//           )}
+//         </nav>
+
+//         {/* Header */}
+//         <div className="mb-6">
+//           <h1 className="text-2xl font-bold mb-2">
+//             {categoryNameParam ||
+//               searchTextParam ||
+//               (tagParam === "new" ? "สินค้าใหม่" : "สินค้า")}
+//           </h1>
+//           <p className="text-muted-foreground">
+//             {loading && items.length === 0
+//               ? "กำลังโหลด…"
+//               : `${total.toLocaleString()} items found`}
+//             {categoryNameParam && ` for "${categoryNameParam}"`}
+//             {searchTextParam && ` for "${searchTextParam}"`}
+//             {discountLabel}
+//           </p>
+//         </div>
+
+//         {/* Sort & View */}
+//         <div className="flex items-center justify-between mb-6 pb-4 border-b gap-2">
+//           <div className="flex items-center gap-2 sm:gap-4">
+//             <span className="text-xs sm:text-sm text-muted-foreground">
+//               การจัดเรียง:
+//             </span>
+
+//             <Select value={sortBy} onValueChange={setSortBy}>
+//               <SelectTrigger className="w-32 sm:w-40 text-xs sm:text-sm h-8 sm:h-9">
+//                 <SelectValue placeholder="เลือก" />
+//               </SelectTrigger>
+//               <SelectContent>
+//                 <SelectItem value="best-match">Best Match</SelectItem>
+//                 <SelectItem value="price-low">ราคาต่ำ → สูง</SelectItem>
+//                 <SelectItem value="price-high">ราคาสูง → ต่ำ</SelectItem>
+//                 <SelectItem value="discount-high">
+//                   ส่วนลดมาก → น้อย
+//                 </SelectItem>
+//                 <SelectItem value="discount-low">
+//                   ส่วนลดน้อย → มาก
+//                 </SelectItem>
+//               </SelectContent>
+//             </Select>
+//           </div>
+
+//           <div className="flex items-center gap-1 sm:gap-2">
+//             <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">
+//               View:
+//             </span>
+//             <Button
+//               variant={viewMode === "grid" ? "default" : "outline"}
+//               size="sm"
+//               onClick={() => setViewMode("grid")}
+//               className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+//             >
+//               <Grid3X3 className="h-3 w-3 sm:h-4 sm:w-4" />
+//             </Button>
+//             <Button
+//               variant={viewMode === "list" ? "default" : "outline"}
+//               size="sm"
+//               onClick={() => setViewMode("list")}
+//               className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+//             >
+//               <List className="h-3 w-3 sm:h-4 sm:w-4" />
+//             </Button>
+//           </div>
+//         </div>
+
+//         {/* Error */}
+//         {error && (
+//           <div className="text-destructive mb-6">
+//             เกิดข้อผิดพลาดในการโหลดข้อมูล: {error}
+//           </div>
+//         )}
+
+//         {/* Grid / List */}
+//         <div
+//           className={`grid mb-8 ${
+//             viewMode === "grid"
+//               ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6"
+//               : "grid-cols-1 gap-4"
+//           }`}
+//         >
+//           {items.map((p, idx) => {
+//             const originalPrice = getOriginalPrice(
+//               p.price,
+//               p.discountPercent
+//             );
+//             return (
+//               <div
+//                 key={`${p.id}-${idx}`}
+//                 className="opacity-0 animate-fade-in"
+//                 style={{
+//                   animationDelay: `${(idx % LOAD_STEP) * 0.06}s`,
+//                 }}
+//               >
+//                 <ProductCard
+//                   id={p.id}
+//                   slug={p.slug}
+//                   name={p.name}
+//                   price={p.price}
+//                   originalPrice={originalPrice}
+//                   discount={p.discountPercent}
+//                   rating={p.rating ?? 0}
+//                   reviews={p.reviews ?? 0}
+//                   image={p.image_url ?? "/placeholder.png"}
+//                   brand={p.brand}
+//                   sku={p.sku}
+//                   uom={p.uom}
+//                   categoryName={p.categoryName}
+//                   frameInfo={(p as any).frameInfo ?? null}
+//                   viewMode={viewMode}
+//                   onAddToCart={() => setIsCartOpen(true)}
+//                   visibleParts={visibleParts}
+//                 />
+//               </div>
+//             );
+//           })}
+
+//           {loading &&
+//             items.length === 0 &&
+//             Array.from({ length: DEFAULT_PAGE_SIZE }).map((_, i) => (
+//               <div
+//                 key={`sk-${i}`}
+//                 className="h-64 bg-muted/40 rounded-xl animate-pulse border border-muted/30"
+//               />
+//             ))}
+//         </div>
+
+//         {/* Loading more */}
+//         {loading && items.length > 0 && (
+//           <div className="text-center text-muted-foreground mb-4">
+//             กำลังโหลดเพิ่มเติม...
+//           </div>
+//         )}
+
+//         {/* ปุ่มโหลดเพิ่ม */}
+//         {!loading && hasMore && (
+//           <div className="flex justify-center mb-8">
+//             <Button
+//               onClick={() =>
+//                 setPageSize((prev) => prev + LOAD_STEP)
+//               }
+//             >
+//               โหลดเพิ่ม
+//             </Button>
+//           </div>
+//         )}
+
+//         {!loading && !hasMore && items.length > 0 && (
+//           <div className="text-center text-muted-foreground mb-8 text-xs">
+//             แสดงสินค้าครบทั้งหมดแล้ว
+//           </div>
+//         )}
+//       </div>
+
+//       <ShoppingCart
+//         isOpen={isCartOpen}
+//         onClose={() => setIsCartOpen(false)}
+//       />
+//     </div>
+//   );
+// }
+
+// v.1.1.8 ===============================================================
+
+// v.1.1.7 ===============================================================
+// // src/app/products/page.tsx
+
+// "use client";
+
+// import { useEffect, useMemo, useState } from "react";
+// import { useSearchParams, useRouter, usePathname } from "next/navigation";
+// import { ShoppingCart } from "@/components/shopping-cart";
+// import { ProductCard } from "@/components/product-card";
+// import { Button } from "@/components/ui/button";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
+// import { Grid3X3, List } from "lucide-react";
+
+// const DEFAULT_PAGE_SIZE = 12;
+// const LOAD_STEP = 12;
+
+// /* ===== Types ===== */
+// type UIProduct = {
+//   id: number | string;
+//   name: string;
+//   price: number;
+//   discountPercent?: number;
+//   image_url?: string;
+//   rating?: number;
+//   reviews?: number;
+//   brand?: string;
+//   sku?: string;
+//   uom?: string;
+//   category_id?: number | string;
+//   slug?: string;
+//   order?: number;
+// };
+
+// type ApiListResponse = {
+//   items: UIProduct[];
+//   total: number;
+//   page: number;
+//   pageSize: number;
+// };
+
+// type CategoryLite = { id: number | string; name: string; slug?: string };
+
+// type VisibleParts = Partial<{
+//   image: boolean;
+//   discountBadge: boolean;
+//   brandLogo: boolean;
+//   frame: boolean;
+//   brandName: boolean;
+//   sku: boolean;
+//   name: boolean;
+//   ratingReview: boolean;
+//   category: boolean;
+//   price: boolean;
+//   originalPrice: boolean;
+//   uom: boolean;
+// }>;
+
+// type FrameInfo =
+//   | {
+//       mode: "image";
+//       imageUrl: string;
+//       inset: number;
+//       opacity: number;
+//       objectFit: "contain" | "cover" | "fill";
+//     }
+//   | { mode: "draw"; borderWidth: number; borderColorHex: string };
+
+// type DiscountRuleLite = {
+//   id: string | number;
+//   minPercent?: number;
+//   maxPercent?: number;
+//   borderWidth: number;
+//   borderColorHex: string;
+//   frameMode?: "image" | "draw";
+//   frameImageUrl?: string;
+//   frameInsetPx?: number;
+//   frameOpacity?: number;
+//   frameObjectFit?: "contain" | "cover" | "stretch";
+//   enabled?: boolean;
+//   order?: number;
+// };
+
+// /* ===== Helpers ===== */
+// function mapSortUiToApi(
+//   v: string
+// ): "order" | "price_asc" | "price_desc" | "newest" | "rating_desc" | "discount_asc" | "discount_desc" {
+//   switch (v) {
+//     case "price-low":
+//       return "price_asc";
+//     case "price-high":
+//       return "price_desc";
+//     case "newest":
+//       return "newest";
+//     case "rating":
+//       return "rating_desc";
+//     case "discount-high":
+//       return "discount_desc";
+//     case "discount-low":
+//       return "discount_asc";
+//     case "best-match":
+//     default:
+//       return "order";
+//   }
+// }
+
+// const toFrameInfo = (rule: DiscountRuleLite | null): FrameInfo | null => {
+//   if (!rule) return null;
+//   if (rule.frameMode === "image" && rule.frameImageUrl) {
+//     const objFit: "contain" | "cover" | "fill" =
+//       rule.frameObjectFit === "stretch"
+//         ? "fill"
+//         : ((rule.frameObjectFit ?? "contain") as any);
+//     return {
+//       mode: "image",
+//       imageUrl: rule.frameImageUrl,
+//       inset: Math.max(0, Number(rule.frameInsetPx ?? 0)),
+//       opacity:
+//         typeof rule.frameOpacity === "number" ? rule.frameOpacity : 1,
+//       objectFit: objFit,
+//     };
+//   }
+//   return {
+//     mode: "draw",
+//     borderWidth: Number(rule.borderWidth) || 2,
+//     borderColorHex: String(rule.borderColorHex || "#000"),
+//   };
+// };
+
+// const pickRuleFactory =
+//   (rules: DiscountRuleLite[]) => (percent?: number): DiscountRuleLite | null => {
+//     if (percent == null) return null;
+//     for (const r of rules) {
+//       const lowerOk = percent >= (r.minPercent ?? 0);
+//       const upperOk =
+//         typeof r.maxPercent === "number" ? percent <= r.maxPercent : true;
+//       if (lowerOk && upperOk) return r;
+//     }
+//     return null;
+//   };
+
+// const getOriginalPrice = (price: number, discountPercent?: number) => {
+//   if (!discountPercent || discountPercent <= 0) return undefined;
+//   const original = price / (1 - discountPercent / 100);
+//   return Math.round(original);
+// };
+
+// /* ===== Page ===== */
+// export default function ProductListingPage() {
+//   const searchParams = useSearchParams();
+//   const router = useRouter();
+//   const pathname = usePathname();
+
+//   const categoryNameParam = searchParams.get("category") || "";
+//   const searchTextParam = searchParams.get("search") || "";
+//   const tagParam = searchParams.get("tag") || "";
+
+//   const discountMinParam = searchParams.get("discountMin");
+//   const discountMaxParam = searchParams.get("discountMax");
+//   const takeParam = searchParams.get("take");
+
+//   // pageSize (จำนวนสินค้าที่โหลดถึงตอนนี้) อ่านจาก URL ?take=
+//   const initialPageSize = useMemo(() => {
+//     const n = Number(takeParam ?? DEFAULT_PAGE_SIZE);
+//     if (!Number.isFinite(n) || n < DEFAULT_PAGE_SIZE) return DEFAULT_PAGE_SIZE;
+//     return n;
+//   }, [takeParam]);
+
+//   const discountMin = useMemo(() => {
+//     if (discountMinParam == null || discountMinParam.trim() === "")
+//       return undefined;
+//     const n = Number(discountMinParam);
+//     return Number.isFinite(n) && n > 0 ? n : undefined;
+//   }, [discountMinParam]);
+
+//   const discountMax = useMemo(() => {
+//     if (discountMaxParam == null || discountMaxParam.trim() === "")
+//       return undefined;
+//     const n = Number(discountMaxParam);
+//     return Number.isFinite(n) && n > 0 ? n : undefined;
+//   }, [discountMaxParam]);
+
+//   // UI
+//   const [isCartOpen, setIsCartOpen] = useState(false);
+//   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+//   const [sortBy, setSortBy] = useState("best-match");
+
+//   // Data
+//   const [loading, setLoading] = useState(false);
+//   const [error, setError] = useState<string | null>(null);
+//   const [items, setItems] = useState<
+//     (UIProduct & { frameInfo?: FrameInfo | null; categoryName?: string })[]
+//   >([]);
+//   const [total, setTotal] = useState(0);
+//   const [pageSize, setPageSize] = useState(initialPageSize);
+//   const [hasMore, setHasMore] = useState(true);
+
+//   // categories + rules + meta.cardParts
+//   const [categories, setCategories] = useState<CategoryLite[]>([]);
+//   const [rules, setRules] = useState<DiscountRuleLite[]>([]);
+//   const [visibleParts, setVisibleParts] = useState<VisibleParts | undefined>(
+//     undefined
+//   );
+
+//   const hasDiscountFilter =
+//     (typeof discountMin === "number" && discountMin > 0) ||
+//     (typeof discountMax === "number" && discountMax > 0);
+
+//   /* ===== Bootstrap: categories ===== */
+//   useEffect(() => {
+//     let aborted = false;
+//     (async () => {
+//       try {
+//         const r = await fetch("/api/mock/categories", { cache: "no-store" });
+//         const j = await r.json().catch(() => ({}));
+//         if (!aborted)
+//           setCategories(Array.isArray(j?.items) ? j.items : []);
+//       } catch {
+//         if (!aborted) setCategories([]);
+//       }
+//     })();
+//     return () => {
+//       aborted = true;
+//     };
+//   }, []);
+
+//   /* ===== Bootstrap: rules ===== */
+//   useEffect(() => {
+//     let aborted = false;
+//     (async () => {
+//       try {
+//         const r = await fetch("/api/mock/discount-rules", {
+//           cache: "no-store",
+//         });
+//         const j = await r.json().catch(() => ({}));
+//         const arr: DiscountRuleLite[] = (j?.items ?? [])
+//           .filter((x: any) => x && (x.enabled ?? true))
+//           .map((r: any) => ({
+//             id: r.id,
+//             minPercent: Number(r.minPercent) || 0,
+//             maxPercent:
+//               typeof r.maxPercent === "number" ? r.maxPercent : undefined,
+//             borderWidth: Number(r.borderWidth) || 2,
+//             borderColorHex: String(r.borderColorHex || "#000000"),
+//             frameMode: r.frameMode === "image" ? "image" : "draw",
+//             frameImageUrl:
+//               r.frameMode === "image" ? r.frameImageUrl : undefined,
+//             frameInsetPx:
+//               typeof r.frameInsetPx === "number" ? r.frameInsetPx : undefined,
+//             frameOpacity:
+//               typeof r.frameOpacity === "number"
+//                 ? Math.max(0, Math.min(1, Number(r.frameOpacity)))
+//                 : undefined,
+//             frameObjectFit:
+//               r.frameObjectFit === "cover"
+//                 ? "cover"
+//                 : r.frameObjectFit === "stretch"
+//                 ? "stretch"
+//                 : r.frameMode === "image"
+//                 ? "contain"
+//                 : undefined,
+//             enabled: r.enabled,
+//             order:
+//               typeof r.order === "number" ? r.order : undefined,
+//           }))
+//           .sort(
+//             (a: DiscountRuleLite, b: DiscountRuleLite) =>
+//               (a.order ?? 0) - (b.order ?? 0)
+//           );
+//         if (!aborted) setRules(arr);
+//       } catch {
+//         if (!aborted) setRules([]);
+//       }
+//     })();
+//     return () => {
+//       aborted = true;
+//     };
+//   }, []);
+
+//   /* ===== Bootstrap: meta.cardParts ===== */
+//   useEffect(() => {
+//     let aborted = false;
+//     (async () => {
+//       try {
+//         const r = await fetch("/api/mock/products/meta", {
+//           cache: "no-store",
+//         });
+//         const j = await r.json().catch(() => ({}));
+//         if (!aborted) setVisibleParts(j?.meta?.cardParts ?? undefined);
+//       } catch {
+//         if (!aborted) setVisibleParts(undefined);
+//       }
+//     })();
+//     return () => {
+//       aborted = true;
+//     };
+//   }, []);
+
+//   /* ===== Memo helpers ===== */
+//   const pickRule = useMemo(() => pickRuleFactory(rules), [rules]);
+//   const catMap = useMemo(
+//     () => new Map(categories.map((c) => [String(c.id), c.name])),
+//     [categories]
+//   );
+
+//   /* ===== Sync pageSize -> URL ?take= ===== */
+//   useEffect(() => {
+//     // ใส่ค่า take ใน URL เพื่อให้ Back แล้วจำได้ว่าโหลดถึงกี่ชิ้น
+//     const params = new URLSearchParams(searchParams.toString());
+//     const normalized = String(pageSize);
+
+//     const currentTake = params.get("take") ?? undefined;
+
+//     if (pageSize <= DEFAULT_PAGE_SIZE) {
+//       // ค่า default ไม่ต้องใส่ param ให้ URL สั้น
+//       if (currentTake != null) {
+//         params.delete("take");
+//       }
+//     } else {
+//       if (currentTake !== normalized) {
+//         params.set("take", normalized);
+//       }
+//     }
+
+//     const qs = params.toString();
+//     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+//   }, [pageSize, pathname, router, searchParams]);
+
+//   /* ===== Fetch products (page=1, pageSize = จำนวนที่โหลดถึงตอนนี้) ===== */
+//   useEffect(() => {
+//     let aborted = false;
+//     const controller = new AbortController();
+
+//     async function run() {
+//       try {
+//         setLoading(true);
+//         setError(null);
+
+//         // map ชื่อหมวด → id (ถ้ามี)
+//         let categoryId: string | number | undefined = undefined;
+//         if (categoryNameParam && categories.length) {
+//           const found = categories.find(
+//             (c) =>
+//               (c.name || "").toLowerCase() ===
+//               categoryNameParam.toLowerCase()
+//           );
+//           if (found) categoryId = found.id;
+//         }
+
+//         const url = new URL(
+//           "/api/mock/products",
+//           window.location.origin
+//         );
+
+//         if (searchTextParam.trim()) {
+//           url.searchParams.set("q", searchTextParam.trim());
+//         }
+//         if (typeof categoryId !== "undefined") {
+//           url.searchParams.set("category_id", String(categoryId));
+//         }
+
+//         const sortFinal =
+//           tagParam === "new" ? "newest" : mapSortUiToApi(sortBy);
+//         url.searchParams.set("sort", sortFinal);
+
+//         // ⭐️ ตาราง products ใช้ page=1 เสมอ แล้วเพิ่ม pageSize ตาม LOAD_STEP
+//         url.searchParams.set("page", "1");
+//         url.searchParams.set("pageSize", String(pageSize));
+//         url.searchParams.set("visible", "true");
+
+//         if (typeof discountMin === "number" && discountMin > 0) {
+//           url.searchParams.set("min_discount", String(discountMin));
+//         }
+//         if (typeof discountMax === "number" && discountMax > 0) {
+//           url.searchParams.set("max_discount", String(discountMax));
+//         }
+
+//         const res = await fetch(url.toString(), {
+//           cache: "no-store",
+//           signal: controller.signal,
+//         });
+//         if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+//         const data: ApiListResponse = await res.json();
+//         const rawItems = data.items ?? [];
+
+//         let prepared = rawItems.map((p) => ({
+//           ...p,
+//           frameInfo: toFrameInfo(pickRule(p.discountPercent)),
+//           categoryName:
+//             p.category_id != null
+//               ? catMap.get(String(p.category_id))
+//               : undefined,
+//         }));
+
+//         // fallback filter ส่วนลดฝั่ง client
+//         if (hasDiscountFilter) {
+//           prepared = prepared.filter((p) => {
+//             const d =
+//               typeof p.discountPercent === "number"
+//                 ? p.discountPercent
+//                 : -1;
+//             const lowerOk =
+//               typeof discountMin === "number" && discountMin > 0
+//                 ? d >= discountMin
+//                 : true;
+//             const upperOk =
+//               typeof discountMax === "number" && discountMax > 0
+//                 ? d <= discountMax
+//                 : true;
+//             return lowerOk && upperOk;
+//           });
+//         }
+
+//         if (!aborted) {
+//           const serverTotal = data.total ?? prepared.length;
+//           const effectiveTotal = hasDiscountFilter
+//             ? prepared.length
+//             : serverTotal;
+
+//           setItems(prepared);
+//           setTotal(effectiveTotal);
+//           setHasMore(serverTotal > pageSize);
+//         }
+//       } catch (e: any) {
+//         if (!aborted) setError(e?.message ?? "โหลดสินค้าล้มเหลว");
+//       } finally {
+//         if (!aborted) setLoading(false);
+//       }
+//     }
+
+//     run();
+
+//     return () => {
+//       aborted = true;
+//       controller.abort();
+//     };
+//   }, [
+//     pageSize,
+//     categoryNameParam,
+//     searchTextParam,
+//     tagParam,
+//     sortBy,
+//     categories,
+//     catMap,
+//     pickRule,
+//     discountMin,
+//     discountMax,
+//     hasDiscountFilter,
+//   ]);
+
+//   /* ===== Render ===== */
+//   const discountLabel = hasDiscountFilter
+//     ? ` • ส่วนลด${
+//         typeof discountMin === "number" && discountMin > 0
+//           ? `ตั้งแต่ ${discountMin}%`
+//           : ""
+//       }${
+//         typeof discountMax === "number" && discountMax > 0
+//           ? ` ถึง ${discountMax}%`
+//           : " ขึ้นไป"
+//       }`
+//     : "";
+
+//   return (
+//     <div className="min-h-screen bg-background">
+//       <div className="container mx-auto px-2 sm:px-4 py-6">
+//         {/* Breadcrumb */}
+//         <nav className="text-sm text-muted-foreground mb-4">
+//           <span
+//             className="cursor-pointer hover:text-primary transition-colors"
+//             onClick={() => router.push("/")}
+//           >
+//             หน้าแรก
+//           </span>
+//           {categoryNameParam && (
+//             <>
+//               <span className="mx-2">/</span>
+//               <span className="text-primary font-medium">
+//                 {categoryNameParam}
+//               </span>
+//             </>
+//           )}
+//           {searchTextParam && (
+//             <>
+//               <span className="mx-2">/</span>
+//               <span className="text-primary font-medium">
+//                 ค้นหา: "{searchTextParam}"
+//               </span>
+//             </>
+//           )}
+//           {tagParam && (
+//             <>
+//               <span className="mx-2">/</span>
+//               <span className="text-primary font-medium">
+//                 แท็ก: {tagParam}
+//               </span>
+//             </>
+//           )}
+//           {discountLabel && (
+//             <>
+//               <span className="mx-2">/</span>
+//               <span className="text-primary font-medium">
+//                 {discountLabel.replace(" • ", "")}
+//               </span>
+//             </>
+//           )}
+//         </nav>
+
+//         {/* Header */}
+//         <div className="mb-6">
+//           <h1 className="text-2xl font-bold mb-2">
+//             {categoryNameParam ||
+//               searchTextParam ||
+//               (tagParam === "new" ? "สินค้าใหม่" : "สินค้า")}
+//           </h1>
+//           <p className="text-muted-foreground">
+//             {loading && items.length === 0
+//               ? "กำลังโหลด…"
+//               : `${total.toLocaleString()} items found`}
+//             {categoryNameParam && ` for "${categoryNameParam}"`}
+//             {searchTextParam && ` for "${searchTextParam}"`}
+//             {discountLabel}
+//           </p>
+//         </div>
+
+//         {/* Sort & View */}
+//         <div className="flex items-center justify-between mb-6 pb-4 border-b gap-2">
+//           <div className="flex items-center gap-2 sm:gap-4">
+//             <span className="text-xs sm:text-sm text-muted-foreground">
+//               การจัดเรียง:
+//             </span>
+
+//             <Select value={sortBy} onValueChange={setSortBy}>
+//               <SelectTrigger className="w-32 sm:w-40 text-xs sm:text-sm h-8 sm:h-9">
+//                 <SelectValue placeholder="เลือก" />
+//               </SelectTrigger>
+//               <SelectContent>
+//                 <SelectItem value="best-match">Best Match</SelectItem>
+//                 <SelectItem value="price-low">ราคาต่ำ → สูง</SelectItem>
+//                 <SelectItem value="price-high">ราคาสูง → ต่ำ</SelectItem>
+//                 <SelectItem value="discount-high">
+//                   ส่วนลดมาก → น้อย
+//                 </SelectItem>
+//                 <SelectItem value="discount-low">
+//                   ส่วนลดน้อย → มาก
+//                 </SelectItem>
+//               </SelectContent>
+//             </Select>
+//           </div>
+
+//           <div className="flex items-center gap-1 sm:gap-2">
+//             <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">
+//               View:
+//             </span>
+//             <Button
+//               variant={viewMode === "grid" ? "default" : "outline"}
+//               size="sm"
+//               onClick={() => setViewMode("grid")}
+//               className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+//             >
+//               <Grid3X3 className="h-3 w-3 sm:h-4 sm:w-4" />
+//             </Button>
+//             <Button
+//               variant={viewMode === "list" ? "default" : "outline"}
+//               size="sm"
+//               onClick={() => setViewMode("list")}
+//               className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+//             >
+//               <List className="h-3 w-3 sm:h-4 sm:w-4" />
+//             </Button>
+//           </div>
+//         </div>
+
+//         {/* Error */}
+//         {error && (
+//           <div className="text-destructive mb-6">
+//             เกิดข้อผิดพลาดในการโหลดข้อมูล: {error}
+//           </div>
+//         )}
+
+//         {/* Grid / List */}
+//         <div
+//           className={`grid mb-8 ${
+//             viewMode === "grid"
+//               ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6"
+//               : "grid-cols-1 gap-4"
+//           }`}
+//         >
+//           {items.map((p, idx) => {
+//             const originalPrice = getOriginalPrice(
+//               p.price,
+//               p.discountPercent
+//             );
+//             return (
+//               <div
+//                 key={`${p.id}-${idx}`}
+//                 className="opacity-0 animate-fade-in"
+//                 style={{
+//                   animationDelay: `${(idx % LOAD_STEP) * 0.06}s`,
+//                 }}
+//               >
+//                 <ProductCard
+//                   id={p.id}
+//                   slug={p.slug}
+//                   name={p.name}
+//                   price={p.price}
+//                   originalPrice={originalPrice}
+//                   discount={p.discountPercent}
+//                   rating={p.rating ?? 0}
+//                   reviews={p.reviews ?? 0}
+//                   image={p.image_url ?? "/placeholder.png"}
+//                   brand={p.brand}
+//                   sku={p.sku}
+//                   uom={p.uom}
+//                   categoryName={p.categoryName}
+//                   frameInfo={(p as any).frameInfo ?? null}
+//                   viewMode={viewMode}
+//                   onAddToCart={() => setIsCartOpen(true)}
+//                   visibleParts={visibleParts}
+//                 />
+//               </div>
+//             );
+//           })}
+
+//           {loading && items.length === 0 &&
+//             Array.from({ length: DEFAULT_PAGE_SIZE }).map((_, i) => (
+//               <div
+//                 key={`sk-${i}`}
+//                 className="h-64 bg-muted/40 rounded-xl animate-pulse border border-muted/30"
+//               />
+//             ))}
+//         </div>
+
+//         {/* Loading more */}
+//         {loading && items.length > 0 && (
+//           <div className="text-center text-muted-foreground mb-4">
+//             กำลังโหลดเพิ่มเติม...
+//           </div>
+//         )}
+
+//         {/* ปุ่มโหลดเพิ่ม */}
+//         {!loading && hasMore && (
+//           <div className="flex justify-center mb-8">
+//             <Button
+//               onClick={() =>
+//                 setPageSize((prev) => prev + LOAD_STEP)
+//               }
+//             >
+//               โหลดเพิ่ม
+//             </Button>
+//           </div>
+//         )}
+
+//         {!loading && !hasMore && items.length > 0 && (
+//           <div className="text-center text-muted-foreground mb-8 text-xs">
+//             แสดงสินค้าครบทั้งหมดแล้ว
+//           </div>
+//         )}
+//       </div>
+
+//       <ShoppingCart
+//         isOpen={isCartOpen}
+//         onClose={() => setIsCartOpen(false)}
+//       />
+//     </div>
+//   );
+// }
+
+// v.1.1.7 ===============================================================
+
+// v.1.1.6 ===============================================================
+// // src/app/products/page.tsx
+
+// "use client";
+
+// import { useEffect, useMemo, useState } from "react";
+// import { useSearchParams, useRouter, usePathname } from "next/navigation";
+// import { ShoppingCart } from "@/components/shopping-cart";
+// import { ProductCard } from "@/components/product-card";
+// import { Button } from "@/components/ui/button";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
+// import { Grid3X3, List } from "lucide-react";
+// // ❌ ไม่ใช้แล้ว
+// // import PaginationBar from "@/components/pagination-bar";
+
+// /* ===== Types ===== */
+// type UIProduct = {
+//   id: number | string;
+//   name: string;
+//   price: number;
+//   discountPercent?: number;
+//   image_url?: string;
+//   rating?: number;
+//   reviews?: number;
+//   brand?: string;
+//   sku?: string;
+//   uom?: string;
+//   category_id?: number | string;
+//   slug?: string;
+//   order?: number;
+// };
+
+// type ApiListResponse = {
+//   items: UIProduct[];
+//   total: number;
+//   page: number;
+//   pageSize: number;
+// };
+
+// type CategoryLite = { id: number | string; name: string; slug?: string };
+
+// type VisibleParts = Partial<{
+//   image: boolean;
+//   discountBadge: boolean;
+//   brandLogo: boolean;
+//   frame: boolean;
+//   brandName: boolean;
+//   sku: boolean;
+//   name: boolean;
+//   ratingReview: boolean;
+//   category: boolean;
+//   price: boolean;
+//   originalPrice: boolean;
+//   uom: boolean;
+// }>;
+
+// type FrameInfo =
+//   | {
+//       mode: "image";
+//       imageUrl: string;
+//       inset: number;
+//       opacity: number;
+//       objectFit: "contain" | "cover" | "fill";
+//     }
+//   | { mode: "draw"; borderWidth: number; borderColorHex: string };
+
+// type DiscountRuleLite = {
+//   id: string | number;
+//   minPercent?: number;
+//   maxPercent?: number;
+//   borderWidth: number;
+//   borderColorHex: string;
+//   frameMode?: "image" | "draw";
+//   frameImageUrl?: string;
+//   frameInsetPx?: number;
+//   frameOpacity?: number;
+//   frameObjectFit?: "contain" | "cover" | "stretch";
+//   enabled?: boolean;
+//   order?: number;
+// };
+
+// /* ===== Helpers ===== */
+// function mapSortUiToApi(
+//   v: string
+// ): "order" | "price_asc" | "price_desc" | "newest" | "rating_desc" | "discount_asc" | "discount_desc" {
+//   switch (v) {
+//     case "price-low":
+//       return "price_asc";
+//     case "price-high":
+//       return "price_desc";
+//     case "newest":
+//       return "newest";
+//     case "rating":
+//       return "rating_desc";
+
+//     // ✅ เพิ่มสองอันนี้
+//     case "discount-high":
+//       return "discount_desc";
+//     case "discount-low":
+//       return "discount_asc";
+
+//     case "best-match":
+//     default:
+//       return "order";
+//   }
+// }
+
+
+
+
+// const toFrameInfo = (rule: DiscountRuleLite | null): FrameInfo | null => {
+//   if (!rule) return null;
+//   if (rule.frameMode === "image" && rule.frameImageUrl) {
+//     const objFit: "contain" | "cover" | "fill" =
+//       rule.frameObjectFit === "stretch"
+//         ? "fill"
+//         : ((rule.frameObjectFit ?? "contain") as any);
+//     return {
+//       mode: "image",
+//       imageUrl: rule.frameImageUrl,
+//       inset: Math.max(0, Number(rule.frameInsetPx ?? 0)),
+//       opacity:
+//         typeof rule.frameOpacity === "number" ? rule.frameOpacity : 1,
+//       objectFit: objFit,
+//     };
+//   }
+//   return {
+//     mode: "draw",
+//     borderWidth: Number(rule.borderWidth) || 2,
+//     borderColorHex: String(rule.borderColorHex || "#000"),
+//   };
+// };
+
+// const pickRuleFactory =
+//   (rules: DiscountRuleLite[]) => (percent?: number): DiscountRuleLite | null => {
+//     if (percent == null) return null;
+//     for (const r of rules) {
+//       const lowerOk = percent >= (r.minPercent ?? 0);
+//       const upperOk =
+//         typeof r.maxPercent === "number" ? percent <= r.maxPercent : true;
+//       if (lowerOk && upperOk) return r;
+//     }
+//     return null;
+//   };
+
+// const getOriginalPrice = (price: number, discountPercent?: number) => {
+//   if (!discountPercent || discountPercent <= 0) return undefined;
+//   const original = price / (1 - discountPercent / 100);
+//   return Math.round(original);
+// };
+
+// /* ===== Page ===== */
+// export default function ProductListingPage() {
+//   const searchParams = useSearchParams();
+//   const router = useRouter();
+//   const pathname = usePathname();
+
+//   const categoryNameParam = searchParams.get("category") || "";
+//   const searchTextParam = searchParams.get("search") || "";
+//   const tagParam = searchParams.get("tag") || "";
+
+//   const discountMinParam = searchParams.get("discountMin");
+//   const discountMaxParam = searchParams.get("discountMax");
+
+//   const discountMin = useMemo(() => {
+//     if (discountMinParam == null || discountMinParam.trim() === "")
+//       return undefined;
+//     const n = Number(discountMinParam);
+//     return Number.isFinite(n) && n > 0 ? n : undefined;
+//   }, [discountMinParam]);
+
+//   const discountMax = useMemo(() => {
+//     if (discountMaxParam == null || discountMaxParam.trim() === "")
+//       return undefined;
+//     const n = Number(discountMaxParam);
+//     return Number.isFinite(n) && n > 0 ? n : undefined;
+//   }, [discountMaxParam]);
+
+//   useEffect(() => {
+//     const rawMin = discountMinParam;
+//     const rawMax = discountMaxParam;
+//     const badMin =
+//       rawMin != null &&
+//       rawMin !== "" &&
+//       Number.isFinite(Number(rawMin)) &&
+//       Number(rawMin) <= 0;
+//     const badMax =
+//       rawMax != null &&
+//       rawMax !== "" &&
+//       Number.isFinite(Number(rawMax)) &&
+//       Number(rawMax) <= 0;
+
+//     if (!badMin && !badMax) return;
+
+//     const params = new URLSearchParams(searchParams as any);
+//     if (badMin) params.delete("discountMin");
+//     if (badMax) params.delete("discountMax");
+//     const qs = params.toString();
+//     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, [discountMinParam, discountMaxParam, pathname, router, searchParams]);
+
+//   // UI
+//   const [isCartOpen, setIsCartOpen] = useState(false);
+//   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+//   const [sortBy, setSortBy] = useState("best-match");
+//   // const [sortBy, setSortBy] = useState("price-low");
+
+//   // Data
+//   const [loading, setLoading] = useState(false);
+//   const [error, setError] = useState<string | null>(null);
+//   const [items, setItems] = useState<
+//     (UIProduct & { frameInfo?: FrameInfo | null; categoryName?: string })[]
+//   >([]);
+//   const [total, setTotal] = useState(0);
+
+//   // ✅ Load more pagination
+//   const [currentPage, setCurrentPage] = useState(1);
+//   const [pageSize] = useState(12); // กำหนดจำนวนตอการโหลด
+//   const [hasMore, setHasMore] = useState(true);
+
+//   // categories + rules + meta.cardParts
+//   const [categories, setCategories] = useState<CategoryLite[]>([]);
+//   const [rules, setRules] = useState<DiscountRuleLite[]>([]);
+//   const [visibleParts, setVisibleParts] = useState<
+//     VisibleParts | undefined
+//   >(undefined);
+
+//   /* bootstrap: categories */
+//   useEffect(() => {
+//     let aborted = false;
+//     (async () => {
+//       try {
+//         const r = await fetch("/api/mock/categories", {
+//           cache: "no-store",
+//         });
+//         const j = await r.json().catch(() => ({}));
+//         if (!aborted)
+//           setCategories(Array.isArray(j?.items) ? j.items : []);
+//       } catch {
+//         if (!aborted) setCategories([]);
+//       }
+//     })();
+//     return () => {
+//       aborted = true;
+//     };
+//   }, []);
+
+//   /* bootstrap: rules */
+//   useEffect(() => {
+//     let aborted = false;
+//     (async () => {
+//       try {
+//         const r = await fetch("/api/mock/discount-rules", {
+//           cache: "no-store",
+//         });
+//         const j = await r.json().catch(() => ({}));
+//         const arr: DiscountRuleLite[] = (j?.items ?? [])
+//           .filter((x: any) => x && (x.enabled ?? true))
+//           .map((r: any) => ({
+//             id: r.id,
+//             minPercent: Number(r.minPercent) || 0,
+//             maxPercent:
+//               typeof r.maxPercent === "number" ? r.maxPercent : undefined,
+//             borderWidth: Number(r.borderWidth) || 2,
+//             borderColorHex: String(r.borderColorHex || "#000000"),
+//             frameMode: r.frameMode === "image" ? "image" : "draw",
+//             frameImageUrl:
+//               r.frameMode === "image" ? r.frameImageUrl : undefined,
+//             frameInsetPx:
+//               typeof r.frameInsetPx === "number"
+//                 ? r.frameInsetPx
+//                 : undefined,
+//             frameOpacity:
+//               typeof r.frameOpacity === "number"
+//                 ? Math.max(0, Math.min(1, Number(r.frameOpacity)))
+//                 : undefined,
+//             frameObjectFit:
+//               r.frameObjectFit === "cover"
+//                 ? "cover"
+//                 : r.frameObjectFit === "stretch"
+//                 ? "stretch"
+//                 : r.frameMode === "image"
+//                 ? "contain"
+//                 : undefined,
+//             enabled: r.enabled,
+//             order:
+//               typeof r.order === "number" ? r.order : undefined,
+//           }))
+//           .sort(
+//             (a: DiscountRuleLite, b: DiscountRuleLite) =>
+//               (a.order ?? 0) - (b.order ?? 0)
+//           );
+//         if (!aborted) setRules(arr);
+//       } catch {
+//         if (!aborted) setRules([]);
+//       }
+//     })();
+//     return () => {
+//       aborted = true;
+//     };
+//   }, []);
+
+//   /* bootstrap: meta.cardParts */
+//   useEffect(() => {
+//     let aborted = false;
+//     (async () => {
+//       try {
+//         const r = await fetch("/api/mock/products/meta", {
+//           cache: "no-store",
+//         });
+//         const j = await r.json().catch(() => ({}));
+//         if (!aborted) setVisibleParts(j?.meta?.cardParts ?? undefined);
+//       } catch {
+//         if (!aborted) setVisibleParts(undefined);
+//       }
+//     })();
+//     return () => {
+//       aborted = true;
+//     };
+//   }, []);
+
+//   const pickRule = useMemo(
+//     () => pickRuleFactory(rules),
+//     [rules]
+//   );
+//   const catMap = useMemo(
+//     () => new Map(categories.map((c) => [String(c.id), c.name])),
+//     [categories]
+//   );
+
+//   const hasDiscountFilter =
+//     (typeof discountMin === "number" && discountMin > 0) ||
+//     (typeof discountMax === "number" && discountMax > 0);
+
+//   /* reset เมื่อ filter เปลี่ยน → กลับไปหน้า 1 และล้าง items */
+//   useEffect(() => {
+//     setCurrentPage(1);
+//     setHasMore(true);
+//     setItems([]);
+//   }, [
+//     categoryNameParam,
+//     searchTextParam,
+//     tagParam,
+//     sortBy,
+//     hasDiscountFilter,
+//   ]);
+
+//   /* fetch ตามหน้า + load more */
+//   useEffect(() => {
+//     let aborted = false;
+//     const controller = new AbortController();
+
+//     async function run() {
+//       try {
+//         setLoading(true);
+//         setError(null);
+
+//         // map ชื่อหมวด → id (ถ้ามี)
+//         let categoryId: string | number | undefined = undefined;
+//         if (categoryNameParam && categories.length) {
+//           const found = categories.find(
+//             (c) =>
+//               (c.name || "").toLowerCase() ===
+//               categoryNameParam.toLowerCase()
+//           );
+//           if (found) categoryId = found.id;
+//         }
+
+//         const url = new URL(
+//           "/api/mock/products",
+//           window.location.origin
+//         );
+//         if (searchTextParam.trim())
+//           url.searchParams.set("q", searchTextParam.trim());
+//         if (typeof categoryId !== "undefined")
+//           url.searchParams.set("category_id", String(categoryId));
+
+//         const sortFinal =
+//           tagParam === "new" ? "newest" : mapSortUiToApi(sortBy);
+//         url.searchParams.set("sort", sortFinal);
+//         url.searchParams.set("page", String(currentPage));
+//         url.searchParams.set("pageSize", String(pageSize));
+//         url.searchParams.set("visible", "true");
+
+//         if (typeof discountMin === "number" && discountMin > 0) {
+//           url.searchParams.set("min_discount", String(discountMin));
+//         }
+//         if (typeof discountMax === "number" && discountMax > 0) {
+//           url.searchParams.set("max_discount", String(discountMax));
+//         }
+
+//         const res = await fetch(url.toString(), {
+//           cache: "no-store",
+//           signal: controller.signal,
+//         });
+//         if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+//         const data: ApiListResponse = await res.json();
+
+//         const rawItems = data.items ?? [];
+//         const pageHasMore = rawItems.length === pageSize;
+
+//         let prepared = rawItems.map((p) => ({
+//           ...p,
+//           frameInfo: toFrameInfo(pickRule(p.discountPercent)),
+//           categoryName:
+//             p.category_id != null
+//               ? catMap.get(String(p.category_id))
+//               : undefined,
+//         }));
+
+//         // fallback filter ฝั่ง client
+//         if (hasDiscountFilter) {
+//           prepared = prepared.filter((p) => {
+//             const d =
+//               typeof p.discountPercent === "number"
+//                 ? p.discountPercent
+//                 : -1;
+//             const lowerOk =
+//               typeof discountMin === "number" && discountMin > 0
+//                 ? d >= discountMin
+//                 : true;
+//             const upperOk =
+//               typeof discountMax === "number" && discountMax > 0
+//                 ? d <= discountMax
+//                 : true;
+//             return lowerOk && upperOk;
+//           });
+//         }
+
+//         if (!aborted) {
+//           setItems((prev) => {
+//             const merged =
+//               currentPage === 1 ? prepared : [...prev, ...prepared];
+
+//             if (hasDiscountFilter) {
+//               const effectiveTotal = merged.length;
+//               setTotal(effectiveTotal);
+//               setHasMore(pageHasMore);
+//             } else {
+//               const serverTotal = data.total ?? merged.length;
+//               setTotal(serverTotal);
+//               setHasMore(merged.length < serverTotal && pageHasMore);
+//             }
+
+//             return merged;
+//           });
+//         }
+//       } catch (e: any) {
+//         if (!aborted)
+//           setError(e?.message ?? "โหลดสินค้าล้มเหลว");
+//       } finally {
+//         if (!aborted) setLoading(false);
+//       }
+//     }
+
+//     run();
+//     return () => {
+//       aborted = true;
+//       controller.abort();
+//     };
+//   }, [
+//     currentPage,
+//     pageSize,
+//     categoryNameParam,
+//     searchTextParam,
+//     tagParam,
+//     sortBy,
+//     categories,
+//     catMap,
+//     pickRule,
+//     discountMin,
+//     discountMax,
+//     hasDiscountFilter,
+//   ]);
+
+//   /* ===== Render ===== */
+//   const discountLabel = hasDiscountFilter
+//     ? ` • ส่วนลด${
+//         typeof discountMin === "number" && discountMin > 0
+//           ? `ตั้งแต่ ${discountMin}%`
+//           : ""
+//       }${
+//         typeof discountMax === "number" && discountMax > 0
+//           ? ` ถึง ${discountMax}%`
+//           : " ขึ้นไป"
+//       }`
+//     : "";
+
+//   return (
+//     <div className="min-h-screen bg-background">
+//       <div className="container mx-auto px-2 sm:px-4 py-6">
+//         {/* Breadcrumb */}
+//         <nav className="text-sm text-muted-foreground mb-4">
+//           <span
+//             className="cursor-pointer hover:text-primary transition-colors"
+//             onClick={() => router.push("/")}
+//           >
+//             หน้าแรก
+//           </span>
+//           {categoryNameParam && (
+//             <>
+//               <span className="mx-2">/</span>
+//               <span className="text-primary font-medium">
+//                 {categoryNameParam}
+//               </span>
+//             </>
+//           )}
+//           {searchTextParam && (
+//             <>
+//               <span className="mx-2">/</span>
+//               <span className="text-primary font-medium">
+//                 ค้นหา: "{searchTextParam}"
+//               </span>
+//             </>
+//           )}
+//           {tagParam && (
+//             <>
+//               <span className="mx-2">/</span>
+//               <span className="text-primary font-medium">
+//                 แท็ก: {tagParam}
+//               </span>
+//             </>
+//           )}
+//           {discountLabel && (
+//             <>
+//               <span className="mx-2">/</span>
+//               <span className="text-primary font-medium">
+//                 {discountLabel.replace(" • ", "")}
+//               </span>
+//             </>
+//           )}
+//         </nav>
+
+//         {/* Header */}
+//         <div className="mb-6">
+//           <h1 className="text-2xl font-bold mb-2">
+//             {categoryNameParam ||
+//               searchTextParam ||
+//               (tagParam === "new" ? "สินค้าใหม่" : "สินค้า")}
+//           </h1>
+//           <p className="text-muted-foreground">
+//             {loading && items.length === 0
+//               ? "กำลังโหลด…"
+//               : `${total.toLocaleString()} items found`}
+//             {categoryNameParam && ` for "${categoryNameParam}"`}
+//             {searchTextParam && ` for "${searchTextParam}"`}
+//             {discountLabel}
+//           </p>
+//         </div>
+
+//           {/* Sort & View */}
+//           <div className="flex items-center justify-between mb-6 pb-4 border-b gap-2">
+//             <div className="flex items-center gap-2 sm:gap-4">
+//               <span className="text-xs sm:text-sm text-muted-foreground">การจัดเรียง:</span>
+
+//               <Select value={sortBy} onValueChange={setSortBy}>
+//                 <SelectTrigger className="w-32 sm:w-40 text-xs sm:text-sm h-8 sm:h-9">
+//                   <SelectValue placeholder="เลือก" />
+//                 </SelectTrigger>
+//                 <SelectContent>
+//                   <SelectItem value="best-match">Best Match</SelectItem>
+//                   <SelectItem value="price-low">ราคาต่ำ → สูง</SelectItem>
+//                   <SelectItem value="price-high">ราคาสูง → ต่ำ</SelectItem>
+//                   <SelectItem value="discount-high">ส่วนลดมาก → น้อย</SelectItem>
+//                   <SelectItem value="discount-low">ส่วนลดน้อย → มาก</SelectItem>
+//                 </SelectContent>
+//               </Select>
+//             </div>
+
+//           <div className="flex items-center gap-1 sm:gap-2">
+//             <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">
+//               View:
+//             </span>
+//             <Button
+//               variant={viewMode === "grid" ? "default" : "outline"}
+//               size="sm"
+//               onClick={() => setViewMode("grid")}
+//               className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+//             >
+//               <Grid3X3 className="h-3 w-3 sm:h-4 sm:w-4" />
+//             </Button>
+//             <Button
+//               variant={viewMode === "list" ? "default" : "outline"}
+//               size="sm"
+//               onClick={() => setViewMode("list")}
+//               className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+//             >
+//               <List className="h-3 w-3 sm:h-4 sm:w-4" />
+//             </Button>
+//           </div>
+//         </div>
+
+//         {/* Error */}
+//         {error && (
+//           <div className="text-destructive mb-6">
+//             เกิดข้อผิดพลาดในการโหลดข้อมูล: {error}
+//           </div>
+//         )}
+
+//         {/* Grid */}
+//         <div
+//           className={`grid mb-8 ${
+//             viewMode === "grid"
+//               ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6"
+//               : "grid-cols-1 gap-4"
+//           }`}
+//         >
+//           {items.map((p, idx) => {
+//             const originalPrice = getOriginalPrice(
+//               p.price,
+//               p.discountPercent
+//             );
+//             return (
+//               <div
+//                 key={`${p.id}-${idx}`}
+//                 className="opacity-0 animate-fade-in"
+//                 style={{
+//                   animationDelay: `${(idx % pageSize) * 0.06}s`,
+//                 }}
+//               >
+//                 <ProductCard
+//                   id={p.id}
+//                   slug={p.slug}
+//                   name={p.name}
+//                   price={p.price}
+//                   originalPrice={originalPrice}
+//                   discount={p.discountPercent}
+//                   rating={p.rating ?? 0}
+//                   reviews={p.reviews ?? 0}
+//                   image={p.image_url ?? "/placeholder.png"}
+//                   brand={p.brand}
+//                   sku={p.sku}
+//                   uom={p.uom}
+//                   categoryName={p.categoryName}
+//                   frameInfo={(p as any).frameInfo ?? null}
+//                   viewMode={viewMode}
+//                   onAddToCart={() => setIsCartOpen(true)}
+//                   visibleParts={visibleParts}
+//                 />
+//               </div>
+//             );
+//           })}
+
+//           {loading && items.length === 0 &&
+//             Array.from({ length: pageSize }).map((_, i) => (
+//               <div
+//                 key={`sk-${i}`}
+//                 className="h-64 bg-muted/40 rounded-xl animate-pulse border border-muted/30"
+//               />
+//             ))}
+//         </div>
+
+//         {/* กำลังโหลดเพิ่ม (ตอนมีของเก่าแล้ว) */}
+//         {loading && items.length > 0 && (
+//           <div className="text-center text-muted-foreground mb-4">
+//             กำลังโหลดเพิ่มเติม...
+//           </div>
+//         )}
+
+//         {/* ✅ ปุ่มโหลดเพิ่ม */}
+//         {!loading && hasMore && (
+//           <div className="flex justify-center mb-8">
+//             <Button
+//               onClick={() =>
+//                 setCurrentPage((prev) => prev + 1)
+//               }
+//             >
+//               โหลดเพิ่ม
+//             </Button>
+//           </div>
+//         )}
+
+//         {!loading && !hasMore && items.length > 0 && (
+//           <div className="text-center text-muted-foreground mb-8 text-xs">
+//             แสดงสินค้าครบทั้งหมดแล้ว
+//           </div>
+//         )}
+//       </div>
+
+//       <ShoppingCart
+//         isOpen={isCartOpen}
+//         onClose={() => setIsCartOpen(false)}
+//       />
+//     </div>
+//   );
+// }
 
 // v.1.1.6 ===============================================================
 
