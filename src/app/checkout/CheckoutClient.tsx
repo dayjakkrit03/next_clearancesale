@@ -1,4 +1,5 @@
-// v.1.1.17 =================================================================
+// v.1.1.18 =================================================================
+// src/app/checkout/CheckoutClient.tsx
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -100,59 +101,135 @@ export default function CheckoutClient({ initialData }: Props) {
   // 🔒 กัน submit ซ้ำ
   const submittingRef = useRef(false);
 
+  // ✅ flag ว่าชำระเงินสำเร็จแล้วหรือยัง
+  const paymentCompletedRef = useRef(false);
+
+
+/* ===================== LISTEN MESSAGE FROM LARAVEL ===================== */
+
+  // useEffect(() => {
+  //   const handler = async (event: MessageEvent) => {
+  //     if (event?.data?.type === "PAYMENT_SUCCESS") {
+  //       paymentCompletedRef.current = true;
+
+  //       // ปิด popup
+  //       setPaymentPopupOpen(false);
+  //       submittingRef.current = false;
+
+  //       // ✅ re-fetch cart summary ให้ header อัปเดตก่อน
+  //       try {
+  //         await fetch("/api/cart/summary", {
+  //           method: "GET",
+  //           credentials: "include",
+  //         });
+  //       } catch (e) {
+  //         // ไม่ต้อง block redirect
+  //         console.error("re-fetch cart summary failed", e);
+  //       }
+
+  //       // redirect ไปหน้า products
+  //       router.push("/profile/orders");
+  //     }
+  //   };
+
+  //   window.addEventListener("message", handler);
+  //   return () => window.removeEventListener("message", handler);
+  // }, [router]);
+
+  useEffect(() => {
+    const handler = async (event: MessageEvent) => {
+      if (event?.data?.type === "PAYMENT_SUCCESS") {
+        paymentCompletedRef.current = true;
+
+        // ปิด popup
+        setPaymentPopupOpen(false);
+        submittingRef.current = false;
+
+        sessionStorage.setItem(
+          "post_payment_toast",
+          JSON.stringify({
+            title: "ขอบคุณสำหรับการสั่งซื้อ",
+            description: "ระบบได้รับชำระเงินเรียบร้อยแล้ว",
+          })
+        );
+
+        // ไม่จำเป็นต้อง fetch แล้ว เพราะจะ reload ทั้งหน้า
+        // redirect + reload หน้าใหม่ทันที
+        window.location.href = "/profile/orders";
+      }
+    };
+
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, []);
+
+
   /* ===================== ACTION ===================== */
 
+ 
   const handlePlaceOrder = async () => {
-    if (submittingRef.current) return;
-    submittingRef.current = true;
+  if (submittingRef.current) return;
+  submittingRef.current = true;
 
-    try {
-      const res = await fetch("/api/auth/me");
-      const data = await res.json();
+  try {
+    const res = await fetch("/api/auth/me");
+    const data = await res.json();
 
-      if (!data.ok) {
-        alert("กรุณาเข้าสู่ระบบใหม่");
-        submittingRef.current = false;
-        return;
-      }
-
-      const customerId = data.user.id;
-
-      // 🔹 ตัดสินว่าเป็นบุคคล / นิติบุคคล
-      // Laravel เดิมใช้ radio: 0 = person, 1 = entity
-      const radio =
-        profileInfo?.mode === "entity" ? "1" : "0";
-
-      // เปิด popup ก่อน
-      setPaymentPopupOpen(true);
-
-      // สร้าง form ยิงเข้า Laravel
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = "http://localhost:8081/next/makebuy";
-      form.target = "payment_iframe";
-
-      const add = (name: string, value: string) => {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = name;
-        input.value = value;
-        form.appendChild(input);
-      };
-
-      add("customer_id", String(customerId));
-      add("payment_method", paymentMethod === "qr" ? "payqr" : "paycard");
-      add("radio", radio); // ✅ สำคัญ: ส่งบุคคล / นิติบุคคล
-
-      document.body.appendChild(form);
-
-      requestAnimationFrame(() => {
-        form.submit();
-      });
-    } catch (e) {
+    if (!data.ok) {
+      alert("กรุณาเข้าสู่ระบบใหม่");
       submittingRef.current = false;
+      return;
     }
-  };
+
+    const customerId = data.user.id;
+
+    // 🔹 ตัดสินว่าเป็นบุคคล / นิติบุคคล
+    const radio = profileInfo?.mode === "entity" ? "1" : "0";
+
+    // เปิด popup ก่อน
+    setPaymentPopupOpen(true);
+
+    // reset flag ทุกครั้งที่เริ่มจ่ายใหม่
+    paymentCompletedRef.current = false;
+
+    // สร้าง form ยิงเข้า Laravel
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "https://shop.interlink.co.th/clearance/next/makebuy";
+    form.target = "payment_iframe";
+
+    const add = (name: string, value: string) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = name;
+      input.value = value;
+      form.appendChild(input);
+    };
+
+    add("customer_id", String(customerId));
+    add("payment_method", paymentMethod === "qr" ? "payqr" : "paycard");
+    add("radio", radio);
+
+    document.body.appendChild(form);
+
+    // ✅ รอให้ popup + iframe mount ก่อนแน่นอน
+    setTimeout(() => {
+      const iframe = document.querySelector(
+        'iframe[name="payment_iframe"]',
+      );
+
+      if (iframe) {
+        form.submit(); // 👉 จะเข้า popup เท่านั้น
+      } else {
+        // fallback (กัน edge case)
+        submittingRef.current = false;
+        console.error("payment_iframe not ready");
+      }
+    }, 500); // 50–100ms กำลังดี
+  } catch (e) {
+    submittingRef.current = false;
+  }
+};
 
   /* ===================== RENDER ===================== */
 
@@ -257,6 +334,7 @@ export default function CheckoutClient({ initialData }: Props) {
         onClose={() => {
           setPaymentPopupOpen(false);
           submittingRef.current = false;
+          // ❗ ไม่ redirect ที่นี่
         }}
         iframeUrl=""
         title={paymentMethod === "qr" ? "ชำระเงิน QR Code" : "ชำระเงินด้วยบัตร"}
@@ -264,6 +342,277 @@ export default function CheckoutClient({ initialData }: Props) {
     </div>
   );
 }
+
+// v.1.1.18 =================================================================
+
+// v.1.1.17 =================================================================
+// // src/app/checkout/CheckoutClient.tsx
+
+// "use client";
+
+// import { useEffect, useRef, useState } from "react";
+// import Link from "next/link";
+// import { useRouter } from "next/navigation";
+// import { ArrowLeft } from "lucide-react";
+
+// import { Button } from "@/components/ui/button";
+
+// import CheckoutAddressSection from "./component/CheckoutAddressSection";
+// import CheckoutPackagesSection from "./component/CheckoutPackagesSection";
+// import CheckoutPaymentSection from "./component/CheckoutPaymentSection";
+// import CheckoutSummarySection from "./component/CheckoutSummarySection";
+// import PaymentPopup from "./component/PaymentPopup";
+
+// import type {
+//   CheckoutData,
+//   CheckoutItem,
+//   DeliveryOption,
+//   PaymentMethod,
+//   CheckoutVoucher,
+//   CheckoutAddress,
+//   CheckoutProfileInfo,
+// } from "@/types/checkout";
+// import { buildCheckoutProfileAddressBook } from "@/types/checkout";
+// import type { PersonProfile, EntityProfile } from "@/types/profile";
+
+// type Props = {
+//   initialData: CheckoutData;
+// };
+
+// export default function CheckoutClient({ initialData }: Props) {
+//   const router = useRouter();
+
+//   useEffect(() => {
+//     window.scrollTo(0, 0);
+//   }, []);
+
+//   /* ===================== STATE ===================== */
+
+//   const [checkoutItems, setCheckoutItems] = useState<CheckoutItem[]>(
+//     initialData.items ?? [],
+//   );
+
+//   const [insufficientSkus, setInsufficientSkus] = useState<string[]>([]);
+
+//   const [shippingAddress, setShippingAddress] =
+//     useState<CheckoutAddress | null>(initialData.shippingAddress ?? null);
+
+//   const [billingAddress, setBillingAddress] =
+//     useState<CheckoutAddress | null>(initialData.billingAddress ?? null);
+
+//   const [profileInfo, setProfileInfo] =
+//     useState<CheckoutProfileInfo | undefined>(initialData.profileInfo);
+
+//   const [personProfile, setPersonProfile] = useState<PersonProfile | null>(
+//     initialData.personProfile ?? null,
+//   );
+//   const [entityProfile, setEntityProfile] = useState<EntityProfile | null>(
+//     initialData.entityProfile ?? null,
+//   );
+
+//   const addressProfiles = buildCheckoutProfileAddressBook(
+//     personProfile,
+//     entityProfile,
+//   );
+
+//   const [deliveryOption, setDeliveryOption] =
+//     useState<DeliveryOption>("standard");
+
+//   const [paymentMethod, setPaymentMethod] =
+//     useState<PaymentMethod>("card");
+
+//   const [appliedVouchers, setAppliedVouchers] = useState<CheckoutVoucher[]>([]);
+
+//   /* ===================== SUMMARY ===================== */
+
+//   const subtotal = checkoutItems.reduce((sum, item) => {
+//     const line =
+//       typeof item.lineTotal === "number"
+//         ? item.lineTotal
+//         : item.price * item.quantity;
+//     return sum + line;
+//   }, 0);
+
+//   const shippingFee = deliveryOption === "standard" ? 0 : 65;
+
+//   const voucherDiscount = appliedVouchers.reduce(
+//     (sum, voucher) => sum + voucher.discount,
+//     0,
+//   );
+
+//   const total = subtotal + shippingFee - voucherDiscount;
+
+//   /* ===================== POPUP ===================== */
+
+//   const [paymentPopupOpen, setPaymentPopupOpen] = useState(false);
+
+//   // 🔒 กัน submit ซ้ำ
+//   const submittingRef = useRef(false);
+
+//   /* ===================== ACTION ===================== */
+
+//   const handlePlaceOrder = async () => {
+//     if (submittingRef.current) return;
+//     submittingRef.current = true;
+
+//     try {
+//       const res = await fetch("/api/auth/me");
+//       const data = await res.json();
+
+//       if (!data.ok) {
+//         alert("กรุณาเข้าสู่ระบบใหม่");
+//         submittingRef.current = false;
+//         return;
+//       }
+
+//       const customerId = data.user.id;
+
+//       // 🔹 ตัดสินว่าเป็นบุคคล / นิติบุคคล
+//       // Laravel เดิมใช้ radio: 0 = person, 1 = entity
+//       const radio =
+//         profileInfo?.mode === "entity" ? "1" : "0";
+
+//       // เปิด popup ก่อน
+//       setPaymentPopupOpen(true);
+
+//       // สร้าง form ยิงเข้า Laravel
+//       const form = document.createElement("form");
+//       form.method = "POST";
+//       form.action = "https://shop.interlink.co.th/clearance/next/makebuy";
+//       form.target = "payment_iframe";
+
+//       const add = (name: string, value: string) => {
+//         const input = document.createElement("input");
+//         input.type = "hidden";
+//         input.name = name;
+//         input.value = value;
+//         form.appendChild(input);
+//       };
+
+//       add("customer_id", String(customerId));
+//       add("payment_method", paymentMethod === "qr" ? "payqr" : "paycard");
+//       add("radio", radio); // ✅ สำคัญ: ส่งบุคคล / นิติบุคคล
+
+//       document.body.appendChild(form);
+
+//       requestAnimationFrame(() => {
+//         form.submit();
+//       });
+//     } catch (e) {
+//       submittingRef.current = false;
+//     }
+//   };
+
+//   /* ===================== RENDER ===================== */
+
+//   return (
+//     <div className="min-h-screen bg-background">
+//       <div className="container mx-auto px-4 py-6 max-w-6xl">
+//         <div className="flex items-center gap-4 mb-6">
+//           <Link href="/cart">
+//             <Button variant="ghost" size="icon">
+//               <ArrowLeft className="h-5 w-5" />
+//             </Button>
+//           </Link>
+//           <h1 className="text-2xl font-bold">ชำระเงิน</h1>
+//         </div>
+
+//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+//           {/* ซ้าย */}
+//           <div className="lg:col-span-2 space-y-6">
+//             <CheckoutAddressSection
+//               shippingAddress={shippingAddress}
+//               billingAddress={billingAddress}
+//               profileInfo={profileInfo}
+//               onChangeShippingAddress={setShippingAddress}
+//               onChangeBillingAddress={setBillingAddress}
+//               onChangeProfileInfo={setProfileInfo}
+//               addressProfiles={addressProfiles}
+//               personProfile={personProfile}
+//               entityProfile={entityProfile}
+//               onProfileSaved={(updated) => {
+//                 if (updated.person !== undefined) {
+//                   setPersonProfile(updated.person ?? null);
+//                 }
+//                 if (updated.entity !== undefined) {
+//                   setEntityProfile(updated.entity ?? null);
+//                 }
+//               }}
+//             />
+
+//             <CheckoutPackagesSection
+//               checkoutItems={checkoutItems}
+//               deliveryOption={deliveryOption}
+//               insufficientSkus={insufficientSkus}
+//               onFixInsufficientItem={async (item) => {
+//                 const cartRowId = Number(item.cartId ?? item.id);
+//                 const productId = item.productId;
+
+//                 setCheckoutItems((prev) =>
+//                   prev.filter((x) => x.id !== item.id),
+//                 );
+
+//                 try {
+//                   await fetch("/api/cart/remove", {
+//                     method: "POST",
+//                     headers: { "Content-Type": "application/json" },
+//                     body: JSON.stringify({ id: cartRowId }),
+//                   });
+//                 } catch {}
+
+//                 if (productId) {
+//                   router.push(
+//                     `/product/${productId}?returnTo=${encodeURIComponent(
+//                       "/checkout",
+//                     )}`,
+//                   );
+//                   return;
+//                 }
+
+//                 router.push("/products");
+//               }}
+//               onChangeDeliveryOption={setDeliveryOption}
+//               onRemoveItem={(id) =>
+//                 setCheckoutItems((items) =>
+//                   items.filter((item) => item.id !== id),
+//                 )
+//               }
+//             />
+//           </div>
+
+//           {/* ขวา */}
+//           <div className="space-y-6">
+//             <CheckoutPaymentSection
+//               paymentMethod={paymentMethod}
+//               onChangePaymentMethod={setPaymentMethod}
+//             />
+
+//             <CheckoutSummarySection
+//               itemCount={checkoutItems.length}
+//               subtotal={subtotal}
+//               shippingFee={shippingFee}
+//               voucherDiscount={voucherDiscount}
+//               total={total}
+//               onPlaceOrder={handlePlaceOrder}
+//               items={checkoutItems as any}
+//               setInsufficientSkus={setInsufficientSkus}
+//             />
+//           </div>
+//         </div>
+//       </div>
+
+//       <PaymentPopup
+//         open={paymentPopupOpen}
+//         onClose={() => {
+//           setPaymentPopupOpen(false);
+//           submittingRef.current = false;
+//         }}
+//         iframeUrl=""
+//         title={paymentMethod === "qr" ? "ชำระเงิน QR Code" : "ชำระเงินด้วยบัตร"}
+//       />
+//     </div>
+//   );
+// }
 
 // v.1.1.17 =================================================================
 

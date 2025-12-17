@@ -131,7 +131,7 @@ export function HeaderUserMenu() {
               โปรไฟล์
             </DropdownMenuItem>
 
-            <DropdownMenuItem onClick={() => go("/orders")}>
+            <DropdownMenuItem onClick={() => go("/profile/orders")}>
               ประวัติการสั่งซื้อ
             </DropdownMenuItem>
 
